@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 
@@ -21,12 +22,64 @@ func main() {
 }
 
 func updateFile(filename string) error {
-	f, err := parseConfig(filename)
+	r, err := os.Open(filename)
+	if err != nil {
+		return fmt.Errorf("failed to open file: %+v", err)
+	}
+
+	err = update(r, filename, os.Stdout)
 	if err != nil {
 		return err
 	}
 
-	err = updateTerraform(f)
+	return nil
+}
+
+func update(r io.Reader, filename string, w io.Writer) error {
+	f, err := parseHCL(r, filename)
+	if err != nil {
+		return err
+	}
+
+	err = updateHCL(f)
+	if err != nil {
+		return err
+	}
+
+	err = writeHCL(f, w)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func parseHCL(r io.Reader, filename string) (*hclwrite.File, error) {
+	src, err := ioutil.ReadAll(r)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to read input: err = %+v", err)
+	}
+
+	f, diags := hclwrite.ParseConfig(src, filename, hcl.Pos{Line: 1, Column: 1})
+	if diags.HasErrors() {
+		return nil, fmt.Errorf("failed to parse file: %s", diags)
+	}
+
+	return f, nil
+}
+
+func writeHCL(f *hclwrite.File, w io.Writer) error {
+	tokens := f.BuildTokens(nil)
+	buf := hclwrite.Format(tokens.Bytes())
+
+	fmt.Fprintln(w, string(buf))
+
+	return nil
+}
+
+func updateHCL(f *hclwrite.File) error {
+	err := updateTerraform(f)
 	if err != nil {
 		return err
 	}
@@ -36,25 +89,7 @@ func updateFile(filename string) error {
 		return err
 	}
 
-	tokens := f.BuildTokens(nil)
-	buf := hclwrite.Format(tokens.Bytes())
-
-	fmt.Printf("%s\n", buf)
 	return nil
-}
-
-func parseConfig(filename string) (*hclwrite.File, error) {
-	src, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %s, err = %+v", filename, err)
-	}
-
-	f, diags := hclwrite.ParseConfig(src, filename, hcl.Pos{Line: 1, Column: 1})
-	if diags.HasErrors() {
-		return nil, fmt.Errorf("failed to parse file: %s", diags)
-	}
-
-	return f, nil
 }
 
 func updateTerraform(f *hclwrite.File) error {
