@@ -7,4 +7,4 @@ require (
 	github.com/zclconf/go-cty v1.0.0
 )
 
-replace github.com/hashicorp/hcl2 => github.com/minamijoyo/hcl2 v0.0.0-20190811140759-0f80dee7807c
+replace github.com/hashicorp/hcl2 => github.com/minamijoyo/hcl2 v0.0.0-20190817150234-1aba4ac822ee

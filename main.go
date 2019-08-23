@@ -24,13 +24,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	tf := f.Body().GetBlock("terraform", []string{})
+	tf := f.Body().FirstMatchingBlock("terraform", []string{})
 	tf.Body().SetAttributeValue("required_version", cty.StringVal("0.12.6"))
 
-	providers := tf.Body().GetBlock("required_providers", []string{})
+	providers := tf.Body().FirstMatchingBlock("required_providers", []string{})
 	providers.Body().SetAttributeValue("null", cty.StringVal("2.1.2"))
 
-	aws := f.Body().GetBlock("provider", []string{"aws"})
+	aws := f.Body().FirstMatchingBlock("provider", []string{"aws"})
 	aws.Body().SetAttributeValue("version", cty.StringVal("2.23.0"))
 
 	tokens := f.BuildTokens(nil)
