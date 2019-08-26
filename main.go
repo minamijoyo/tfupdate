@@ -8,26 +8,34 @@ import (
 
 	"github.com/hashicorp/hcl2/hcl"
 	"github.com/hashicorp/hcl2/hclwrite"
-	"github.com/zclconf/go-cty/cty"
+	"github.com/minamijoyo/tfupdate/tfupdate"
 )
 
 func main() {
 	filename := "./main.tf"
 
-	err := updateFile(filename)
+	updaterType := "terraform"
+	name := ""
+	version := "0.12.7"
+
+	// updaterType := "provider"
+	// name := "aws"
+	// version := "2.23.0"
+
+	err := updateFile(filename, updaterType, name, version)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func updateFile(filename string) error {
+func updateFile(filename string, updaterType string, name string, version string) error {
 	r, err := os.Open(filename)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %+v", err)
 	}
 
-	err = update(r, filename, os.Stdout)
+	err = update(r, os.Stdout, filename, updaterType, name, version)
 	if err != nil {
 		return err
 	}
@@ -35,13 +43,13 @@ func updateFile(filename string) error {
 	return nil
 }
 
-func update(r io.Reader, filename string, w io.Writer) error {
+func update(r io.Reader, w io.Writer, filename string, updaterType string, name string, version string) error {
 	f, err := parseHCL(r, filename)
 	if err != nil {
 		return err
 	}
 
-	err = updateHCL(f)
+	err = updateHCL(f, updaterType, name, version)
 	if err != nil {
 		return err
 	}
@@ -78,34 +86,11 @@ func writeHCL(f *hclwrite.File, w io.Writer) error {
 	return nil
 }
 
-func updateHCL(f *hclwrite.File) error {
-	err := updateTerraform(f)
+func updateHCL(f *hclwrite.File, updaterType string, name string, version string) error {
+	u, err := tfupdate.NewUpdater(updaterType, name, version)
 	if err != nil {
 		return err
 	}
 
-	err = updateProvider(f)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func updateTerraform(f *hclwrite.File) error {
-	tf := f.Body().FirstMatchingBlock("terraform", []string{})
-	tf.Body().SetAttributeValue("required_version", cty.StringVal("0.12.6"))
-
-	return nil
-}
-
-func updateProvider(f *hclwrite.File) error {
-	tf := f.Body().FirstMatchingBlock("terraform", []string{})
-	providers := tf.Body().FirstMatchingBlock("required_providers", []string{})
-	providers.Body().SetAttributeValue("null", cty.StringVal("2.1.2"))
-
-	aws := f.Body().FirstMatchingBlock("provider", []string{"aws"})
-	aws.Body().SetAttributeValue("version", cty.StringVal("2.23.0"))
-
-	return nil
+	return u.Update(f)
 }
