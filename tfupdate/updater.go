@@ -12,19 +12,35 @@ type Updater interface {
 	Update(*hclwrite.File) error
 }
 
+// Option is a set of parameters to update.
+type Option struct {
+	updaterType string
+	name        string
+	version     string
+}
+
 // NewUpdater is a factory method which returns an Updater implementation.
-func NewUpdater(updaterType, name string, version string) (Updater, error) {
-	switch updaterType {
+func NewUpdater(o Option) (Updater, error) {
+	switch o.updaterType {
 	case "terraform":
-		return NewTerraformUpdater(version)
+		return NewTerraformUpdater(o.version)
 	case "provider":
 		return &ProviderUpdater{
-			name:    name,
-			version: version,
+			name:    o.name,
+			version: o.version,
 		}, nil
 	case "module":
 		return nil, errors.Errorf("failed to new updater. module is not currently supported.")
 	default:
-		return nil, errors.Errorf("failed to new updater. unknown type: %s", updaterType)
+		return nil, errors.Errorf("failed to new updater. unknown type: %s", o.updaterType)
+	}
+}
+
+// NewOption returns an option.
+func NewOption(updateType string, name string, version string) Option {
+	return Option{
+		updaterType: updateType,
+		name:        name,
+		version:     version,
 	}
 }

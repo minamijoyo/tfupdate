@@ -22,20 +22,21 @@ func main() {
 	// name := "aws"
 	// version := "2.23.0"
 
-	err := updateFile(filename, updaterType, name, version)
+	option := tfupdate.NewOption(updaterType, name, version)
+	err := updateFile(filename, option)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func updateFile(filename string, updaterType string, name string, version string) error {
+func updateFile(filename string, o tfupdate.Option) error {
 	r, err := os.Open(filename)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %+v", err)
 	}
 
-	err = update(r, os.Stdout, filename, updaterType, name, version)
+	err = update(r, os.Stdout, filename, o)
 	if err != nil {
 		return err
 	}
@@ -43,13 +44,13 @@ func updateFile(filename string, updaterType string, name string, version string
 	return nil
 }
 
-func update(r io.Reader, w io.Writer, filename string, updaterType string, name string, version string) error {
+func update(r io.Reader, w io.Writer, filename string, o tfupdate.Option) error {
 	f, err := parseHCL(r, filename)
 	if err != nil {
 		return err
 	}
 
-	err = updateHCL(f, updaterType, name, version)
+	err = updateHCL(f, o)
 	if err != nil {
 		return err
 	}
@@ -86,8 +87,8 @@ func writeHCL(f *hclwrite.File, w io.Writer) error {
 	return nil
 }
 
-func updateHCL(f *hclwrite.File, updaterType string, name string, version string) error {
-	u, err := tfupdate.NewUpdater(updaterType, name, version)
+func updateHCL(f *hclwrite.File, o tfupdate.Option) error {
+	u, err := tfupdate.NewUpdater(o)
 	if err != nil {
 		return err
 	}
