@@ -65,6 +65,40 @@ terraform {
 `,
 			ok: true,
 		},
+		{
+			src: `
+terraform {
+  required_providers {
+    null = "2.1.1"
+  }
+}
+`,
+			version: "0.12.7",
+			want: `
+terraform {
+  required_providers {
+    null = "2.1.1"
+  }
+}
+`,
+			ok: true,
+		},
+		{
+			src: `
+provider "aws" {
+  version = "2.11.0"
+  region  = "ap-northeast-1"
+}
+`,
+			version: "0.12.7",
+			want: `
+provider "aws" {
+  version = "2.11.0"
+  region  = "ap-northeast-1"
+}
+`,
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {

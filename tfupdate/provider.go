@@ -52,7 +52,11 @@ func (u *ProviderUpdater) updateTerraformBlock(f *hclwrite.File) error {
 	if p == nil {
 		return nil
 	}
-	p.Body().SetAttributeValue(u.name, cty.StringVal(u.version))
+
+	// set a version to attribute value only if the key exists
+	if p.Body().GetAttribute(u.name) != nil {
+		p.Body().SetAttributeValue(u.name, cty.StringVal(u.version))
+	}
 
 	return nil
 }
@@ -63,7 +67,10 @@ func (u *ProviderUpdater) updateProviderBlock(f *hclwrite.File) error {
 		return nil
 	}
 
-	p.Body().SetAttributeValue("version", cty.StringVal(u.version))
+	// set a version to attribute value only if the key exists
+	if p.Body().GetAttribute("version") != nil {
+		p.Body().SetAttributeValue("version", cty.StringVal(u.version))
+	}
 
 	return nil
 }

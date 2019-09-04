@@ -26,7 +26,14 @@ func NewTerraformUpdater(version string) (Updater, error) {
 // Note that this method will rewrite the AST passed as an argument.
 func (u *TerraformUpdater) Update(f *hclwrite.File) error {
 	tf := f.Body().FirstMatchingBlock("terraform", []string{})
-	tf.Body().SetAttributeValue("required_version", cty.StringVal(u.version))
+	if tf == nil {
+		return nil
+	}
+
+	// set a version to attribute value only if the key exists
+	if tf.Body().GetAttribute("required_version") != nil {
+		tf.Body().SetAttributeValue("required_version", cty.StringVal(u.version))
+	}
 
 	return nil
 }

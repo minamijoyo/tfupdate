@@ -100,6 +100,42 @@ provider "aws" {
 `,
 			ok: true,
 		},
+		{
+			src: `
+terraform {
+  required_version = "0.12.4"
+  required_providers {
+    null = "2.1.1"
+  }
+}
+`,
+			name:    "aws",
+			version: "2.23.0",
+			want: `
+terraform {
+  required_version = "0.12.4"
+  required_providers {
+    null = "2.1.1"
+  }
+}
+`,
+			ok: true,
+		},
+		{
+			src: `
+provider "aws" {
+  region = "ap-northeast-1"
+}
+`,
+			name:    "aws",
+			version: "2.23.0",
+			want: `
+provider "aws" {
+  region = "ap-northeast-1"
+}
+`,
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {
