@@ -4,94 +4,89 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 
-	"github.com/hashicorp/hcl2/hcl"
-	"github.com/hashicorp/hcl2/hclwrite"
-	"github.com/minamijoyo/tfupdate/tfupdate"
+	"github.com/hashicorp/logutils"
+	"github.com/minamijoyo/tfupdate/command"
+	"github.com/mitchellh/cli"
 )
 
+// Version is a version number.
+var version = "0.0.1"
+
+// UI is a user interface which is a global variable for mocking.
+var UI cli.Ui
+
+func init() {
+	UI = &cli.BasicUi{
+		Writer: os.Stdout,
+	}
+}
+
 func main() {
-	filename := "./main.tf"
+	log.SetOutput(logOutput())
+	log.Printf("[INFO] CLI args: %#v", os.Args)
 
-	updaterType := "terraform"
-	name := ""
-	version := "0.12.7"
+	commands := initCommands()
 
-	// updaterType := "provider"
-	// name := "aws"
-	// version := "2.23.0"
+	args := os.Args[1:]
 
-	option := tfupdate.NewOption(updaterType, name, version)
-	err := updateFile(filename, option)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+	c := &cli.CLI{
+		Name:                  "tfupdate",
+		Version:               version,
+		Args:                  args,
+		Commands:              commands,
+		HelpWriter:            os.Stdout,
+		Autocomplete:          true,
+		AutocompleteInstall:   "install-autocomplete",
+		AutocompleteUninstall: "uninstall-autocomplete",
 	}
+
+	exitStatus, err := c.Run()
+	if err != nil {
+		UI.Error(fmt.Sprintf("Failed to execute CLI: %s", err))
+	}
+
+	os.Exit(exitStatus)
 }
 
-func updateFile(filename string, o tfupdate.Option) error {
-	r, err := os.Open(filename)
-	if err != nil {
-		return fmt.Errorf("failed to open file: %+v", err)
+func logOutput() io.Writer {
+	levels := []logutils.LogLevel{"TRACE", "DEBUG", "INFO", "WARN", "ERROR"}
+	minLevel := os.Getenv("TFUPDATE_LOG")
+
+	// default log writer is null device.
+	writer := ioutil.Discard
+	if minLevel != "" {
+		writer = os.Stderr
 	}
 
-	err = update(r, os.Stdout, filename, o)
-	if err != nil {
-		return err
+	filter := &logutils.LevelFilter{
+		Levels:   levels,
+		MinLevel: logutils.LogLevel(minLevel),
+		Writer:   writer,
 	}
 
-	return nil
+	return filter
 }
 
-func update(r io.Reader, w io.Writer, filename string, o tfupdate.Option) error {
-	f, err := parseHCL(r, filename)
-	if err != nil {
-		return err
+func initCommands() map[string]cli.CommandFactory {
+	meta := command.Meta{
+		UI: UI,
 	}
 
-	err = updateHCL(f, o)
-	if err != nil {
-		return err
+	commands := map[string]cli.CommandFactory{
+		"terraform": func() (cli.Command, error) {
+			return &command.TerraformCommand{
+				Meta: meta,
+			}, nil
+		},
+		"provider": func() (cli.Command, error) {
+			return &command.ProviderCommand{
+				Meta: meta,
+			}, nil
+		},
 	}
 
-	err = writeHCL(f, w)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func parseHCL(r io.Reader, filename string) (*hclwrite.File, error) {
-	src, err := ioutil.ReadAll(r)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to read input: err = %+v", err)
-	}
-
-	f, diags := hclwrite.ParseConfig(src, filename, hcl.Pos{Line: 1, Column: 1})
-	if diags.HasErrors() {
-		return nil, fmt.Errorf("failed to parse file: %s", diags)
-	}
-
-	return f, nil
-}
-
-func writeHCL(f *hclwrite.File, w io.Writer) error {
-	tokens := f.BuildTokens(nil)
-	buf := hclwrite.Format(tokens.Bytes())
-
-	fmt.Fprintln(w, string(buf))
-
-	return nil
-}
-
-func updateHCL(f *hclwrite.File, o tfupdate.Option) error {
-	u, err := tfupdate.NewUpdater(o)
-	if err != nil {
-		return err
-	}
-
-	return u.Update(f)
+	return commands
 }
