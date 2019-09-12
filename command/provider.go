@@ -10,26 +10,28 @@ import (
 // ProviderCommand is a command which update version constraints for provider.
 type ProviderCommand struct {
 	Meta
-	path string
+	target string
+	path   string
 }
 
 // Run runs the procedure of this command.
 func (c *ProviderCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("provider", flag.ContinueOnError)
+	cmdFlags.StringVar(&c.target, "v", "", "A new version constraint")
 	cmdFlags.StringVar(&c.path, "f", "main.tf", "A path to filename to update")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		return 1
 	}
 
-	if len(cmdFlags.Args()) != 1 {
-		c.UI.Error("The provider command expects <NAME>@<VERSION>")
+	if len(cmdFlags.Args()) != 0 {
+		c.UI.Error("The provider command expects no arguments")
 		c.UI.Error(c.Help())
 		return 1
 	}
 
 	updateType := "provider"
-	target := cmdFlags.Args()[0]
+	target := c.target
 	filename := c.path
 
 	option := tfupdate.NewOption(updateType, target)
@@ -45,11 +47,12 @@ func (c *ProviderCommand) Run(args []string) int {
 // Help returns long-form help text.
 func (c *ProviderCommand) Help() string {
 	helpText := `
-Usage: tfupdate provider [options] <NAME>@<VERSION>
+Usage: tfupdate provider [options]
 
 Options:
-
-  -f=path    A path to filename to update
+  -v    A new version constraint.
+        The valid format is <PROVIER_NAME>@<VERSION>
+  -f    A path to filename to update
 `
 	return strings.TrimSpace(helpText)
 }

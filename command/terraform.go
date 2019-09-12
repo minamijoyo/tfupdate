@@ -10,26 +10,28 @@ import (
 // TerraformCommand is a command which update version constraints for terraform.
 type TerraformCommand struct {
 	Meta
-	path string
+	target string
+	path   string
 }
 
 // Run runs the procedure of this command.
 func (c *TerraformCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("terraform", flag.ContinueOnError)
+	cmdFlags.StringVar(&c.target, "v", "", "A new version constraint")
 	cmdFlags.StringVar(&c.path, "f", "main.tf", "A path to filename to update")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		return 1
 	}
 
-	if len(cmdFlags.Args()) != 1 {
-		c.UI.Error("The terraform command expects <VERSION>")
+	if len(cmdFlags.Args()) != 0 {
+		c.UI.Error("The provider command expects no arguments")
 		c.UI.Error(c.Help())
 		return 1
 	}
 
 	updateType := "terraform"
-	target := cmdFlags.Args()[0]
+	target := c.target
 	filename := c.path
 
 	option := tfupdate.NewOption(updateType, target)
@@ -45,11 +47,11 @@ func (c *TerraformCommand) Run(args []string) int {
 // Help returns long-form help text.
 func (c *TerraformCommand) Help() string {
 	helpText := `
-Usage: tfupdate terraform [options] <VERSION>
+Usage: tfupdate terraform [options]
 
 Options:
-
-  -f=path    A path to filename to update
+  -v    A new version constraint
+  -f    A path to filename to update
 `
 	return strings.TrimSpace(helpText)
 }
