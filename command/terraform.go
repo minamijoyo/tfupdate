@@ -16,7 +16,7 @@ type TerraformCommand struct {
 // Run runs the procedure of this command.
 func (c *TerraformCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("terraform", flag.ContinueOnError)
-	cmdFlags.StringVar(&c.path, "path", "main.tf", "")
+	cmdFlags.StringVar(&c.path, "f", "main.tf", "A path to filename to update")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		return 1
@@ -49,7 +49,7 @@ Usage: tfupdate terraform [options] <VERSION>
 
 Options:
 
-  -path=filename    A path to filename to update
+  -f=path    A path to filename to update
 `
 	return strings.TrimSpace(helpText)
 }

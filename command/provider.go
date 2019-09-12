@@ -16,7 +16,7 @@ type ProviderCommand struct {
 // Run runs the procedure of this command.
 func (c *ProviderCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("provider", flag.ContinueOnError)
-	cmdFlags.StringVar(&c.path, "path", "main.tf", "")
+	cmdFlags.StringVar(&c.path, "f", "main.tf", "A path to filename to update")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		return 1
@@ -49,7 +49,7 @@ Usage: tfupdate provider [options] <NAME>@<VERSION>
 
 Options:
 
-  -path=filename    A path to filename to update
+  -f=path    A path to filename to update
 `
 	return strings.TrimSpace(helpText)
 }
