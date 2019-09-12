@@ -22,18 +22,17 @@ func (c *ProviderCommand) Run(args []string) int {
 		return 1
 	}
 
-	if len(cmdFlags.Args()) != 2 {
-		c.UI.Error("The provider command expects <NAME> and <VERSION>")
+	if len(cmdFlags.Args()) != 1 {
+		c.UI.Error("The provider command expects <NAME>@<VERSION>")
 		c.UI.Error(c.Help())
 		return 1
 	}
 
 	updateType := "provider"
-	name := cmdFlags.Args()[0]
-	version := cmdFlags.Args()[1]
+	target := cmdFlags.Args()[0]
 	filename := c.path
 
-	option := tfupdate.NewOption(updateType, name, version)
+	option := tfupdate.NewOption(updateType, target)
 	err := tfupdate.UpdateFile(filename, option)
 	if err != nil {
 		c.UI.Error(err.Error())
@@ -46,7 +45,7 @@ func (c *ProviderCommand) Run(args []string) int {
 // Help returns long-form help text.
 func (c *ProviderCommand) Help() string {
 	helpText := `
-Usage: tfupdate provider [options] <NAME> <VERSION>
+Usage: tfupdate provider [options] <NAME>@<VERSION>
 
 Options:
 

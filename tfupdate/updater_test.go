@@ -14,8 +14,7 @@ func TestNewUpdater(t *testing.T) {
 		{
 			o: Option{
 				updateType: "terraform",
-				name:       "",
-				version:    "0.12.7",
+				target:     "0.12.7",
 			},
 			want: &TerraformUpdater{
 				version: "0.12.7",
@@ -25,8 +24,7 @@ func TestNewUpdater(t *testing.T) {
 		{
 			o: Option{
 				updateType: "provider",
-				name:       "aws",
-				version:    "2.23.0",
+				target:     "aws@2.23.0",
 			},
 			want: &ProviderUpdater{
 				name:    "aws",
@@ -37,8 +35,7 @@ func TestNewUpdater(t *testing.T) {
 		{
 			o: Option{
 				updateType: "module",
-				name:       "terraform-aws-modules/vpc/aws",
-				version:    "2.14.0",
+				target:     "terraform-aws-modules/vpc/aws@2.14.0",
 			},
 			want: nil,
 			ok:   false,
@@ -46,8 +43,7 @@ func TestNewUpdater(t *testing.T) {
 		{
 			o: Option{
 				updateType: "hoge",
-				name:       "",
-				version:    "0.0.1",
+				target:     "0.0.1",
 			},
 			want: nil,
 			ok:   false,

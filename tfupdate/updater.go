@@ -1,6 +1,8 @@
 package tfupdate
 
 import (
+	"strings"
+
 	"github.com/hashicorp/hcl2/hclwrite"
 	"github.com/pkg/errors"
 )
@@ -14,20 +16,24 @@ type Updater interface {
 
 // Option is a set of parameters to update.
 type Option struct {
+	// A type of updater. Valid value is terraform or provider.
 	updateType string
-	name       string
-	version    string
+	// A target to be updated.
+	// If an updateType is terraform, Set a version.
+	// If an updateType is provider, Set a name@version.
+	target string
 }
 
 // NewUpdater is a factory method which returns an Updater implementation.
 func NewUpdater(o Option) (Updater, error) {
 	switch o.updateType {
 	case "terraform":
-		return NewTerraformUpdater(o.version)
+		return NewTerraformUpdater(o.target)
 	case "provider":
+		s := strings.Split(o.target, "@")
 		return &ProviderUpdater{
-			name:    o.name,
-			version: o.version,
+			name:    s[0],
+			version: s[1],
 		}, nil
 	case "module":
 		return nil, errors.Errorf("failed to new updater. module is not currently supported.")
@@ -37,10 +43,9 @@ func NewUpdater(o Option) (Updater, error) {
 }
 
 // NewOption returns an option.
-func NewOption(updateType string, name string, version string) Option {
+func NewOption(updateType string, target string) Option {
 	return Option{
 		updateType: updateType,
-		name:       name,
-		version:    version,
+		target:     target,
 	}
 }

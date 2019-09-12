@@ -29,11 +29,10 @@ func (c *TerraformCommand) Run(args []string) int {
 	}
 
 	updateType := "terraform"
-	name := ""
-	version := cmdFlags.Args()[0]
+	target := cmdFlags.Args()[0]
 	filename := c.path
 
-	option := tfupdate.NewOption(updateType, name, version)
+	option := tfupdate.NewOption(updateType, target)
 	err := tfupdate.UpdateFile(filename, option)
 	if err != nil {
 		c.UI.Error(err.Error())
