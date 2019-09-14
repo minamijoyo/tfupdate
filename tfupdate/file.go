@@ -22,7 +22,7 @@ func UpdateFile(filename string, o Option) error {
 	defer r.Close()
 
 	w := &bytes.Buffer{}
-	err = update(r, w, filename, o)
+	err = UpdateHCL(r, w, filename, o)
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,9 @@ func UpdateFile(filename string, o Option) error {
 	return nil
 }
 
-func update(r io.Reader, w io.Writer, filename string, o Option) error {
+// UpdateHCL reads HCL from io.Reader and writes updated HCL to io.Writer.
+// Note that a filename is used only for an error message.
+func UpdateHCL(r io.Reader, w io.Writer, filename string, o Option) error {
 	src, err := ioutil.ReadAll(r)
 	if err != nil {
 		return fmt.Errorf("failed to read input: %s", err)
