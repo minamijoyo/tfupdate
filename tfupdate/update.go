@@ -56,7 +56,8 @@ func NewOption(updateType string, target string) Option {
 	}
 }
 
-// UpdateHCL reads HCL from io.Reader and writes updated HCL to io.Writer.
+// UpdateHCL reads HCL from io.Reader, updates version constraints
+// and writes updated contents to io.Writer.
 // Note that a filename is used only for an error message.
 func UpdateHCL(r io.Reader, w io.Writer, filename string, o Option) error {
 	src, err := ioutil.ReadAll(r)
