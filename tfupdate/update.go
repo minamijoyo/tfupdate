@@ -58,34 +58,31 @@ func NewOption(updateType string, target string) Option {
 // UpdateHCL reads HCL from io.Reader, updates version constraints
 // and writes updated contents to io.Writer.
 // Note that a filename is used only for an error message.
-// If input HCL doesn't match a target of option, nothing is written to the output.
-func UpdateHCL(r io.Reader, w io.Writer, filename string, o Option) error {
-	src, err := ioutil.ReadAll(r)
+// If contents changed successfully, it returns true, or otherwise returns false.
+// If an error occurs, Nothing is written to the output stream.
+func UpdateHCL(r io.Reader, w io.Writer, filename string, o Option) (bool, error) {
+	input, err := ioutil.ReadAll(r)
 	if err != nil {
-		return fmt.Errorf("failed to read input: %s", err)
+		return false, fmt.Errorf("failed to read input: %s", err)
 	}
 
-	f, diags := hclwrite.ParseConfig(src, filename, hcl.Pos{Line: 1, Column: 1})
+	f, diags := hclwrite.ParseConfig(input, filename, hcl.Pos{Line: 1, Column: 1})
 	if diags.HasErrors() {
-		return fmt.Errorf("failed to parse input: %s", diags)
+		return false, fmt.Errorf("failed to parse input: %s", diags)
 	}
 
 	u, err := NewUpdater(o)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	u.Update(f)
-	updated := f.BuildTokens(nil).Bytes()
+	output := f.BuildTokens(nil).Bytes()
 
-	// Write contents to buffer if changed.
-	if !bytes.Equal(src, updated) {
-		result := hclwrite.Format(updated)
-
-		if _, err := w.Write(result); err != nil {
-			return fmt.Errorf("failed to write output: %s", err)
-		}
+	if _, err := w.Write(output); err != nil {
+		return false, fmt.Errorf("failed to write output: %s", err)
 	}
 
-	return nil
+	isUpdated := !bytes.Equal(input, output)
+	return isUpdated, nil
 }

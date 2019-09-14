@@ -69,10 +69,11 @@ func TestNewUpdater(t *testing.T) {
 
 func TestUpdateHCL(t *testing.T) {
 	cases := []struct {
-		src  string
-		o    Option
-		want string
-		ok   bool
+		src       string
+		o         Option
+		want      string
+		isUpdated bool
+		ok        bool
 	}{
 		{
 			src: `
@@ -84,12 +85,18 @@ terraform {
 				updateType: "terraform",
 				target:     "0.12.7",
 			},
+			// Note the lack of space here.
+			// the current implementation of (*hclwrite.Body).SetAttributeValue()
+			// does not seem to preserve an original SpaceBefore value of attribute.
+			// This is a bug of upstream.
+			// We avoid this by formating the output of this function.
 			want: `
 terraform {
-  required_version = "0.12.7"
+  required_version ="0.12.7"
 }
 `,
-			ok: true,
+			isUpdated: true,
+			ok:        true,
 		},
 		{
 			src: `
@@ -103,10 +110,11 @@ provider "aws" {
 			},
 			want: `
 provider "aws" {
-  version = "2.23.0"
+  version ="2.23.0"
 }
 `,
-			ok: true,
+			isUpdated: true,
+			ok:        true,
 		},
 		{
 			src: `
@@ -118,8 +126,13 @@ provider "aws" {
 				updateType: "provider",
 				target:     "hoge@2.23.0",
 			},
-			want: "",
-			ok:   true,
+			want: `
+provider "aws" {
+  version = "2.11.0"
+}
+`,
+			isUpdated: false,
+			ok:        true,
 		},
 		{
 			src: `
@@ -129,8 +142,9 @@ provider "invalid" {
 				updateType: "provider",
 				target:     "hoge@2.23.0",
 			},
-			want: "",
-			ok:   false,
+			want:      "",
+			isUpdated: false,
+			ok:        false,
 		},
 		{
 			src: `
@@ -142,21 +156,26 @@ provider "aws" {
 				updateType: "hoge",
 				target:     "0.0.1",
 			},
-			want: "",
-			ok:   false,
+			want:      "",
+			isUpdated: false,
+			ok:        false,
 		},
 	}
 
 	for _, tc := range cases {
 		r := bytes.NewBufferString(tc.src)
 		w := &bytes.Buffer{}
-		err := UpdateHCL(r, w, "test", tc.o)
+		isUpdated, err := UpdateHCL(r, w, "test", tc.o)
 		if tc.ok && err != nil {
 			t.Errorf("UpdateHCL() with src = %s, o = %#v returns unexpected err: %+v", tc.src, tc.o, err)
 		}
 
 		if !tc.ok && err == nil {
 			t.Errorf("UpdateHCL() with src = %s, o = %#v expects to return an error, but no error: %+v", tc.src, tc.o, err)
+		}
+
+		if isUpdated != tc.isUpdated {
+			t.Errorf("UpdateHCL() with src = %s, o = %#v expects to return isUpdated = %t, but want = %t", tc.src, tc.o, isUpdated, tc.isUpdated)
 		}
 
 		got := string(w.Bytes())
