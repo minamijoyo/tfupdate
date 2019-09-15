@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/logutils"
 	"github.com/minamijoyo/tfupdate/command"
 	"github.com/mitchellh/cli"
+	"github.com/spf13/afero"
 )
 
 // Version is a version number.
@@ -73,6 +74,7 @@ func logOutput() io.Writer {
 func initCommands() map[string]cli.CommandFactory {
 	meta := command.Meta{
 		UI: UI,
+		Fs: afero.NewOsFs(),
 	}
 
 	commands := map[string]cli.CommandFactory{

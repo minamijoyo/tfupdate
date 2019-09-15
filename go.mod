@@ -7,6 +7,7 @@ require (
 	github.com/hashicorp/logutils v1.0.0
 	github.com/mitchellh/cli v1.0.0
 	github.com/pkg/errors v0.8.1
+	github.com/spf13/afero v1.2.2
 	github.com/zclconf/go-cty v1.0.0
 )
 

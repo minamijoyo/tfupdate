@@ -35,7 +35,7 @@ func (c *TerraformCommand) Run(args []string) int {
 	filename := c.path
 
 	option := tfupdate.NewOption(updateType, target)
-	err := tfupdate.UpdateFile(filename, option)
+	err := tfupdate.UpdateFile(c.Fs, filename, option)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

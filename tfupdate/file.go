@@ -3,15 +3,16 @@ package tfupdate
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/hashicorp/hcl2/hclwrite"
+	"github.com/spf13/afero"
 )
 
 // UpdateFile updates version constraints in a single file.
-func UpdateFile(filename string, o Option) error {
-	r, err := os.Open(filename)
+// We use an afero filesystem here for testing.
+func UpdateFile(fs afero.Fs, filename string, o Option) error {
+	r, err := fs.Open(filename)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %s", err)
 	}
@@ -31,7 +32,7 @@ func UpdateFile(filename string, o Option) error {
 		// does not seem to preserve an original SpaceBefore value of attribute.
 		// So, we need to format output here.
 		result := hclwrite.Format(updated)
-		if err = ioutil.WriteFile(filename, result, os.ModePerm); err != nil {
+		if err = afero.WriteFile(fs, filename, result, os.ModePerm); err != nil {
 			return fmt.Errorf("failed to write file: %s", err)
 		}
 	}
