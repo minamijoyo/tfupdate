@@ -74,3 +74,15 @@ terraform {
 		}
 	}
 }
+
+func TestUpdateFileNotFound(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	filename := "not_found.tf"
+	o := Option{}
+
+	err := UpdateFile(fs, filename, o)
+
+	if err == nil {
+		t.Errorf("UpdateFile() with filename = %s, o = %#v expects to return an error, but no error", filename, o)
+	}
+}
