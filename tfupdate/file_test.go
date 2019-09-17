@@ -97,7 +97,7 @@ required_version = "0.12.6"
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("UpdateFile() with filename = %s, o = %#v expects to return an error, but no error: %+v", tc.filename, tc.o, err)
+			t.Errorf("UpdateFile() with filename = %s, o = %#v expects to return an error, but no error", tc.filename, tc.o)
 		}
 
 		got, err := afero.ReadFile(fs, tc.filename)

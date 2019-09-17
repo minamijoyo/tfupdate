@@ -45,7 +45,7 @@ func TestNewProviderUpdater(t *testing.T) {
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("NewProviderUpdater() with name = %s, version = %s expects to return an error, but no error: %+v", tc.name, tc.version, err)
+			t.Errorf("NewProviderUpdater() with name = %s, version = %s expects to return an error, but no error", tc.name, tc.version)
 		}
 
 		if !reflect.DeepEqual(got, tc.want) {

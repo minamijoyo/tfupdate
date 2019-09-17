@@ -58,7 +58,7 @@ func TestNewUpdater(t *testing.T) {
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("NewUpdater() with o = %#v expects to return an error, but no error: %+v", tc.o, err)
+			t.Errorf("NewUpdater() with o = %#v expects to return an error, but no error", tc.o)
 		}
 
 		if !reflect.DeepEqual(got, tc.want) {
@@ -171,7 +171,7 @@ provider "aws" {
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("UpdateHCL() with src = %s, o = %#v expects to return an error, but no error: %+v", tc.src, tc.o, err)
+			t.Errorf("UpdateHCL() with src = %s, o = %#v expects to return an error, but no error", tc.src, tc.o)
 		}
 
 		if isUpdated != tc.isUpdated {

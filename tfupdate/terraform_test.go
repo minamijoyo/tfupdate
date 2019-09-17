@@ -35,7 +35,7 @@ func TestNewTerraformUpdater(t *testing.T) {
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("NewTerraformUpdater() with version = %s expects to return an error, but no error: %+v", tc.version, err)
+			t.Errorf("NewTerraformUpdater() with version = %s expects to return an error, but no error", tc.version)
 		}
 
 		if !reflect.DeepEqual(got, tc.want) {
