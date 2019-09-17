@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-func TestUpdateFile(t *testing.T) {
+func TestUpdateFileExist(t *testing.T) {
 	cases := []struct {
 		filename string
 		src      string
@@ -49,6 +49,42 @@ terraform {
 }
 `,
 			ok: false,
+		},
+		{
+			filename: "unformatted_match.tf",
+			src: `
+terraform {
+required_version = "0.12.6"
+}
+`,
+			o: Option{
+				updateType: "terraform",
+				target:     "0.12.7",
+			},
+			want: `
+terraform {
+  required_version = "0.12.7"
+}
+`,
+			ok: true,
+		},
+		{
+			filename: "unformatted_mo_match.tf",
+			src: `
+terraform {
+required_version = "0.12.6"
+}
+`,
+			o: Option{
+				updateType: "provider",
+				target:     "aws@2.23.0",
+			},
+			want: `
+terraform {
+required_version = "0.12.6"
+}
+`,
+			ok: true,
 		},
 	}
 	for _, tc := range cases {
