@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/hashicorp/hcl2/hclwrite"
 	"github.com/spf13/afero"
@@ -37,5 +38,50 @@ func UpdateFile(fs afero.Fs, filename string, o Option) error {
 		}
 	}
 
+	return nil
+}
+
+// UpdateDir updates version constraints for files in a given directory.
+// If a recursive flag is true, it checks and updates recursively.
+// It skips a .terraform directory because it may contain module code.
+// It also skips a file without .tf extension.
+func UpdateDir(fs afero.Fs, dirname string, recursive bool, o Option) error {
+	dir, err := afero.ReadDir(fs, dirname)
+	if err != nil {
+		return fmt.Errorf("failed to open dir: %s", err)
+	}
+
+	for _, entry := range dir {
+		path := filepath.Join(dirname, entry.Name())
+
+		if entry.IsDir() {
+			// if entry is a directory
+			if !recursive {
+				// skip directory if a recursive flag is false
+				continue
+			}
+			if entry.Name() == ".terraform" {
+				// skip a .terraform directory because it may contain module code.
+				continue
+			}
+
+			err := UpdateDir(fs, path, recursive, o)
+			if err != nil {
+				return err
+			}
+
+		} else {
+			// if entry is a file
+			if filepath.Ext(entry.Name()) != ".tf" {
+				// skip a file without .tf extension.
+				continue
+			}
+
+			err := UpdateFile(fs, path, o)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
