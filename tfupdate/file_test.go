@@ -272,6 +272,38 @@ provider "aws" {
 		},
 		{
 			rootdir:   "a",
+			subdir:    ".git",
+			filename1: "terraform.tf",
+			src1: `
+terraform {
+  required_version = "0.12.6"
+}
+`,
+			filename2: "provider.tf",
+			src2: `
+provider "aws" {
+  version = "2.11.0"
+}
+`,
+			checkdir:  "a",
+			recursive: true,
+			o: Option{
+				updateType: "terraform",
+				target:     "0.12.7",
+			},
+			want1: `
+terraform {
+  required_version = "0.12.6"
+}
+`,
+			want2: `
+provider "aws" {
+  version = "2.11.0"
+}
+`,
+		},
+		{
+			rootdir:   "a",
 			subdir:    "b",
 			filename1: "terraform.hcl",
 			src1: `
