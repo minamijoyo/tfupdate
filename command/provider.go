@@ -10,15 +10,17 @@ import (
 // ProviderCommand is a command which update version constraints for provider.
 type ProviderCommand struct {
 	Meta
-	target string
-	path   string
+	target    string
+	path      string
+	recursive bool
 }
 
 // Run runs the procedure of this command.
 func (c *ProviderCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("provider", flag.ContinueOnError)
 	cmdFlags.StringVar(&c.target, "v", "", "A new version constraint")
-	cmdFlags.StringVar(&c.path, "f", "main.tf", "A path to filename to update")
+	cmdFlags.StringVar(&c.path, "f", "./", "A path of file or directory to update")
+	cmdFlags.BoolVar(&c.recursive, "r", false, "Check a directory recursively")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		return 1
@@ -30,12 +32,8 @@ func (c *ProviderCommand) Run(args []string) int {
 		return 1
 	}
 
-	updateType := "provider"
-	target := c.target
-	filename := c.path
-
-	option := tfupdate.NewOption(updateType, target)
-	err := tfupdate.UpdateFile(c.Fs, filename, option)
+	option := tfupdate.NewOption("provider", c.target)
+	err := tfupdate.UpdateFileOrDir(c.Fs, c.path, c.recursive, option)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
@@ -52,7 +50,8 @@ Usage: tfupdate provider [options]
 Options:
   -v    A new version constraint.
         The valid format is <PROVIER_NAME>@<VERSION>
-  -f    A path to filename to update
+  -f    A path of file or directory to update (default: ./)
+  -r    Check a directory recursively (default: false)
 `
 	return strings.TrimSpace(helpText)
 }
