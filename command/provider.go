@@ -32,6 +32,12 @@ func (c *ProviderCommand) Run(args []string) int {
 		return 1
 	}
 
+	if len(c.target) == 0 {
+		c.UI.Error("Argument error: -v is required\n")
+		c.UI.Error(c.Help())
+		return 1
+	}
+
 	option := tfupdate.NewOption("provider", c.target)
 	err := tfupdate.UpdateFileOrDir(c.Fs, c.path, c.recursive, option)
 	if err != nil {
