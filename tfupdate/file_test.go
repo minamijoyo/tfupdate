@@ -392,3 +392,62 @@ func TestUpdateDirNotFound(t *testing.T) {
 		t.Errorf("UpdateDir() with dirname = %s, recursive = %t, o = %#v expects to return an error, but no error", dirname, recursive, o)
 	}
 }
+
+func TestUpdateFileOrDirFile(t *testing.T) {
+	filename := "terraform.tf"
+	src := `
+terraform {
+  required_version = "0.12.6"
+}
+`
+	recursive := false
+	o := Option{
+		updateType: "terraform",
+		target:     "0.12.7",
+	}
+	want := `
+terraform {
+  required_version = "0.12.7"
+}
+`
+
+	cases := []struct {
+		path string
+	}{
+		{
+			path: "a",
+		},
+		{
+			path: "a/terraform.tf",
+		},
+	}
+
+	for _, tc := range cases {
+		fs := afero.NewMemMapFs()
+		dirname := "a"
+		err := fs.MkdirAll(dirname, os.ModePerm)
+		if err != nil {
+			t.Fatalf("failed to create dir: %s", err)
+		}
+
+		err = afero.WriteFile(fs, filepath.Join(dirname, filename), []byte(src), 0644)
+		if err != nil {
+			t.Fatalf("failed to write file: %s", err)
+		}
+
+		err = UpdateFileOrDir(fs, tc.path, recursive, o)
+
+		if err != nil {
+			t.Errorf("UpdateFileOrDir() with path = %s, recursive = %t, o = %#v returns an unexpected error: %+v", tc.path, recursive, o, err)
+		}
+
+		got, err := afero.ReadFile(fs, filepath.Join(dirname, filename))
+		if err != nil {
+			t.Fatalf("failed to read file: %s", err)
+		}
+
+		if string(got) != want {
+			t.Errorf("UpdateFileOrDir() with path = %s, recursive = %t, o = %#v returns %s, but want = %s", tc.path, recursive, o, string(got), want)
+		}
+	}
+}

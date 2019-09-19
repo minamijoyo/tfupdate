@@ -56,7 +56,7 @@ func UpdateDir(fs afero.Fs, dirname string, recursive bool, o Option) error {
 		path := filepath.Join(dirname, entry.Name())
 
 		if entry.IsDir() {
-			// if entry is a directory
+			// if an entry is a directory
 			if !recursive {
 				// skip directory if a recursive flag is false
 				continue
@@ -71,18 +71,35 @@ func UpdateDir(fs afero.Fs, dirname string, recursive bool, o Option) error {
 				return err
 			}
 
-		} else {
-			// if entry is a file
-			if filepath.Ext(entry.Name()) != ".tf" {
-				// skip a file without .tf extension.
-				continue
-			}
+			continue
+		}
 
-			err := UpdateFile(fs, path, o)
-			if err != nil {
-				return err
-			}
+		// if an entry is a file
+		if filepath.Ext(entry.Name()) != ".tf" {
+			// skip a file without .tf extension.
+			continue
+		}
+
+		err := UpdateFile(fs, path, o)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+// UpdateFileOrDir updates version constraints in a given file or directory.
+func UpdateFileOrDir(fs afero.Fs, path string, recursive bool, o Option) error {
+	isDir, err := afero.IsDir(fs, path)
+	if err != nil {
+		return fmt.Errorf("failed to open path: %s", err)
+	}
+
+	if isDir {
+		// if an entry is a directory
+		return UpdateDir(fs, path, recursive, o)
+	}
+
+	// if an entry is a file
+	return UpdateFile(fs, path, o)
 }
