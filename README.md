@@ -1,12 +1,11 @@
 # tfupdate
 
-Update version constraints in your Terraform configurations
+Update version constraints in your Terraform configurations.
 
-# Why?
-
-It is a best practice to break your Terraform configuration and state into smaller pieces based on the frequency of updates to minimize the impact of an accident.
-It is also recommended that you lock versions of Terraform core and dependent providers and keep them up to date by updating them regularly.
-However, it is a toil to update the version constraints scattered across multiple directories in Terraform configurations.
+It is a best practice to break your Terraform configuration and state into small pieces based on the environments and frequency of changes to minimize the impact of an accident.
+It is also recommended that you lock versions of Terraform core and dependent providers to avoid unexpected breaking changes. If you decided to lock version constraints, you probably want to keep them up to date frequently to reduce the risk of version upgrade failures.
+It's easy to update a single directory, but what if it's scattered across multiple directories?
+Of course you can do it with find, xargs, and sed, but it is fragile because it doesn't really understand HCL.
 
 That is why I wrote a tool which parses Terraform configurations and updates all version constraints at once.
 
@@ -54,8 +53,8 @@ index ce0ff1c..1dd7294 100644
 
  provider "aws" {
 
-$ git add . && git commit -m "Bump terraform to v0.12.8"
-[master dc46c06] Bump terraform to v0.12.8
+$ git add . && git commit -m "Update terraform to v0.12.8"
+[master dc46c06] Update terraform to v0.12.8
  1 file changed, 1 insertion(+), 1 deletion(-)
 ```
 
@@ -75,8 +74,8 @@ index 1dd7294..241ac69 100644
 +  version = "2.28.0"
  }
 
-$ git add . && git commit -m "Bump terraform-provider-aws to v2.28.0"
-[master 0e298ac] Bump terraform-provider-aws to v2.28.0
+$ git add . && git commit -m "Update terraform-provider-aws to v2.28.0"
+[master 0e298ac] Update terraform-provider-aws to v2.28.0
  1 file changed, 1 insertion(+), 1 deletion(-)
 ```
 
