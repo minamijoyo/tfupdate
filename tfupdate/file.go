@@ -3,6 +3,7 @@ package tfupdate
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,6 +15,7 @@ import (
 // UpdateFile updates version constraints in a single file.
 // We use an afero filesystem here for testing.
 func UpdateFile(fs afero.Fs, filename string, o Option) error {
+	log.Printf("[DEBUG] check file: %s", filename)
 	r, err := fs.Open(filename)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %s", err)
@@ -28,6 +30,7 @@ func UpdateFile(fs afero.Fs, filename string, o Option) error {
 
 	// Write contents back to source file if changed.
 	if isUpdated {
+		log.Printf("[INFO] update file: %s", filename)
 		updated := w.Bytes()
 		// We should be able to choose whether to format output or not.
 		// However, the current implementation of (*hclwrite.Body).SetAttributeValue()
@@ -47,6 +50,7 @@ func UpdateFile(fs afero.Fs, filename string, o Option) error {
 // skip hidden directories such as .terraform or .git.
 // It also skips a file without .tf extension.
 func UpdateDir(fs afero.Fs, dirname string, recursive bool, o Option) error {
+	log.Printf("[DEBUG] check dir: %s", dirname)
 	dir, err := afero.ReadDir(fs, dirname)
 	if err != nil {
 		return fmt.Errorf("failed to open dir: %s", err)
