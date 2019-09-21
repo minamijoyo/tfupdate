@@ -19,20 +19,6 @@ type Updater interface {
 	Update(*hclwrite.File) error
 }
 
-// Option is a set of parameters to update.
-type Option struct {
-	// A type of updater. Valid value is terraform or provider.
-	updateType string
-
-	// A target to be updated.
-	// If an updateType is terraform, Set a version.
-	// If an updateType is provider, Set a name@version.
-	target string
-
-	// If a recursive flag is true, it checks and updates directories recursively.
-	recursive bool
-}
-
 // NewUpdater is a factory method which returns an Updater implementation.
 func NewUpdater(o Option) (Updater, error) {
 	switch o.updateType {
@@ -48,15 +34,6 @@ func NewUpdater(o Option) (Updater, error) {
 		return nil, errors.Errorf("failed to new updater. module is not currently supported.")
 	default:
 		return nil, errors.Errorf("failed to new updater. unknown type: %s", o.updateType)
-	}
-}
-
-// NewOption returns an option.
-func NewOption(updateType string, target string, recursive bool) Option {
-	return Option{
-		updateType: updateType,
-		target:     target,
-		recursive:  recursive,
 	}
 }
 

@@ -3,6 +3,7 @@ package tfupdate
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -330,6 +331,39 @@ terraform {
 			want2: `
 provider "aws" {
   version = "2.11.0"
+}
+`,
+		},
+		{
+			rootdir:   "a",
+			subdir:    "b",
+			filename1: "terraform.tf",
+			src1: `
+terraform {
+  required_version = "0.12.6"
+}
+`,
+			filename2: "ignore.tf",
+			src2: `
+terraform {
+  required_version = "0.12.6"
+}
+`,
+			checkdir: "a/b",
+			o: Option{
+				updateType: "terraform",
+				target:     "0.12.7",
+				recursive:  false,
+				ignorePath: regexp.MustCompile(`a/b/ignore.tf`),
+			},
+			want1: `
+terraform {
+  required_version = "0.12.7"
+}
+`,
+			want2: `
+terraform {
+  required_version = "0.12.6"
 }
 `,
 		},
