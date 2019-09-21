@@ -138,7 +138,6 @@ func TestUpdateDirExist(t *testing.T) {
 		src2      string
 		o         Option
 		checkdir  string
-		recursive bool
 		want1     string
 		want2     string
 	}{
@@ -157,11 +156,11 @@ provider "aws" {
   version = "2.11.0"
 }
 `,
-			checkdir:  "a/b",
-			recursive: false,
+			checkdir: "a/b",
 			o: Option{
 				updateType: "terraform",
 				target:     "0.12.7",
+				recursive:  false,
 			},
 			want1: `
 terraform {
@@ -189,11 +188,11 @@ provider "aws" {
   version = "2.11.0"
 }
 `,
-			checkdir:  "a",
-			recursive: true,
+			checkdir: "a",
 			o: Option{
 				updateType: "terraform",
 				target:     "0.12.7",
+				recursive:  true,
 			},
 			want1: `
 terraform {
@@ -221,11 +220,11 @@ provider "aws" {
   version = "2.11.0"
 }
 `,
-			checkdir:  "a",
-			recursive: false,
+			checkdir: "a",
 			o: Option{
 				updateType: "terraform",
 				target:     "0.12.7",
+				recursive:  false,
 			},
 			want1: `
 terraform {
@@ -253,11 +252,11 @@ provider "aws" {
   version = "2.11.0"
 }
 `,
-			checkdir:  "a",
-			recursive: true,
+			checkdir: "a",
 			o: Option{
 				updateType: "terraform",
 				target:     "0.12.7",
+				recursive:  true,
 			},
 			want1: `
 terraform {
@@ -285,11 +284,11 @@ provider "aws" {
   version = "2.11.0"
 }
 `,
-			checkdir:  "a",
-			recursive: true,
+			checkdir: "a",
 			o: Option{
 				updateType: "terraform",
 				target:     "0.12.7",
+				recursive:  true,
 			},
 			want1: `
 terraform {
@@ -317,11 +316,11 @@ provider "aws" {
   version = "2.11.0"
 }
 `,
-			checkdir:  "a/b",
-			recursive: false,
+			checkdir: "a/b",
 			o: Option{
 				updateType: "terraform",
 				target:     "0.12.7",
+				recursive:  false,
 			},
 			want1: `
 terraform {
@@ -354,10 +353,10 @@ provider "aws" {
 			t.Fatalf("failed to write file: %s", err)
 		}
 
-		err = UpdateDir(fs, tc.checkdir, tc.recursive, tc.o)
+		err = UpdateDir(fs, tc.checkdir, tc.o)
 
 		if err != nil {
-			t.Errorf("UpdateDir() with dirname = %s, recursive = %t, o = %#v returns an unexpected error: %+v", tc.checkdir, tc.recursive, tc.o, err)
+			t.Errorf("UpdateDir() with dirname = %s, o = %#v returns an unexpected error: %+v", tc.checkdir, tc.o, err)
 		}
 
 		got1, err := afero.ReadFile(fs, filepath.Join(dirname, tc.filename1))
@@ -366,7 +365,7 @@ provider "aws" {
 		}
 
 		if string(got1) != tc.want1 {
-			t.Errorf("UpdateDir() with dirname = %s, recursive = %t, o = %#v returns %s, but want = %s", dirname, tc.recursive, tc.o, string(got1), tc.want1)
+			t.Errorf("UpdateDir() with dirname = %s, o = %#v returns %s, but want = %s", dirname, tc.o, string(got1), tc.want1)
 		}
 
 		got2, err := afero.ReadFile(fs, filepath.Join(dirname, tc.filename2))
@@ -375,7 +374,7 @@ provider "aws" {
 		}
 
 		if string(got2) != tc.want2 {
-			t.Errorf("UpdateDir() with dirname = %s, recursive = %t, o = %#v returns %s, but want = %s", dirname, tc.recursive, tc.o, string(got2), tc.want2)
+			t.Errorf("UpdateDir() with dirname = %s, o = %#v returns %s, but want = %s", dirname, tc.o, string(got2), tc.want2)
 		}
 	}
 }
@@ -383,13 +382,12 @@ provider "aws" {
 func TestUpdateDirNotFound(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	dirname := "not_found"
-	recursive := false
 	o := Option{}
 
-	err := UpdateDir(fs, dirname, recursive, o)
+	err := UpdateDir(fs, dirname, o)
 
 	if err == nil {
-		t.Errorf("UpdateDir() with dirname = %s, recursive = %t, o = %#v expects to return an error, but no error", dirname, recursive, o)
+		t.Errorf("UpdateDir() with dirname = %s, o = %#v expects to return an error, but no error", dirname, o)
 	}
 }
 
@@ -400,7 +398,6 @@ terraform {
   required_version = "0.12.6"
 }
 `
-	recursive := false
 	o := Option{
 		updateType: "terraform",
 		target:     "0.12.7",
@@ -435,10 +432,10 @@ terraform {
 			t.Fatalf("failed to write file: %s", err)
 		}
 
-		err = UpdateFileOrDir(fs, tc.path, recursive, o)
+		err = UpdateFileOrDir(fs, tc.path, o)
 
 		if err != nil {
-			t.Errorf("UpdateFileOrDir() with path = %s, recursive = %t, o = %#v returns an unexpected error: %+v", tc.path, recursive, o, err)
+			t.Errorf("UpdateFileOrDir() with path = %s, o = %#v returns an unexpected error: %+v", tc.path, o, err)
 		}
 
 		got, err := afero.ReadFile(fs, filepath.Join(dirname, filename))
@@ -447,7 +444,7 @@ terraform {
 		}
 
 		if string(got) != want {
-			t.Errorf("UpdateFileOrDir() with path = %s, recursive = %t, o = %#v returns %s, but want = %s", tc.path, recursive, o, string(got), want)
+			t.Errorf("UpdateFileOrDir() with path = %s, o = %#v returns %s, but want = %s", tc.path, o, string(got), want)
 		}
 	}
 }

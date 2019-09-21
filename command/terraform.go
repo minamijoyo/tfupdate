@@ -38,8 +38,8 @@ func (c *TerraformCommand) Run(args []string) int {
 		return 1
 	}
 
-	option := tfupdate.NewOption("terraform", c.target)
-	err := tfupdate.UpdateFileOrDir(c.Fs, c.path, c.recursive, option)
+	option := tfupdate.NewOption("terraform", c.target, c.recursive)
+	err := tfupdate.UpdateFileOrDir(c.Fs, c.path, option)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

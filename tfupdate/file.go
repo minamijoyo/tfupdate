@@ -49,7 +49,7 @@ func UpdateFile(fs afero.Fs, filename string, o Option) error {
 // If a recursive flag is true, it checks and updates recursively.
 // skip hidden directories such as .terraform or .git.
 // It also skips a file without .tf extension.
-func UpdateDir(fs afero.Fs, dirname string, recursive bool, o Option) error {
+func UpdateDir(fs afero.Fs, dirname string, o Option) error {
 	log.Printf("[DEBUG] check dir: %s", dirname)
 	dir, err := afero.ReadDir(fs, dirname)
 	if err != nil {
@@ -61,7 +61,7 @@ func UpdateDir(fs afero.Fs, dirname string, recursive bool, o Option) error {
 
 		if entry.IsDir() {
 			// if an entry is a directory
-			if !recursive {
+			if !o.recursive {
 				// skip directory if a recursive flag is false
 				continue
 			}
@@ -70,7 +70,7 @@ func UpdateDir(fs afero.Fs, dirname string, recursive bool, o Option) error {
 				continue
 			}
 
-			err := UpdateDir(fs, path, recursive, o)
+			err := UpdateDir(fs, path, o)
 			if err != nil {
 				return err
 			}
@@ -93,7 +93,7 @@ func UpdateDir(fs afero.Fs, dirname string, recursive bool, o Option) error {
 }
 
 // UpdateFileOrDir updates version constraints in a given file or directory.
-func UpdateFileOrDir(fs afero.Fs, path string, recursive bool, o Option) error {
+func UpdateFileOrDir(fs afero.Fs, path string, o Option) error {
 	isDir, err := afero.IsDir(fs, path)
 	if err != nil {
 		return fmt.Errorf("failed to open path: %s", err)
@@ -101,7 +101,7 @@ func UpdateFileOrDir(fs afero.Fs, path string, recursive bool, o Option) error {
 
 	if isDir {
 		// if an entry is a directory
-		return UpdateDir(fs, path, recursive, o)
+		return UpdateDir(fs, path, o)
 	}
 
 	// if an entry is a file

@@ -23,10 +23,14 @@ type Updater interface {
 type Option struct {
 	// A type of updater. Valid value is terraform or provider.
 	updateType string
+
 	// A target to be updated.
 	// If an updateType is terraform, Set a version.
 	// If an updateType is provider, Set a name@version.
 	target string
+
+	// If a recursive flag is true, it checks and updates directories recursively.
+	recursive bool
 }
 
 // NewUpdater is a factory method which returns an Updater implementation.
@@ -48,10 +52,11 @@ func NewUpdater(o Option) (Updater, error) {
 }
 
 // NewOption returns an option.
-func NewOption(updateType string, target string) Option {
+func NewOption(updateType string, target string, recursive bool) Option {
 	return Option{
 		updateType: updateType,
 		target:     target,
+		recursive:  recursive,
 	}
 }
 
