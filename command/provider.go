@@ -1,10 +1,11 @@
 package command
 
 import (
-	"flag"
+	"fmt"
 	"strings"
 
 	"github.com/minamijoyo/tfupdate/tfupdate"
+	flag "github.com/spf13/pflag"
 )
 
 // ProviderCommand is a command which update version constraints for provider.
@@ -19,26 +20,22 @@ type ProviderCommand struct {
 // Run runs the procedure of this command.
 func (c *ProviderCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("provider", flag.ContinueOnError)
-	cmdFlags.StringVar(&c.target, "v", "", "A new version constraint")
-	cmdFlags.StringVar(&c.path, "f", "./", "A path of file or directory to update")
-	cmdFlags.BoolVar(&c.recursive, "r", false, "Check a directory recursively")
-	cmdFlags.StringVar(&c.ignorePath, "ignore-path", "", "A regular expression for path to ignore")
+	cmdFlags.BoolVarP(&c.recursive, "recursive", "r", false, "Check a directory recursively")
+	cmdFlags.StringVarP(&c.ignorePath, "ignore-path", "i", "", "A regular expression for path to ignore")
 
 	if err := cmdFlags.Parse(args); err != nil {
+		c.UI.Error(fmt.Sprintf("failed to parse arguments: %s", err))
 		return 1
 	}
 
-	if len(cmdFlags.Args()) != 0 {
-		c.UI.Error("The provider command expects no arguments")
+	if len(cmdFlags.Args()) != 2 {
+		c.UI.Error(fmt.Sprintf("The command expects 2 arguments, but got %#v", cmdFlags.Args()))
 		c.UI.Error(c.Help())
 		return 1
 	}
 
-	if len(c.target) == 0 {
-		c.UI.Error("Argument error: -v is required\n")
-		c.UI.Error(c.Help())
-		return 1
-	}
+	c.target = cmdFlags.Arg(0)
+	c.path = cmdFlags.Arg(1)
 
 	option, err := tfupdate.NewOption("provider", c.target, c.recursive, c.ignorePath)
 	if err != nil {
@@ -58,14 +55,16 @@ func (c *ProviderCommand) Run(args []string) int {
 // Help returns long-form help text.
 func (c *ProviderCommand) Help() string {
 	helpText := `
-Usage: tfupdate provider [options]
+Usage: tfupdate provider [options] <PROVIER_NAME>@<VERSION> <PATH>
+
+Arguments
+  PROVIER_NAME       A name of provider (e.g. aws, google, azurerm)
+  VERSION            A new version constraint
+  PATH               A path of file or directory to update
 
 Options:
-  -v             A new version constraint.
-                 The valid format is <PROVIER_NAME>@<VERSION>
-  -f             A path of file or directory to update (default: ./)
-  -r             Check a directory recursively (default: false)
-  --ignore-path  A regular expression for path to ignore
+  -r  --recursive    Check a directory recursively (default: false)
+  -i  --ignore-path  A regular expression for path to ignore
 `
 	return strings.TrimSpace(helpText)
 }

@@ -38,7 +38,7 @@ provider "aws" {
 ```
 
 ```
-$ tfupdate terraform -v 0.12.8 -f main.tf
+$ tfupdate terraform 0.12.8 main.tf
 
 $ git diff
 diff --git a/main.tf b/main.tf
@@ -59,7 +59,7 @@ $ git add . && git commit -m "Update terraform to v0.12.8"
 ```
 
 ```
-$ tfupdate provider -v aws@2.28.0 -f ./
+$ tfupdate provider aws@2.28.0 ./
 
 $ git diff
 diff --git a/main.tf b/main.tf
@@ -83,7 +83,7 @@ If you want to update all your Terraform configurations under the current direct
 run a command like this:
 
 ```
-$ tfupdate terraform -v 0.12.8 -f ./ -r
+$ tfupdate terraform 0.12.8 ./ -r
 ```
 
 # Usage
@@ -100,23 +100,29 @@ Available commands are:
 
 ```
 $ tfupdate terraform --help
-Usage: tfupdate terraform [options]
+Usage: tfupdate terraform [options] <VERSION> <PATH>
+
+Arguments
+  VERSION            A new version constraint
+  PATH               A path of file or directory to update
 
 Options:
-  -v    A new version constraint
-  -f    A path of file or directory to update (default: ./)
-  -r    Check a directory recursively (default: false)
+  -r  --recursive    Check a directory recursively (default: false)
+  -i  --ignore-path  A regular expression for path to ignore
 ```
 
 ```
 $ tfupdate provider --help
-Usage: tfupdate provider [options]
+Usage: tfupdate provider [options] <PROVIER_NAME>@<VERSION> <PATH>
+
+Arguments
+  PROVIER_NAME       A name of provider (e.g. aws, google, azurerm)
+  VERSION            A new version constraint
+  PATH               A path of file or directory to update
 
 Options:
-  -v    A new version constraint.
-        The valid format is <PROVIER_NAME>@<VERSION>
-  -f    A path of file or directory to update (default: ./)
-  -r    Check a directory recursively (default: false)
+  -r  --recursive    Check a directory recursively (default: false)
+  -i  --ignore-path  A regular expression for path to ignore
 ```
 
 # License
