@@ -3,13 +3,11 @@ module github.com/minamijoyo/tfupdate
 go 1.12
 
 require (
-	github.com/hashicorp/hcl2 v0.0.0-20190809210004-72d32879a5c5
+	github.com/hashicorp/hcl/v2 v2.0.0
 	github.com/hashicorp/logutils v1.0.0
 	github.com/mitchellh/cli v1.0.0
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/pflag v1.0.5
-	github.com/zclconf/go-cty v1.0.0
+	github.com/zclconf/go-cty v1.1.0
 )
-
-replace github.com/hashicorp/hcl2 => github.com/minamijoyo/hcl2 v0.0.0-20190817150234-1aba4ac822ee
