@@ -95,7 +95,6 @@ Usage: tfupdate [--version] [--help] <command> [<args>]
 Available commands are:
     provider     Update version constraints for provider
     terraform    Update version constraints for terraform
-
 ```
 
 ```
@@ -109,6 +108,7 @@ Arguments
 Options:
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
+                     If you want to ignore multiple directories, set the flag multiple times.
 ```
 
 ```
@@ -123,6 +123,7 @@ Arguments
 Options:
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
+                     If you want to ignore multiple directories, set the flag multiple times.
 ```
 
 # License

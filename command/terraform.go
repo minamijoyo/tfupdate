@@ -11,17 +11,17 @@ import (
 // TerraformCommand is a command which update version constraints for terraform.
 type TerraformCommand struct {
 	Meta
-	target     string
-	path       string
-	recursive  bool
-	ignorePath string
+	target      string
+	path        string
+	recursive   bool
+	ignorePaths []string
 }
 
 // Run runs the procedure of this command.
 func (c *TerraformCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("terraform", flag.ContinueOnError)
 	cmdFlags.BoolVarP(&c.recursive, "recursive", "r", false, "Check a directory recursively")
-	cmdFlags.StringVarP(&c.ignorePath, "ignore-path", "i", "", "A regular expression for path to ignore")
+	cmdFlags.StringArrayVarP(&c.ignorePaths, "ignore-path", "i", []string{}, "A regular expression for path to ignore")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		c.UI.Error(fmt.Sprintf("failed to parse arguments: %s", err))
@@ -37,7 +37,7 @@ func (c *TerraformCommand) Run(args []string) int {
 	c.target = cmdFlags.Arg(0)
 	c.path = cmdFlags.Arg(1)
 
-	option, err := tfupdate.NewOption("terraform", c.target, c.recursive, c.ignorePath)
+	option, err := tfupdate.NewOption("terraform", c.target, c.recursive, c.ignorePaths)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
@@ -64,6 +64,7 @@ Arguments
 Options:
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
+                     If you want to ignore multiple directories, set the flag multiple times.
 `
 	return strings.TrimSpace(helpText)
 }

@@ -59,8 +59,8 @@ func UpdateDir(fs afero.Fs, dirname string, o Option) error {
 	for _, entry := range dir {
 		path := filepath.Join(dirname, entry.Name())
 
-		// if a path of entry matches ignorePath, skip it.
-		if o.ignorePath != nil && o.ignorePath.MatchString(path) {
+		// if a path of entry matches ignorePaths, skip it.
+		if o.MatchIgnorePaths(path) {
 			log.Printf("[DEBUG] ignore: %s", path)
 			continue
 		}

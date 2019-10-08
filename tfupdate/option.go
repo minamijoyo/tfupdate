@@ -18,25 +18,40 @@ type Option struct {
 	// If a recursive flag is true, it checks and updates directories recursively.
 	recursive bool
 
-	// A regular expression for paths to ignore.
-	ignorePath *regexp.Regexp
+	// An array of regular expression for paths to ignore.
+	ignorePaths []*regexp.Regexp
 }
 
 // NewOption returns an option.
-func NewOption(updateType string, target string, recursive bool, ignorePath string) (Option, error) {
-	var ignorePathRegex *regexp.Regexp
-	if len(ignorePath) != 0 {
-		var err error
-		ignorePathRegex, err = regexp.Compile(ignorePath)
+func NewOption(updateType string, target string, recursive bool, ignorePaths []string) (Option, error) {
+	regexps := make([]*regexp.Regexp, 0, len(ignorePaths))
+	for _, ignorePath := range ignorePaths {
+		if len(ignorePath) == 0 {
+			continue
+		}
+
+		r, err := regexp.Compile(ignorePath)
 		if err != nil {
 			return Option{}, fmt.Errorf("faild to compile regexp for ignorePath: %s", err)
 		}
+		regexps = append(regexps, r)
 	}
 
 	return Option{
-		updateType: updateType,
-		target:     target,
-		recursive:  recursive,
-		ignorePath: ignorePathRegex,
+		updateType:  updateType,
+		target:      target,
+		recursive:   recursive,
+		ignorePaths: regexps,
 	}, nil
+}
+
+// MatchIgnorePaths returns whether any of the ignore conditions are met.
+func (o *Option) MatchIgnorePaths(path string) bool {
+	for _, r := range o.ignorePaths {
+		if r.MatchString(path) {
+			return true
+		}
+	}
+
+	return false
 }

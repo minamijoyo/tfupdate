@@ -351,10 +351,10 @@ terraform {
 `,
 			checkdir: "a/b",
 			o: Option{
-				updateType: "terraform",
-				target:     "0.12.7",
-				recursive:  false,
-				ignorePath: regexp.MustCompile(`a/b/ignore.tf`),
+				updateType:  "terraform",
+				target:      "0.12.7",
+				recursive:   false,
+				ignorePaths: []*regexp.Regexp{regexp.MustCompile(`a/b/ignore.tf`)},
 			},
 			want1: `
 terraform {
