@@ -15,7 +15,7 @@ func TestNewUpdater(t *testing.T) {
 		{
 			o: Option{
 				updateType: "terraform",
-				target:     "0.12.7",
+				version:    "0.12.7",
 			},
 			want: &TerraformUpdater{
 				version: "0.12.7",
@@ -25,7 +25,8 @@ func TestNewUpdater(t *testing.T) {
 		{
 			o: Option{
 				updateType: "provider",
-				target:     "aws@2.23.0",
+				name:       "aws",
+				version:    "2.23.0",
 			},
 			want: &ProviderUpdater{
 				name:    "aws",
@@ -36,7 +37,8 @@ func TestNewUpdater(t *testing.T) {
 		{
 			o: Option{
 				updateType: "module",
-				target:     "terraform-aws-modules/vpc/aws@2.14.0",
+				name:       "terraform-aws-modules/vpc/aws",
+				version:    "2.14.0",
 			},
 			want: nil,
 			ok:   false,
@@ -44,7 +46,7 @@ func TestNewUpdater(t *testing.T) {
 		{
 			o: Option{
 				updateType: "hoge",
-				target:     "0.0.1",
+				version:    "0.0.1",
 			},
 			want: nil,
 			ok:   false,
@@ -83,7 +85,7 @@ terraform {
 `,
 			o: Option{
 				updateType: "terraform",
-				target:     "0.12.7",
+				version:    "0.12.7",
 			},
 			// Note the lack of space here.
 			// the current implementation of (*hclwrite.Body).SetAttributeValue()
@@ -106,7 +108,8 @@ provider "aws" {
 `,
 			o: Option{
 				updateType: "provider",
-				target:     "aws@2.23.0",
+				name:       "aws",
+				version:    "2.23.0",
 			},
 			want: `
 provider "aws" {
@@ -124,7 +127,8 @@ provider "aws" {
 `,
 			o: Option{
 				updateType: "provider",
-				target:     "hoge@2.23.0",
+				name:       "hoge",
+				version:    "2.23.0",
 			},
 			want: `
 provider "aws" {
@@ -140,7 +144,8 @@ provider "invalid" {
 `,
 			o: Option{
 				updateType: "provider",
-				target:     "hoge@2.23.0",
+				name:       "hoge",
+				version:    "2.23.0",
 			},
 			want:      "",
 			isUpdated: false,
@@ -154,7 +159,7 @@ provider "aws" {
 `,
 			o: Option{
 				updateType: "hoge",
-				target:     "0.0.1",
+				version:    "0.0.1",
 			},
 			want:      "",
 			isUpdated: false,

@@ -11,7 +11,7 @@ import (
 // TerraformCommand is a command which update version constraints for terraform.
 type TerraformCommand struct {
 	Meta
-	target      string
+	version     string
 	path        string
 	recursive   bool
 	ignorePaths []string
@@ -20,6 +20,7 @@ type TerraformCommand struct {
 // Run runs the procedure of this command.
 func (c *TerraformCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("terraform", flag.ContinueOnError)
+	cmdFlags.StringVarP(&c.version, "version", "v", "latest", "A new version constraint")
 	cmdFlags.BoolVarP(&c.recursive, "recursive", "r", false, "Check a directory recursively")
 	cmdFlags.StringArrayVarP(&c.ignorePaths, "ignore-path", "i", []string{}, "A regular expression for path to ignore")
 
@@ -28,16 +29,15 @@ func (c *TerraformCommand) Run(args []string) int {
 		return 1
 	}
 
-	if len(cmdFlags.Args()) != 2 {
-		c.UI.Error(fmt.Sprintf("The command expects 2 arguments, but got %#v", cmdFlags.Args()))
+	if len(cmdFlags.Args()) != 1 {
+		c.UI.Error(fmt.Sprintf("The command expects 1 argument, but got %#v", cmdFlags.Args()))
 		c.UI.Error(c.Help())
 		return 1
 	}
 
-	c.target = cmdFlags.Arg(0)
-	c.path = cmdFlags.Arg(1)
+	c.path = cmdFlags.Arg(0)
 
-	option, err := tfupdate.NewOption("terraform", c.target, c.recursive, c.ignorePaths)
+	option, err := tfupdate.NewOption("terraform", "", c.version, c.recursive, c.ignorePaths)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
@@ -55,13 +55,13 @@ func (c *TerraformCommand) Run(args []string) int {
 // Help returns long-form help text.
 func (c *TerraformCommand) Help() string {
 	helpText := `
-Usage: tfupdate terraform [options] <VERSION> <PATH>
+Usage: tfupdate terraform [options] <PATH>
 
 Arguments
-  VERSION            A new version constraint
   PATH               A path of file or directory to update
 
 Options:
+  -v  --version      A new version constraint
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.

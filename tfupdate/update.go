@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -23,13 +22,9 @@ type Updater interface {
 func NewUpdater(o Option) (Updater, error) {
 	switch o.updateType {
 	case "terraform":
-		return NewTerraformUpdater(o.target)
+		return NewTerraformUpdater(o.version)
 	case "provider":
-		s := strings.Split(o.target, "@")
-		return &ProviderUpdater{
-			name:    s[0],
-			version: s[1],
-		}, nil
+		return NewProviderUpdater(o.name, o.version)
 	case "module":
 		return nil, errors.Errorf("failed to new updater. module is not currently supported.")
 	default:

@@ -9,7 +9,8 @@ import (
 func TestNewOption(t *testing.T) {
 	cases := []struct {
 		updateType  string
-		target      string
+		name        string
+		version     string
 		recursive   bool
 		ignorePaths []string
 		want        Option
@@ -17,25 +18,27 @@ func TestNewOption(t *testing.T) {
 	}{
 		{
 			updateType:  "terraform",
-			target:      "0.12.7",
+			version:     "0.12.7",
 			recursive:   true,
-			ignorePaths: []string{"hoge", "fuga"},
+			ignorePaths: []string{},
 			want: Option{
 				updateType:  "terraform",
-				target:      "0.12.7",
+				version:     "0.12.7",
 				recursive:   true,
-				ignorePaths: []*regexp.Regexp{regexp.MustCompile("hoge"), regexp.MustCompile("fuga")},
+				ignorePaths: []*regexp.Regexp{},
 			},
 			ok: true,
 		},
 		{
-			updateType:  "terraform",
-			target:      "0.12.7",
+			updateType:  "provider",
+			name:        "aws",
+			version:     "2.23.0",
 			recursive:   true,
-			ignorePaths: []string{""},
+			ignorePaths: []string{},
 			want: Option{
-				updateType:  "terraform",
-				target:      "0.12.7",
+				updateType:  "provider",
+				name:        "aws",
+				version:     "2.23.0",
 				recursive:   true,
 				ignorePaths: []*regexp.Regexp{},
 			},
@@ -43,7 +46,33 @@ func TestNewOption(t *testing.T) {
 		},
 		{
 			updateType:  "terraform",
-			target:      "0.12.7",
+			version:     "0.12.7",
+			recursive:   true,
+			ignorePaths: []string{"hoge", "fuga"},
+			want: Option{
+				updateType:  "terraform",
+				version:     "0.12.7",
+				recursive:   true,
+				ignorePaths: []*regexp.Regexp{regexp.MustCompile("hoge"), regexp.MustCompile("fuga")},
+			},
+			ok: true,
+		},
+		{
+			updateType:  "terraform",
+			version:     "0.12.7",
+			recursive:   true,
+			ignorePaths: []string{""},
+			want: Option{
+				updateType:  "terraform",
+				version:     "0.12.7",
+				recursive:   true,
+				ignorePaths: []*regexp.Regexp{},
+			},
+			ok: true,
+		},
+		{
+			updateType:  "terraform",
+			version:     "0.12.7",
 			recursive:   true,
 			ignorePaths: []string{`\`},
 			want:        Option{},
@@ -52,24 +81,24 @@ func TestNewOption(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		got, err := NewOption(tc.updateType, tc.target, tc.recursive, tc.ignorePaths)
+		got, err := NewOption(tc.updateType, tc.name, tc.version, tc.recursive, tc.ignorePaths)
 		if tc.ok && err != nil {
-			t.Errorf("NewOption() with updateType = %s, target = %s, recursive = %t, ignorePath = %#v returns unexpected err: %+v", tc.updateType, tc.target, tc.recursive, tc.ignorePaths, err)
+			t.Errorf("NewOption() with updateType = %s, name = %s, version = %s, recursive = %t, ignorePath = %#v returns unexpected err: %+v", tc.updateType, tc.name, tc.version, tc.recursive, tc.ignorePaths, err)
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("NewOption() with updateType = %s, target = %s, recursive = %t, ignorePath = %#v expects to return an error, but no error", tc.updateType, tc.target, tc.recursive, tc.ignorePaths)
+			t.Errorf("NewOption() with updateType = %s, name = %s, version = %s, recursive = %t, ignorePath = %#v expects to return an error, but no error", tc.updateType, tc.name, tc.version, tc.recursive, tc.ignorePaths)
 		}
 
 		if !reflect.DeepEqual(got, tc.want) {
-			t.Errorf("NewOption() with updateType = %s, target = %s, recursive = %t, ignorePath = %#v returns %#v, but want = %#v", tc.updateType, tc.target, tc.recursive, tc.ignorePaths, got, tc.want)
+			t.Errorf("NewOption() with updateType = %s, name = %s, version = %s, recursive = %t, ignorePath = %#v returns %#v, but want = %#v", tc.updateType, tc.name, tc.version, tc.recursive, tc.ignorePaths, got, tc.want)
 		}
 	}
 }
 
 func TestOptionMatchIgnorePaths(t *testing.T) {
 	updateType := "terraform"
-	target := "0.12.7"
+	version := "0.12.7"
 	recursive := true
 
 	cases := []struct {
@@ -80,7 +109,7 @@ func TestOptionMatchIgnorePaths(t *testing.T) {
 		{
 			o: Option{
 				updateType:  updateType,
-				target:      target,
+				version:     version,
 				recursive:   recursive,
 				ignorePaths: []*regexp.Regexp{regexp.MustCompile(`.*\.tf`)},
 			},
@@ -90,7 +119,7 @@ func TestOptionMatchIgnorePaths(t *testing.T) {
 		{
 			o: Option{
 				updateType:  updateType,
-				target:      target,
+				version:     version,
 				recursive:   recursive,
 				ignorePaths: []*regexp.Regexp{regexp.MustCompile("tmp/"), regexp.MustCompile("hoge.tf")},
 			},
@@ -100,7 +129,7 @@ func TestOptionMatchIgnorePaths(t *testing.T) {
 		{
 			o: Option{
 				updateType:  updateType,
-				target:      target,
+				version:     version,
 				recursive:   recursive,
 				ignorePaths: []*regexp.Regexp{regexp.MustCompile("fuga/"), regexp.MustCompile("main.tf")},
 			},
@@ -110,7 +139,7 @@ func TestOptionMatchIgnorePaths(t *testing.T) {
 		{
 			o: Option{
 				updateType:  updateType,
-				target:      target,
+				version:     version,
 				recursive:   recursive,
 				ignorePaths: []*regexp.Regexp{regexp.MustCompile("fuga/"), regexp.MustCompile("test.tf")},
 			},

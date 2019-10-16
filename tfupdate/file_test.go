@@ -26,7 +26,7 @@ terraform {
 `,
 			o: Option{
 				updateType: "terraform",
-				target:     "0.12.7",
+				version:    "0.12.7",
 			},
 			want: `
 terraform {
@@ -44,7 +44,7 @@ terraform {
 `,
 			o: Option{
 				updateType: "hoge",
-				target:     "0.12.7",
+				version:    "0.12.7",
 			},
 			want: `
 terraform {
@@ -62,7 +62,7 @@ required_version = "0.12.6"
 `,
 			o: Option{
 				updateType: "terraform",
-				target:     "0.12.7",
+				version:    "0.12.7",
 			},
 			want: `
 terraform {
@@ -80,7 +80,8 @@ required_version = "0.12.6"
 `,
 			o: Option{
 				updateType: "provider",
-				target:     "aws@2.23.0",
+				name:       "aws",
+				version:    "2.23.0",
 			},
 			want: `
 terraform {
@@ -160,7 +161,7 @@ provider "aws" {
 			checkdir: "a/b",
 			o: Option{
 				updateType: "terraform",
-				target:     "0.12.7",
+				version:    "0.12.7",
 				recursive:  false,
 			},
 			want1: `
@@ -192,7 +193,7 @@ provider "aws" {
 			checkdir: "a",
 			o: Option{
 				updateType: "terraform",
-				target:     "0.12.7",
+				version:    "0.12.7",
 				recursive:  true,
 			},
 			want1: `
@@ -224,7 +225,7 @@ provider "aws" {
 			checkdir: "a",
 			o: Option{
 				updateType: "terraform",
-				target:     "0.12.7",
+				version:    "0.12.7",
 				recursive:  false,
 			},
 			want1: `
@@ -256,7 +257,7 @@ provider "aws" {
 			checkdir: "a",
 			o: Option{
 				updateType: "terraform",
-				target:     "0.12.7",
+				version:    "0.12.7",
 				recursive:  true,
 			},
 			want1: `
@@ -288,7 +289,7 @@ provider "aws" {
 			checkdir: "a",
 			o: Option{
 				updateType: "terraform",
-				target:     "0.12.7",
+				version:    "0.12.7",
 				recursive:  true,
 			},
 			want1: `
@@ -320,7 +321,7 @@ provider "aws" {
 			checkdir: "a/b",
 			o: Option{
 				updateType: "terraform",
-				target:     "0.12.7",
+				version:    "0.12.7",
 				recursive:  false,
 			},
 			want1: `
@@ -352,7 +353,7 @@ terraform {
 			checkdir: "a/b",
 			o: Option{
 				updateType:  "terraform",
-				target:      "0.12.7",
+				version:     "0.12.7",
 				recursive:   false,
 				ignorePaths: []*regexp.Regexp{regexp.MustCompile(`a/b/ignore.tf`)},
 			},
@@ -434,7 +435,7 @@ terraform {
 `
 	o := Option{
 		updateType: "terraform",
-		target:     "0.12.7",
+		version:    "0.12.7",
 	}
 	want := `
 terraform {

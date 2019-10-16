@@ -10,10 +10,12 @@ type Option struct {
 	// A type of updater. Valid value is terraform or provider.
 	updateType string
 
-	// A target to be updated.
-	// If an updateType is terraform, Set a version.
-	// If an updateType is provider, Set a name@version.
-	target string
+	// If an updateType is terraform, there is no meaning.
+	// If an updateType is provider, Set a name of provider.
+	name string
+
+	// a new version constraint
+	version string
 
 	// If a recursive flag is true, it checks and updates directories recursively.
 	recursive bool
@@ -23,7 +25,7 @@ type Option struct {
 }
 
 // NewOption returns an option.
-func NewOption(updateType string, target string, recursive bool, ignorePaths []string) (Option, error) {
+func NewOption(updateType string, name string, version string, recursive bool, ignorePaths []string) (Option, error) {
 	regexps := make([]*regexp.Regexp, 0, len(ignorePaths))
 	for _, ignorePath := range ignorePaths {
 		if len(ignorePath) == 0 {
@@ -39,7 +41,8 @@ func NewOption(updateType string, target string, recursive bool, ignorePaths []s
 
 	return Option{
 		updateType:  updateType,
-		target:      target,
+		name:        name,
+		version:     version,
 		recursive:   recursive,
 		ignorePaths: regexps,
 	}, nil
