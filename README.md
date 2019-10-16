@@ -13,6 +13,7 @@ That is why I wrote a tool which parses Terraform configurations and updates all
 
 - Update version constraints of Terraform core and providers
 - Update all your Terraform configurations recursively under a given directory
+- Get the latest release version from GitHub Release
 
 # Supported Terraform version
 
@@ -38,7 +39,7 @@ provider "aws" {
 ```
 
 ```
-$ tfupdate terraform 0.12.8 main.tf
+$ tfupdate terraform -v 0.12.8 main.tf
 
 $ git diff
 diff --git a/main.tf b/main.tf
@@ -59,7 +60,7 @@ $ git add . && git commit -m "Update terraform to v0.12.8"
 ```
 
 ```
-$ tfupdate provider aws@2.28.0 ./
+$ tfupdate provider aws -v 2.28.0 ./
 
 $ git diff
 diff --git a/main.tf b/main.tf
@@ -83,7 +84,7 @@ If you want to update all your Terraform configurations under the current direct
 run a command like this:
 
 ```
-$ tfupdate terraform 0.12.8 ./ -r
+$ tfupdate terraform -v 0.12.8 ./ -r
 ```
 
 # Usage
@@ -94,18 +95,19 @@ Usage: tfupdate [--version] [--help] <command> [<args>]
 
 Available commands are:
     provider     Update version constraints for provider
+    release      Get release version information
     terraform    Update version constraints for terraform
 ```
 
 ```
 $ tfupdate terraform --help
-Usage: tfupdate terraform [options] <VERSION> <PATH>
+Usage: tfupdate terraform [options] <PATH>
 
 Arguments
-  VERSION            A new version constraint
   PATH               A path of file or directory to update
 
 Options:
+  -v  --version      A new version constraint
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.
@@ -113,17 +115,36 @@ Options:
 
 ```
 $ tfupdate provider --help
-Usage: tfupdate provider [options] <PROVIER_NAME>@<VERSION> <PATH>
+Usage: tfupdate provider [options] <PROVIER_NAME> <PATH>
 
 Arguments
   PROVIER_NAME       A name of provider (e.g. aws, google, azurerm)
-  VERSION            A new version constraint
   PATH               A path of file or directory to update
 
 Options:
+  -v  --version      A new version constraint
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.
+```
+
+```
+$ tfupdate release --help
+Usage: tfupdate release <subcommand> [options] [args]
+
+  This command has subcommands for release version information.
+
+Subcommands:
+    latest    Get the latest release version from GitHub Release
+```
+
+```
+$ tfupdate release latest --help
+Usage: tfupdate release latest [options] <REPOSITORY>
+
+Arguments
+  REPOSITORY         A path of the the GitHub repository
+                     (e.g. terraform-providers/terraform-provider-aws)
 ```
 
 # License
