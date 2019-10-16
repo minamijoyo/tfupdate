@@ -3,6 +3,7 @@ module github.com/minamijoyo/tfupdate
 go 1.12
 
 require (
+	github.com/google/go-github/v28 v28.1.1
 	github.com/hashicorp/hcl/v2 v2.0.0
 	github.com/hashicorp/logutils v1.0.0
 	github.com/mitchellh/cli v1.0.0
