@@ -3,10 +3,8 @@ package release
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	"github.com/google/go-github/v28/github"
-	"github.com/pkg/errors"
 )
 
 // GitHubRelease is a release implementation which provides version information with GitHub Release.
@@ -17,15 +15,7 @@ type GitHubRelease struct {
 }
 
 // NewGitHubRelease is a factory method which returns an GitHubRelease instance.
-func NewGitHubRelease(url string) (Release, error) {
-	re := regexp.MustCompile(`https://github.com/(.+)/(.+)`)
-	matched := re.FindStringSubmatch(url)
-	if len(matched) != 3 {
-		return nil, errors.Errorf("failed to parse url: %s, matched: %#v", url, matched)
-	}
-	owner := matched[1]
-	repo := matched[2]
-
+func NewGitHubRelease(owner string, repo string) (Release, error) {
 	return &GitHubRelease{
 		client: github.NewClient(nil),
 		owner:  owner,
