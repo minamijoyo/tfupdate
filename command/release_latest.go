@@ -8,15 +8,15 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-// ReleaseCommand is a command which gets the latest release version.
-type ReleaseCommand struct {
+// ReleaseLatestCommand is a command which gets the latest release version.
+type ReleaseLatestCommand struct {
 	Meta
 	url string
 }
 
 // Run runs the procedure of this command.
-func (c *ReleaseCommand) Run(args []string) int {
-	cmdFlags := flag.NewFlagSet("release", flag.ContinueOnError)
+func (c *ReleaseLatestCommand) Run(args []string) int {
+	cmdFlags := flag.NewFlagSet("release latest", flag.ContinueOnError)
 
 	if err := cmdFlags.Parse(args); err != nil {
 		c.UI.Error(fmt.Sprintf("failed to parse arguments: %s", err))
@@ -48,9 +48,9 @@ func (c *ReleaseCommand) Run(args []string) int {
 }
 
 // Help returns long-form help text.
-func (c *ReleaseCommand) Help() string {
+func (c *ReleaseLatestCommand) Help() string {
 	helpText := `
-Usage: tfupdate release [options] <URL>
+Usage: tfupdate release latest [options] <URL>
 
 Arguments
   URL                A URL of the release repository
@@ -60,6 +60,6 @@ Arguments
 }
 
 // Synopsis returns one-line help text.
-func (c *ReleaseCommand) Synopsis() string {
+func (c *ReleaseLatestCommand) Synopsis() string {
 	return "Get the latest release version"
 }
