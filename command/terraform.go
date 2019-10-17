@@ -2,8 +2,10 @@ package command
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
+	"github.com/minamijoyo/tfupdate/release"
 	"github.com/minamijoyo/tfupdate/tfupdate"
 	flag "github.com/spf13/pflag"
 )
@@ -37,7 +39,23 @@ func (c *TerraformCommand) Run(args []string) int {
 
 	c.path = cmdFlags.Arg(0)
 
-	option, err := tfupdate.NewOption("terraform", "", c.version, c.recursive, c.ignorePaths)
+	v := c.version
+	if v == "latest" {
+		r, err := release.NewTerraformRelease()
+		if err != nil {
+			c.UI.Error(err.Error())
+			return 1
+		}
+
+		v, err = r.Latest()
+		if err != nil {
+			c.UI.Error(err.Error())
+			return 1
+		}
+	}
+
+	log.Printf("[INFO] Update terraform to %s", v)
+	option, err := tfupdate.NewOption("terraform", "", v, c.recursive, c.ignorePaths)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
@@ -61,7 +79,8 @@ Arguments
   PATH               A path of file or directory to update
 
 Options:
-  -v  --version      A new version constraint
+  -v  --version      A new version constraint (default: latest)
+                     If the version is omitted, the latest version is automatically checked and set.
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.

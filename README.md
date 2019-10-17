@@ -13,7 +13,7 @@ That is why I wrote a tool which parses Terraform configurations and updates all
 
 - Update version constraints of Terraform core and providers
 - Update all your Terraform configurations recursively under a given directory
-- Get the latest release version from GitHub Release
+- Get the latest release version automatically from GitHub Release
 
 # Supported Terraform version
 
@@ -84,7 +84,13 @@ If you want to update all your Terraform configurations under the current direct
 run a command like this:
 
 ```
-$ tfupdate terraform -v 0.12.8 ./ -r
+$ tfupdate terraform -v 0.12.8 -r ./
+```
+
+If the version is omitted, the latest version is automatically checked and set.
+
+```
+$ tfupdate terraform -r ./
 ```
 
 # Usage
@@ -107,7 +113,8 @@ Arguments
   PATH               A path of file or directory to update
 
 Options:
-  -v  --version      A new version constraint
+  -v  --version      A new version constraint (default: latest)
+                     If the version is omitted, the latest version is automatically checked and set.
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.
@@ -122,7 +129,10 @@ Arguments
   PATH               A path of file or directory to update
 
 Options:
-  -v  --version      A new version constraint
+  -v  --version      A new version constraint (default: latest)
+                     If the version is omitted, the latest version is automatically checked and set.
+                     Getting the latest version automatically is supported only for official providers.
+                     If you have an unofficial provider, use release latest command.
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.
