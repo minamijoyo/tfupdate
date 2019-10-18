@@ -14,3 +14,6 @@ require (
 	github.com/zclconf/go-cty v1.1.0
 	golang.org/x/lint v0.0.0-20190930215403-16217165b5de
 )
+
+// Fix invalid pseudo-version: revision is longer than canonical (b0274f40d4c7)
+replace github.com/go-macaron/cors => github.com/go-macaron/cors v0.0.0-20190925001837-b0274f40d4c7
