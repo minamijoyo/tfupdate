@@ -1,4 +1,6 @@
 # tfupdate
+[![GitHub release](http://img.shields.io/github/release/minamijoyo/tfupdate.svg?style=flat-square)](https://github.com/minamijoyo/tfupdate/releases)
+[![GoDoc](https://godoc.org/github.com/minamijoyo/tfupdate/tfupdate?status.svg)](https://godoc.org/github.com/minamijoyo/tfupdate)
 
 Update version constraints in your Terraform configurations.
 
