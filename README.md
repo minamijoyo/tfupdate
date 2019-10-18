@@ -87,6 +87,12 @@ run a command like this:
 $ tfupdate terraform -v 0.12.8 -r ./
 ```
 
+You can also ignore some paths:
+
+```
+$ tfupdate terraform -v 0.12.8 -i modules/ -r ./
+```
+
 If the version is omitted, the latest version is automatically checked and set.
 
 ```
