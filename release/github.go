@@ -31,12 +31,13 @@ func (r *GitHubRelease) Latest() (string, error) {
 		return "", fmt.Errorf("failed to get the latest release from github.com/%s/%s: %s", r.owner, r.repo, err)
 	}
 
-	name := *release.Name
+	// Use TagName because some releases do not have Name.
+	tagName := *release.TagName
 
-	// if a name starts with `v`, remove it.
-	if name[0] == 'v' {
-		return name[1:], nil
+	// if a tagName starts with `v`, remove it.
+	if tagName[0] == 'v' {
+		return tagName[1:], nil
 	}
 
-	return name, nil
+	return tagName, nil
 }
