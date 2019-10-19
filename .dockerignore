@@ -1,0 +1,4 @@
+.envrc
+bin/
+tmp/
+dist/
