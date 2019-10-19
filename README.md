@@ -23,11 +23,23 @@ That is why I wrote a tool which parses Terraform configurations and updates all
 
 # Install
 
-If you are Mac OSX user:
+You can install it in several ways.
 
-```bash
+## Homebrew
+
+If you are macOS user:
+
+```
 $ brew install minamijoyo/tfupdate/tfupdate
 ```
+
+## Download pre-built binaries
+
+Download the latest compiled binaries and put it anywhere in your executable path.
+
+https://github.com/minamijoyo/tfupdate/releases
+
+## Build it yourself
 
 If you have Go 1.13+ development environment:
 
@@ -35,11 +47,13 @@ If you have Go 1.13+ development environment:
 $ go get github.com/minamijoyo/tfupdate
 ```
 
-or
+## Docker
 
-Download the latest compiled binaries and put it anywhere in your executable path.
+You can also run it with Docker:
 
-https://github.com/minamijoyo/tfupdate/releases
+```
+$ docker run -it --rm minamijoyo/tfupdate --version
+```
 
 # Example
 
