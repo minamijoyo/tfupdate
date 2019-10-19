@@ -2,8 +2,14 @@
 [![GitHub release](http://img.shields.io/github/release/minamijoyo/tfupdate.svg?style=flat-square)](https://github.com/minamijoyo/tfupdate/releases)
 [![GoDoc](https://godoc.org/github.com/minamijoyo/tfupdate/tfupdate?status.svg)](https://godoc.org/github.com/minamijoyo/tfupdate)
 
-Update version constraints in your Terraform configurations.
+## Features
 
+- Update version constraints of Terraform core and providers
+- Update all your Terraform configurations recursively under a given directory
+- Get the latest release version automatically from GitHub Release
+- Terraform v0.12+ support
+
+## Why?
 It is a best practice to break your Terraform configuration and state into small pieces based on the environments and frequency of changes to minimize the impact of an accident.
 It is also recommended that you lock versions of Terraform core and dependent providers to avoid unexpected breaking changes. If you decided to lock version constraints, you probably want to keep them up to date frequently to reduce the risk of version upgrade failures.
 It's easy to update a single directory, but what if it's scattered across multiple directories?
@@ -11,21 +17,11 @@ Of course you can do it with find, xargs, and sed, but it is fragile because it 
 
 That is why I wrote a tool which parses Terraform configurations and updates all version constraints at once.
 
-# Features
-
-- Update version constraints of Terraform core and providers
-- Update all your Terraform configurations recursively under a given directory
-- Get the latest release version automatically from GitHub Release
-
-# Supported Terraform version
-
-- Terraform v0.12+
-
-# Install
+## Install
 
 You can install it in several ways.
 
-## Homebrew
+### Homebrew
 
 If you are macOS user:
 
@@ -33,13 +29,13 @@ If you are macOS user:
 $ brew install minamijoyo/tfupdate/tfupdate
 ```
 
-## Download pre-built binaries
+### Download pre-built binaries
 
 Download the latest compiled binaries and put it anywhere in your executable path.
 
 https://github.com/minamijoyo/tfupdate/releases
 
-## Build it yourself
+### Build it yourself
 
 If you have Go 1.13+ development environment:
 
@@ -47,7 +43,7 @@ If you have Go 1.13+ development environment:
 $ go get github.com/minamijoyo/tfupdate
 ```
 
-## Docker
+### Docker
 
 You can also run it with Docker:
 
@@ -55,7 +51,7 @@ You can also run it with Docker:
 $ docker run -it --rm minamijoyo/tfupdate --version
 ```
 
-# Example
+## Example
 
 ```
 $ cat main.tf
@@ -129,7 +125,7 @@ If the version is omitted, the latest version is automatically checked and set.
 $ tfupdate terraform -r ./
 ```
 
-# Usage
+## Usage
 
 ```
 $ tfupdate --help
@@ -193,6 +189,6 @@ Arguments
                      (e.g. terraform-providers/terraform-provider-aws)
 ```
 
-# License
+## License
 
 MIT
