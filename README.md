@@ -35,7 +35,7 @@ Download the latest compiled binaries and put it anywhere in your executable pat
 
 https://github.com/minamijoyo/tfupdate/releases
 
-### Build it yourself
+### Build it from source
 
 If you have Go 1.13+ development environment:
 
