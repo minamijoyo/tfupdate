@@ -29,13 +29,13 @@ If you are macOS user:
 $ brew install minamijoyo/tfupdate/tfupdate
 ```
 
-### Download pre-built binaries
+### Download
 
 Download the latest compiled binaries and put it anywhere in your executable path.
 
 https://github.com/minamijoyo/tfupdate/releases
 
-### Build it from source
+### Source
 
 If you have Go 1.13+ development environment:
 
