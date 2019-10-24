@@ -20,8 +20,10 @@ WORKDIR /work
 RUN ./script/build -o bin/hub
 
 # runtime
+# Note: Required Tools for Primary Containers on CircleCI
+# https://circleci.com/docs/2.0/custom-images/#required-tools-for-primary-containers
 FROM alpine:3.10
-RUN apk --no-cache add git
+RUN apk --no-cache add git openssh-client tar gzip ca-certificates
 COPY --from=tfupdate /work/bin/tfupdate /usr/local/bin/
 COPY --from=hub /work/bin/hub /usr/local/bin/
 ENTRYPOINT ["tfupdate"]
