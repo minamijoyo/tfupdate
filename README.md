@@ -1,5 +1,6 @@
 # tfupdate
-[![GitHub release](http://img.shields.io/github/release/minamijoyo/tfupdate.svg?style=flat-square)](https://github.com/minamijoyo/tfupdate/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/release/minamijoyo/tfupdate.svg)](https://github.com/minamijoyo/tfupdate/releases/latest)
 [![GoDoc](https://godoc.org/github.com/minamijoyo/tfupdate/tfupdate?status.svg)](https://godoc.org/github.com/minamijoyo/tfupdate)
 
 ## Features
