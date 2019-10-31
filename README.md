@@ -13,13 +13,11 @@
 It is a best practice to break your Terraform configuration and state into small pieces based on the environments and frequency of changes to minimize the impact of an accident.
 It is also recommended that you lock versions of Terraform core and dependent providers to avoid unexpected breaking changes. If you decided to lock version constraints, you probably want to keep them up to date frequently to reduce the risk of version upgrade failures.
 It's easy to update a single directory, but what if it's scattered across multiple directories?
-Of course you can do it with find, xargs, and sed, but it is fragile because it doesn't really understand HCL.
+Of course you can do it with old friends such as find, xargs, and sed, but it is fragile because it doesn't really understand HCL.
 
 That is why I wrote a tool which parses Terraform configurations and updates all version constraints at once.
 
 ## Install
-
-You can install it in several ways.
 
 ### Homebrew
 
