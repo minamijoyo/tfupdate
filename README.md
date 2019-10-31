@@ -125,6 +125,11 @@ If the version is omitted, the latest version is automatically checked and set.
 $ tfupdate terraform -r ./
 ```
 
+## Keep your dependencies up to date
+
+An example for tfupdate on CircleCI:
+https://github.com/minamijoyo/tfupdate-circleci-example
+
 ## Usage
 
 ```
