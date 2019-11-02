@@ -33,7 +33,7 @@ func (c *ProviderCommand) Run(args []string) int {
 	}
 
 	if len(cmdFlags.Args()) != 2 {
-		c.UI.Error(fmt.Sprintf("The command expects 2 arguments, but got %#v", cmdFlags.Args()))
+		c.UI.Error(fmt.Sprintf("The command expects 2 arguments, but got %d", len(cmdFlags.Args())))
 		c.UI.Error(c.Help())
 		return 1
 	}

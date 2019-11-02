@@ -24,7 +24,7 @@ func (c *ReleaseLatestCommand) Run(args []string) int {
 	}
 
 	if len(cmdFlags.Args()) != 1 {
-		c.UI.Error(fmt.Sprintf("The command expects 1 argument, but got %#v", cmdFlags.Args()))
+		c.UI.Error(fmt.Sprintf("The command expects 1 argument, but got %d", len(cmdFlags.Args())))
 		c.UI.Error(c.Help())
 		return 1
 	}
