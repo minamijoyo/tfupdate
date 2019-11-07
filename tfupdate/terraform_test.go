@@ -99,6 +99,32 @@ provider "aws" {
 `,
 			ok: true,
 		},
+		{
+			src: `terraform {
+  backend "s3" {
+    region = "ap-northeast-1"
+    bucket = "hoge"
+    key    = "terraform.tfstate"
+  }
+}
+terraform {
+  required_version = "0.12.6"
+}
+`,
+			version: "0.12.7",
+			want: `terraform {
+  backend "s3" {
+    region = "ap-northeast-1"
+    bucket = "hoge"
+    key    = "terraform.tfstate"
+  }
+}
+terraform {
+  required_version = "0.12.7"
+}
+`,
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {

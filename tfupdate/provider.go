@@ -43,33 +43,27 @@ func (u *ProviderUpdater) Update(f *hclwrite.File) error {
 }
 
 func (u *ProviderUpdater) updateTerraformBlock(f *hclwrite.File) error {
-	tf := f.Body().FirstMatchingBlock("terraform", []string{})
-	if tf == nil {
-		return nil
-	}
+	for _, tf := range allMatchingBlocks(f.Body(), "terraform", []string{}) {
+		p := tf.Body().FirstMatchingBlock("required_providers", []string{})
+		if p == nil {
+			continue
+		}
 
-	p := tf.Body().FirstMatchingBlock("required_providers", []string{})
-	if p == nil {
-		return nil
-	}
-
-	// set a version to attribute value only if the key exists
-	if p.Body().GetAttribute(u.name) != nil {
-		p.Body().SetAttributeValue(u.name, cty.StringVal(u.version))
+		// set a version to attribute value only if the key exists
+		if p.Body().GetAttribute(u.name) != nil {
+			p.Body().SetAttributeValue(u.name, cty.StringVal(u.version))
+		}
 	}
 
 	return nil
 }
 
 func (u *ProviderUpdater) updateProviderBlock(f *hclwrite.File) error {
-	p := f.Body().FirstMatchingBlock("provider", []string{u.name})
-	if p == nil {
-		return nil
-	}
-
-	// set a version to attribute value only if the key exists
-	if p.Body().GetAttribute("version") != nil {
-		p.Body().SetAttributeValue("version", cty.StringVal(u.version))
+	for _, p := range allMatchingBlocks(f.Body(), "provider", []string{u.name}) {
+		// set a version to attribute value only if the key exists
+		if p.Body().GetAttribute("version") != nil {
+			p.Body().SetAttributeValue("version", cty.StringVal(u.version))
+		}
 	}
 
 	return nil

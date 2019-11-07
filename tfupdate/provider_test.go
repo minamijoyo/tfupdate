@@ -136,6 +136,55 @@ provider "aws" {
 `,
 			ok: true,
 		},
+		{
+			src: `
+terraform {
+  required_providers {
+    null = "2.1.1"
+  }
+}
+terraform {
+  required_providers {
+    aws = "2.11.0"
+  }
+}
+provider "aws" {
+  alias   = "one"
+  version = "2.11.0"
+  region  = "ap-northeast-1"
+}
+provider "aws" {
+  alias   = "two"
+  version = "2.11.0"
+  region  = "us-east-1"
+}
+`,
+			name:    "aws",
+			version: "2.23.0",
+			want: `
+terraform {
+  required_providers {
+    null = "2.1.1"
+  }
+}
+terraform {
+  required_providers {
+    aws = "2.23.0"
+  }
+}
+provider "aws" {
+  alias   = "one"
+  version = "2.23.0"
+  region  = "ap-northeast-1"
+}
+provider "aws" {
+  alias   = "two"
+  version = "2.23.0"
+  region  = "us-east-1"
+}
+`,
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {
