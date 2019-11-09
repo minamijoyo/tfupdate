@@ -152,6 +152,20 @@ provider "invalid" {
 			ok:        false,
 		},
 		{
+			src: `resource "panic" "hoge" {
+  b = a[var.env]
+}
+`,
+			o: Option{
+				updateType: "provider",
+				name:       "hoge",
+				version:    "2.23.0",
+			},
+			want:      "",
+			isUpdated: false,
+			ok:        false,
+		},
+		{
 			src: `
 provider "aws" {
   version = "2.11.0"
