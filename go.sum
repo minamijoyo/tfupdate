@@ -210,12 +210,6 @@ github.com/hashicorp/go-multierror v1.0.0/go.mod h1:dHtQlpGsu+cZNNAkkCN/P3hoUDHh
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1 h1:0hERBMJE1eitiLkihrMvRVBYAkpHzc/J3QdDN+dAcgU=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
-github.com/hashicorp/hcl/v2 v2.0.0 h1:efQznTz+ydmQXq3BOnRa3AXzvCeTq1P4dKj/z5GLlY8=
-github.com/hashicorp/hcl/v2 v2.0.0/go.mod h1:oVVDG71tEinNGYCxinCYadcmKU9bglqW9pV3txagJ90=
-github.com/hashicorp/hcl/v2 v2.0.1-0.20191017182646-3c7194d96760 h1:L18hNa53+yClKSRPqjZGiYwBYLid1z8mQsCETu8q7fg=
-github.com/hashicorp/hcl/v2 v2.0.1-0.20191017182646-3c7194d96760/go.mod h1:oVVDG71tEinNGYCxinCYadcmKU9bglqW9pV3txagJ90=
-github.com/hashicorp/hcl/v2 v2.0.1-0.20191111231842-63cdbee39ce7 h1:+GfI9Uy50CI8rGxgdJdpdoLi+PTHp2H40bTlNnEaPZk=
-github.com/hashicorp/hcl/v2 v2.0.1-0.20191111231842-63cdbee39ce7/go.mod h1:oVVDG71tEinNGYCxinCYadcmKU9bglqW9pV3txagJ90=
 github.com/hashicorp/hcl/v2 v2.1.1-0.20191120012119-7f9aa845c107 h1:0HxDSOpE0xqTfBgijl0AWNMe4Sr8ihxNvUMYhCleKh0=
 github.com/hashicorp/hcl/v2 v2.1.1-0.20191120012119-7f9aa845c107/go.mod h1:oVVDG71tEinNGYCxinCYadcmKU9bglqW9pV3txagJ90=
 github.com/hashicorp/logutils v1.0.0 h1:dLEQVugN8vlakKOUE3ihGLTZJRB4j+M2cdTm/ORI65Y=
