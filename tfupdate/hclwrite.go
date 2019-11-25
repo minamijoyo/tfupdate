@@ -26,3 +26,17 @@ func allMatchingBlocks(b *hclwrite.Body, typeName string, labels []string) []*hc
 
 	return matched
 }
+
+// allMatchingBlocksByType returns all matching blocks from the body that have the
+// given name or returns an empty list if there is currently no matching block.
+// This method is useful when you want to ignore label differences.
+func allMatchingBlocksByType(b *hclwrite.Body, typeName string) []*hclwrite.Block {
+	var matched []*hclwrite.Block
+	for _, block := range b.Blocks() {
+		if typeName == block.Type() {
+			matched = append(matched, block)
+		}
+	}
+
+	return matched
+}
