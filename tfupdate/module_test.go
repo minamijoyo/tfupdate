@@ -136,6 +136,21 @@ module "vpc" {
 `,
 			ok: true,
 		},
+		{
+			src: `
+module "vpc" {
+  source = "git::https://example.com/vpc.git?ref=v1.2.0"
+}
+`,
+			name:    "git::https://example.com/vpc.git",
+			version: "1.3.0",
+			want: `
+module "vpc" {
+  source = "git::https://example.com/vpc.git?ref=v1.3.0"
+}
+`,
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {
@@ -159,6 +174,90 @@ module "vpc" {
 		got := string(hclwrite.Format(f.BuildTokens(nil).Bytes()))
 		if got != tc.want {
 			t.Errorf("Update() with src = %s, name = %s, version = %s returns %s, but want = %s", tc.src, tc.name, tc.version, got, tc.want)
+		}
+	}
+}
+
+func TestParseModuleSource(t *testing.T) {
+	cases := []struct {
+		src     string
+		name    string
+		version string
+	}{
+		{
+			src: `
+module "vpc" {
+  source = "git::https://example.com/vpc.git"
+}
+`,
+			name:    "git::https://example.com/vpc.git",
+			version: "",
+		},
+		{
+			src: `
+module "vpc" {
+  source = "git::https://example.com/vpc.git?ref=v1"
+}
+`,
+			name:    "git::https://example.com/vpc.git",
+			version: "1",
+		},
+		{
+			src: `
+module "vpc" {
+  source = "git::https://example.com/vpc.git?ref=v1.2"
+}
+`,
+			name:    "git::https://example.com/vpc.git",
+			version: "1.2",
+		},
+		{
+			src: `
+module "vpc" {
+  source = "git::https://example.com/vpc.git?ref=v1.2.0"
+}
+`,
+			name:    "git::https://example.com/vpc.git",
+			version: "1.2.0",
+		},
+		{
+			src: `
+module "vpc" {
+  source = "git::https://example.com/vpc.git?ref=v1.2.0-rc1"
+}
+`,
+			name:    "git::https://example.com/vpc.git",
+			version: "1.2.0-rc1",
+		},
+		{
+			src: `
+module "vpc" {
+  source = "git::https://example.com/vpc.git?ref=vhoge"
+}
+`,
+			name:    "git::https://example.com/vpc.git?ref=vhoge",
+			version: "",
+		},
+	}
+
+	for _, tc := range cases {
+		f, diags := hclwrite.ParseConfig([]byte(tc.src), "", hcl.Pos{Line: 1, Column: 1})
+		if diags.HasErrors() {
+			t.Fatalf("unexpected diagnostics: %s", diags)
+		}
+
+		m := allMatchingBlocksByType(f.Body(), "module")
+		if len(m) != 1 {
+			t.Fatalf("failed to get module block: %s", tc.src)
+		}
+		s := m[0].Body().GetAttribute("source")
+		if s == nil {
+			t.Fatalf("failed to get module source attribute: %s", tc.src)
+		}
+		name, version := parseModuleSource(s)
+
+		if !(name == tc.name && version == tc.version) {
+			t.Errorf("parseModuleSource() with src = %s returns (%s, %s), but want = (%s, %s)", tc.src, name, version, tc.name, tc.version)
 		}
 	}
 }
