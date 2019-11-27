@@ -158,10 +158,10 @@ Options:
 
 ```
 $ tfupdate provider --help
-Usage: tfupdate provider [options] <PROVIER_NAME> <PATH>
+Usage: tfupdate provider [options] <PROVIDER_NAME> <PATH>
 
 Arguments
-  PROVIER_NAME       A name of provider (e.g. aws, google, azurerm)
+  PROVIDER_NAME      A name of provider (e.g. aws, google, azurerm)
   PATH               A path of file or directory to update
 
 Options:

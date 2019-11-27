@@ -75,10 +75,10 @@ func (c *ProviderCommand) Run(args []string) int {
 // Help returns long-form help text.
 func (c *ProviderCommand) Help() string {
 	helpText := `
-Usage: tfupdate provider [options] <PROVIER_NAME> <PATH>
+Usage: tfupdate provider [options] <PROVIDER_NAME> <PATH>
 
 Arguments
-  PROVIER_NAME       A name of provider (e.g. aws, google, azurerm)
+  PROVIDER_NAME      A name of provider (e.g. aws, google, azurerm)
   PATH               A path of file or directory to update
 
 Options:
