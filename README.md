@@ -5,10 +5,12 @@
 
 ## Features
 
-- Update version constraints of Terraform core and providers
+- Update version constraints of Terraform core, providers, and modules
 - Update all your Terraform configurations recursively under a given directory
 - Get the latest release version automatically from GitHub Release
 - Terraform v0.12+ support
+
+Note: Automatic latest version resolution is not currently supported for modules.
 
 ## Why?
 It is a best practice to break your Terraform configuration and state into small pieces based on the environments and frequency of changes to minimize the impact of an accident.
@@ -136,6 +138,7 @@ $ tfupdate --help
 Usage: tfupdate [--version] [--help] <command> [<args>]
 
 Available commands are:
+    module       Update version constraints for module
     provider     Update version constraints for provider
     release      Get release version information
     terraform    Update version constraints for terraform
@@ -169,6 +172,25 @@ Options:
                      If the version is omitted, the latest version is automatically checked and set.
                      Getting the latest version automatically is supported only for official providers.
                      If you have an unofficial provider, use release latest command.
+  -r  --recursive    Check a directory recursively (default: false)
+  -i  --ignore-path  A regular expression for path to ignore
+                     If you want to ignore multiple directories, set the flag multiple times.
+```
+
+```
+$ tfupdate module --help
+Usage: tfupdate module [options] <MODULE_NAME> <PATH>
+
+Arguments
+  MODULE_NAME        A name of module
+                     e.g.
+                       terraform-aws-modules/vpc/aws
+                       git::https://example.com/vpc.git
+  PATH               A path of file or directory to update
+
+Options:
+  -v  --version      A new version constraint (required)
+                     Automatic latest version resolution is not currently supported for modules.
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.

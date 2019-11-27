@@ -40,8 +40,11 @@ func TestNewUpdater(t *testing.T) {
 				name:       "terraform-aws-modules/vpc/aws",
 				version:    "2.14.0",
 			},
-			want: nil,
-			ok:   false,
+			want: &ModuleUpdater{
+				name:    "terraform-aws-modules/vpc/aws",
+				version: "2.14.0",
+			},
+			ok: true,
 		},
 		{
 			o: Option{
