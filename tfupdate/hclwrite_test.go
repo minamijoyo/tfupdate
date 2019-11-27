@@ -94,3 +94,66 @@ service "label1" "label2" {
 		})
 	}
 }
+
+func TestAllMatchingBlocksByType(t *testing.T) {
+	src := `a = "b"
+service {
+  attr0 = "val0"
+}
+resource {
+  attr1 = "val1"
+}
+service "label1" {
+  attr2 = "val2"
+}
+`
+
+	tests := []struct {
+		src      string
+		typeName string
+		want     string
+	}{
+		{
+			src,
+			"service",
+			`service {
+  attr0 = "val0"
+}
+service "label1" {
+  attr2 = "val2"
+}
+`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%s", test.typeName), func(t *testing.T) {
+			f, diags := hclwrite.ParseConfig([]byte(test.src), "", hcl.Pos{Line: 1, Column: 1})
+			if len(diags) != 0 {
+				for _, diag := range diags {
+					t.Logf("- %s", diag.Error())
+				}
+				t.Fatalf("unexpected diagnostics")
+			}
+
+			blocks := allMatchingBlocksByType(f.Body(), test.typeName)
+			if len(blocks) == 0 {
+				if test.want != "" {
+					t.Fatal("block not found, but want it to exist")
+				}
+			} else {
+				if test.want == "" {
+					t.Fatal("block found, but expecting not found")
+				}
+
+				got := ""
+				for _, block := range blocks {
+					got += string(block.BuildTokens(nil).Bytes())
+				}
+				if got != test.want {
+					t.Errorf("wrong result\ngot:  %s\nwant: %s", got, test.want)
+				}
+			}
+		})
+	}
+}

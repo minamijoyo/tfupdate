@@ -28,7 +28,7 @@ func NewUpdater(o Option) (Updater, error) {
 	case "provider":
 		return NewProviderUpdater(o.name, o.version)
 	case "module":
-		return nil, errors.Errorf("failed to new updater. module is not currently supported.")
+		return NewModuleUpdater(o.name, o.version)
 	default:
 		return nil, errors.Errorf("failed to new updater. unknown type: %s", o.updateType)
 	}
