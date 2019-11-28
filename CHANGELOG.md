@@ -1,4 +1,4 @@
-## 0.3.0 (Unreleased)
+## 0.3.0 (2019/11/28)
 
 NEW FEATURES:
 
