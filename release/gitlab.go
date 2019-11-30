@@ -24,15 +24,15 @@ func NewGitLabRelease(owner string, project string, token string) (Release, erro
 
 // Latest returns a latest version.
 func (r *GitLabRelease) Latest() (string, error) {
-  opt := &gitlab.ListReleasesOptions{}
-  releases, _, err := r.client.Releases.ListReleases(1, opt)
+	opt := &gitlab.ListReleasesOptions{}
+	releases, _, err := r.client.Releases.ListReleases(1, opt)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to get the releases from %s/%s: %s", r.owner, r.project, err)
 	}
 
-  // Get latest release
-  latest := releases[0]
+	// Get latest release
+	latest := releases[0]
 
 	// Use TagName because some releases do not have Name.
 	tagName := latest.TagName
