@@ -22,6 +22,11 @@ func NewGitLabRelease(owner string, project string, token string) (Release, erro
 	}, nil
 }
 
+// SetGitLabURL sets a custom GitLab endpoint
+func (r *GitLabRelease) SetGitLabURL(url string) {
+	r.client.SetBaseURL(url)
+}
+
 // Latest returns a latest version.
 func (r *GitLabRelease) Latest() (string, error) {
 	opt := &gitlab.ListReleasesOptions{}
