@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	flag "github.com/spf13/pflag"
@@ -38,6 +39,22 @@ func (c *ReleaseLatestCommand) Run(args []string) int {
 		c.UI.Error(err.Error())
 		return 1
 	}
+	// else if GitLab (flag?)
+	token := os.Getenv("GITLAB_API_TOKEN")
+	if token == "" {
+		c.UI.Error(fmt.Sprintf("Could not set GitLab API token from env var GITLAB_API_TOKEN."))
+		c.UI.Error(c.Help())
+		return 1
+	}
+	// ok: create gitlabrelease
+	r, err = release.NewGitLabRelease(owner, repo, token)
+	if err != nil {
+		c.UI.Error(err.Error())
+		return 1
+	}
+	// if custom url (flag) url = ...
+	//r.SetGitLabURL(url)
+	// end gitlab if
 
 	v, err := r.Latest(context.Background())
 	if err != nil {
