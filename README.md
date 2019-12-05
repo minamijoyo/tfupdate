@@ -41,7 +41,10 @@ https://github.com/minamijoyo/tfupdate/releases
 If you have Go 1.13+ development environment:
 
 ```
-$ go get github.com/minamijoyo/tfupdate
+$ git clone https://github.com/minamijoyo/tfupdate
+$ cd tfupdate/
+$ make install
+$ tfupdate --version
 ```
 
 ### Docker
