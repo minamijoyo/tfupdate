@@ -41,7 +41,7 @@ func (c *TerraformCommand) Run(args []string) int {
 
 	v := c.version
 	if v == "latest" {
-		r, err := release.NewTerraformRelease()
+		r, err := release.NewRelease("github", "hashicorp/terraform")
 		if err != nil {
 			c.UI.Error(err.Error())
 			return 1

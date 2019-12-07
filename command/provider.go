@@ -43,7 +43,8 @@ func (c *ProviderCommand) Run(args []string) int {
 
 	v := c.version
 	if v == "latest" {
-		r, err := release.NewOfficialProviderRelease(c.name)
+		source := fmt.Sprintf("terraform-providers/terraform-provider-%s", c.name)
+		r, err := release.NewRelease("github", source)
 		if err != nil {
 			c.UI.Error(err.Error())
 			return 1

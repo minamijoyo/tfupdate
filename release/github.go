@@ -3,6 +3,7 @@ package release
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/go-github/v28/github"
 )
@@ -15,7 +16,18 @@ type GitHubRelease struct {
 }
 
 // NewGitHubRelease is a factory method which returns an GitHubRelease instance.
-func NewGitHubRelease(owner string, repo string) (Release, error) {
+func NewGitHubRelease(source string) (Release, error) {
+	var owner, repo string
+
+	s := strings.SplitN(source, "/", 2)
+	switch len(s) {
+	case 2:
+		owner = s[0]
+		repo = s[1]
+	default:
+		return nil, fmt.Errorf("failed to parse source: %s", source)
+	}
+
 	return &GitHubRelease{
 		client: github.NewClient(nil),
 		owner:  owner,
