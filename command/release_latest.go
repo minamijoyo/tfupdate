@@ -56,9 +56,9 @@ Usage: tfupdate release latest [options] <SOURCE>
 Arguments
   SOURCE             A path of release data source.
                      Valid format depends on --source-type option.
-                     github:
-                       owner/repo
-                       (e.g. terraform-providers/terraform-provider-aws)
+                     - github:
+                         owner/repo
+                         e.g. terraform-providers/terraform-provider-aws
 
 Options:
   -s  --source-type  A type of release data source.

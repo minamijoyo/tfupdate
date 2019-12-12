@@ -3,6 +3,7 @@ module github.com/minamijoyo/tfupdate
 go 1.13
 
 require (
+	github.com/davecgh/go-spew v1.1.1
 	github.com/google/go-github/v28 v28.1.1
 	github.com/goreleaser/goreleaser v0.119.0
 	github.com/hashicorp/hcl/v2 v2.1.1-0.20191120012119-7f9aa845c107

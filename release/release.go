@@ -12,7 +12,8 @@ type Release interface {
 func NewRelease(sourceType string, source string) (Release, error) {
 	switch sourceType {
 	case "github":
-		return NewGitHubRelease(source)
+		client := NewGitHubClient()
+		return NewGitHubRelease(client, source)
 	default:
 		return nil, errors.Errorf("failed to new release data source. unknown type: %s", sourceType)
 	}
