@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -38,7 +39,7 @@ func (c *ReleaseLatestCommand) Run(args []string) int {
 		return 1
 	}
 
-	v, err := r.Latest()
+	v, err := r.Latest(context.Background())
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

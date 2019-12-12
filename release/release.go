@@ -1,11 +1,15 @@
 package release
 
-import "github.com/pkg/errors"
+import (
+	"context"
+
+	"github.com/pkg/errors"
+)
 
 // Release is an interface which provides version information.
 type Release interface {
 	// Latest returns a latest version.
-	Latest() (string, error)
+	Latest(ctx context.Context) (string, error)
 }
 
 // NewRelease is a factory method which returns an Release implementation.

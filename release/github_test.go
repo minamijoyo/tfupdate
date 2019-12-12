@@ -116,7 +116,7 @@ func TestGitHubReleaseLatest(t *testing.T) {
 			t.Fatalf("failed to NewGitHubRelease(%#v, %s): %s", tc.client, source, err)
 		}
 
-		got, err := r.Latest()
+		got, err := r.Latest(context.Background())
 
 		if tc.ok && err != nil {
 			t.Errorf("(*GitHubRelease).Latest() with r = %s returns unexpected err: %+v", spew.Sdump(r), err)

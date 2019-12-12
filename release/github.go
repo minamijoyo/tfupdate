@@ -61,8 +61,8 @@ func NewGitHubRelease(api GitHubAPI, source string) (Release, error) {
 }
 
 // Latest returns a latest version.
-func (r *GitHubRelease) Latest() (string, error) {
-	release, _, err := r.api.RepositoriesGetLatestRelease(context.Background(), r.owner, r.repo)
+func (r *GitHubRelease) Latest(ctx context.Context) (string, error) {
+	release, _, err := r.api.RepositoriesGetLatestRelease(ctx, r.owner, r.repo)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to get the latest release from github.com/%s/%s: %s", r.owner, r.repo, err)
