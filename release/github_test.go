@@ -20,47 +20,103 @@ func (c *mockGitHubClient) RepositoriesGetLatestRelease(ctx context.Context, own
 	return c.repositoryRelease, c.response, c.err
 }
 
+func TestNewGitHubClient(t *testing.T) {
+	cases := []struct {
+		baseURL string
+		want    string
+		ok      bool
+	}{
+		{
+			baseURL: "",
+			want:    "https://api.github.com/",
+			ok:      true,
+		},
+		{
+			baseURL: "https://api.github.com/",
+			want:    "https://api.github.com/",
+			ok:      true,
+		},
+		{
+			baseURL: "http://localhost/",
+			want:    "http://localhost/",
+			ok:      true,
+		},
+		{
+			baseURL: `https://api\.github.om/`,
+			want:    "",
+			ok:      false,
+		},
+	}
+
+	for _, tc := range cases {
+		config := GitHubConfig{
+			BaseURL: tc.baseURL,
+		}
+		got, err := NewGitHubClient(config)
+
+		if tc.ok && err != nil {
+			t.Errorf("NewGitHubClient() with baseURL = %s returns unexpected err: %s", tc.baseURL, err)
+		}
+
+		if !tc.ok && err == nil {
+			t.Errorf("NewGitHubClient() with baseURL = %s expect to return an error, but no error", tc.baseURL)
+		}
+
+		if tc.ok {
+			if got.client.BaseURL.String() != tc.want {
+				t.Errorf("NewGitHubClient() with baseURL = %s returns %s, but want %s", tc.baseURL, got.client.BaseURL.String(), tc.want)
+			}
+		}
+	}
+}
+
 func TestNewGitHubRelease(t *testing.T) {
 	cases := []struct {
 		source string
+		api    GitHubAPI
 		owner  string
 		repo   string
 		ok     bool
 	}{
 		{
 			source: "hoge/fuga",
+			api:    &mockGitHubClient{},
 			owner:  "hoge",
 			repo:   "fuga",
 			ok:     true,
 		},
 		{
 			source: "hoge",
+			api:    &mockGitHubClient{},
 			owner:  "",
 			repo:   "",
 			ok:     false,
 		},
 	}
 
-	client := &mockGitHubClient{}
 	for _, tc := range cases {
-		got, err := NewGitHubRelease(client, tc.source)
+		config := GitHubConfig{
+			api: tc.api,
+		}
+		got, err := NewGitHubRelease(tc.source, config)
 
 		if tc.ok && err != nil {
-			t.Errorf("NewGitHubRelease() with source = %s returns unexpected err: %s", tc.source, err)
+			t.Errorf("NewGitHubRelease() with source = %s, api = %#v returns unexpected err: %s", tc.source, tc.api, err)
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("NewGitHubRelease() with source = %s expect to return an error, but no error", tc.source)
+			t.Errorf("NewGitHubRelease() with source = %s, api = %#v expect to return an error, but no error", tc.source, tc.api)
 		}
 
 		if tc.ok {
 			r := got.(*GitHubRelease)
-			if r.api == nil {
-				t.Errorf("NewGitHubRelease() with source = %s expect to set api, but nil", tc.source)
+
+			if r.api != tc.api {
+				t.Errorf("NewGitHubRelease() with source = %s, api = %#v sets api = %#v, but want %s", tc.source, tc.api, r.api, tc.api)
 			}
 
 			if !(r.owner == tc.owner && r.repo == tc.repo) {
-				t.Errorf("NewGitHubRelease() with source = %s returns (%s, %s), but want (%s, %s)", tc.source, r.owner, r.repo, tc.owner, tc.repo)
+				t.Errorf("NewGitHubRelease() with source = %s, api = %#v returns (%s, %s), but want (%s, %s)", tc.source, tc.api, r.owner, r.repo, tc.owner, tc.repo)
 			}
 		}
 	}
@@ -70,12 +126,12 @@ func TestGitHubReleaseLatest(t *testing.T) {
 	tagv010 := "v0.1.0"
 	tag010 := "0.1.0"
 	cases := []struct {
-		client mockGitHubClient
+		client *mockGitHubClient
 		want   string
 		ok     bool
 	}{
 		{
-			client: mockGitHubClient{
+			client: &mockGitHubClient{
 				repositoryRelease: &github.RepositoryRelease{
 					TagName: &tagv010,
 				},
@@ -86,7 +142,7 @@ func TestGitHubReleaseLatest(t *testing.T) {
 			ok:   true,
 		},
 		{
-			client: mockGitHubClient{
+			client: &mockGitHubClient{
 				repositoryRelease: &github.RepositoryRelease{
 					TagName: &tag010,
 				},
@@ -97,7 +153,7 @@ func TestGitHubReleaseLatest(t *testing.T) {
 			ok:   true,
 		},
 		{
-			client: mockGitHubClient{
+			client: &mockGitHubClient{
 				repositoryRelease: nil,
 				response:          &github.Response{},
 				// Actual error response type is *github.ErrorResponse,
@@ -111,9 +167,13 @@ func TestGitHubReleaseLatest(t *testing.T) {
 
 	source := "hoge/fuga"
 	for _, tc := range cases {
-		r, err := NewGitHubRelease(&tc.client, source)
+		// Set a mock client
+		config := GitHubConfig{
+			api: tc.client,
+		}
+		r, err := NewGitHubRelease(source, config)
 		if err != nil {
-			t.Fatalf("failed to NewGitHubRelease(%#v, %s): %s", tc.client, source, err)
+			t.Fatalf("failed to NewGitHubRelease(%s, %#v): %s", source, config, err)
 		}
 
 		got, err := r.Latest(context.Background())

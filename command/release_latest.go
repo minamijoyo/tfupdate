@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/minamijoyo/tfupdate/release"
 	flag "github.com/spf13/pflag"
 )
 
@@ -33,7 +32,8 @@ func (c *ReleaseLatestCommand) Run(args []string) int {
 	}
 
 	c.source = cmdFlags.Arg(0)
-	r, err := release.NewRelease(c.sourceType, c.source)
+
+	r, err := newRelease(c.sourceType, c.source)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

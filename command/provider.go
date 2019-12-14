@@ -6,7 +6,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/minamijoyo/tfupdate/release"
 	"github.com/minamijoyo/tfupdate/tfupdate"
 	flag "github.com/spf13/pflag"
 )
@@ -45,7 +44,7 @@ func (c *ProviderCommand) Run(args []string) int {
 	v := c.version
 	if v == "latest" {
 		source := fmt.Sprintf("terraform-providers/terraform-provider-%s", c.name)
-		r, err := release.NewRelease("github", source)
+		r, err := newRelease("github", source)
 		if err != nil {
 			c.UI.Error(err.Error())
 			return 1

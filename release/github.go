@@ -3,6 +3,7 @@ package release
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/google/go-github/v28/github"
@@ -16,16 +17,40 @@ type GitHubAPI interface {
 	RepositoriesGetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
 }
 
+// GitHubConfig is a set of configurations for GitHubRelease.
+type GitHubConfig struct {
+	// api is an instance of GitHubAPI interface.
+	// It can be replaced for testing.
+	api GitHubAPI
+
+	// BaseURL is a URL for GtiHub API requests.
+	// Defaults to the public GitHub API.
+	// This looks like the GitHub Enterprise support, but currently for testing purposes only.
+	// The GitHub Enterprise is not supported yet.
+	// BaseURL should always be specified with a trailing slash.
+	BaseURL string
+}
+
 // GitHubClient is a real GitHubAPI implementation.
 type GitHubClient struct {
 	client *github.Client
 }
 
 // NewGitHubClient returns a real GitHubClient instance.
-func NewGitHubClient() *GitHubClient {
-	return &GitHubClient{
-		client: github.NewClient(nil),
+func NewGitHubClient(config GitHubConfig) (*GitHubClient, error) {
+	c := github.NewClient(nil)
+
+	if len(config.BaseURL) != 0 {
+		baseURL, err := url.Parse(config.BaseURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse github base url: %s", err)
+		}
+		c.BaseURL = baseURL
 	}
+
+	return &GitHubClient{
+		client: c,
+	}, nil
 }
 
 // RepositoriesGetLatestRelease fetches the latest published release for the repository.
@@ -47,10 +72,22 @@ type GitHubRelease struct {
 }
 
 // NewGitHubRelease is a factory method which returns an GitHubRelease instance.
-func NewGitHubRelease(api GitHubAPI, source string) (Release, error) {
+func NewGitHubRelease(source string, config GitHubConfig) (Release, error) {
 	s := strings.SplitN(source, "/", 2)
 	if len(s) != 2 {
 		return nil, fmt.Errorf("failed to parse source: %s", source)
+	}
+
+	// If config.api is not set, create a default GitHubClient
+	var api GitHubAPI
+	if config.api == nil {
+		var err error
+		api, err = NewGitHubClient(config)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		api = config.api
 	}
 
 	return &GitHubRelease{
@@ -65,7 +102,7 @@ func (r *GitHubRelease) Latest(ctx context.Context) (string, error) {
 	release, _, err := r.api.RepositoriesGetLatestRelease(ctx, r.owner, r.repo)
 
 	if err != nil {
-		return "", fmt.Errorf("failed to get the latest release from github.com/%s/%s: %s", r.owner, r.repo, err)
+		return "", fmt.Errorf("failed to get the latest release for %s/%s: %s", r.owner, r.repo, err)
 	}
 
 	// Use TagName because some releases do not have Name.

@@ -8,6 +8,7 @@ require (
 	github.com/goreleaser/goreleaser v0.119.0
 	github.com/hashicorp/hcl/v2 v2.1.1-0.20191120012119-7f9aa845c107
 	github.com/hashicorp/logutils v1.0.0
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mitchellh/cli v1.0.0
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/afero v1.2.2
