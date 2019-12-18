@@ -3,10 +3,12 @@ package release
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/google/go-github/v28/github"
+	"golang.org/x/oauth2"
 )
 
 // GitHubAPI is an interface which calls GitHub API.
@@ -29,6 +31,10 @@ type GitHubConfig struct {
 	// The GitHub Enterprise is not supported yet.
 	// BaseURL should always be specified with a trailing slash.
 	BaseURL string
+
+	// Token is a personal access token for GitHub.
+	// This allows access to a private repository.
+	Token string
 }
 
 // GitHubClient is a real GitHubAPI implementation.
@@ -38,7 +44,11 @@ type GitHubClient struct {
 
 // NewGitHubClient returns a real GitHubClient instance.
 func NewGitHubClient(config GitHubConfig) (*GitHubClient, error) {
-	c := github.NewClient(nil)
+	var hc *http.Client
+	if len(config.Token) != 0 {
+		hc = newOAuth2Client(config.Token)
+	}
+	c := github.NewClient(hc)
 
 	if len(config.BaseURL) != 0 {
 		baseURL, err := url.Parse(config.BaseURL)
@@ -51,6 +61,17 @@ func NewGitHubClient(config GitHubConfig) (*GitHubClient, error) {
 	return &GitHubClient{
 		client: c,
 	}, nil
+}
+
+// newOAuth2Client returns a *http.Client which sets a given token to the Authorization header.
+// This allows access to a private repository.
+func newOAuth2Client(token string) *http.Client {
+	t := &oauth2.Token{
+		AccessToken: token,
+	}
+	ts := oauth2.StaticTokenSource(t)
+
+	return oauth2.NewClient(context.Background(), ts)
 }
 
 // RepositoriesGetLatestRelease fetches the latest published release for the repository.
