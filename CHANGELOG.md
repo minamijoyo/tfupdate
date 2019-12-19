@@ -1,3 +1,17 @@
+## 0.3.1 (Unreleased)
+
+NEW FEATURES:
+
+* Add support for GitHub private repository ([#9](https://github.com/minamijoyo/tfupdate/pull/9))
+
+ENHANCEMENTS:
+
+* Make release interface more flexible ([#8](https://github.com/minamijoyo/tfupdate/pull/8))
+
+BUG FIXES:
+
+* Fix instruction for building from source ([#6](https://github.com/minamijoyo/tfupdate/pull/6))
+
 ## 0.3.0 (2019/11/28)
 
 NEW FEATURES:
