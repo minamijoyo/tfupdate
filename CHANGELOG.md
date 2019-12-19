@@ -1,4 +1,6 @@
-## 0.3.1 (Unreleased)
+## 0.3.2 (Unreleased)
+
+## 0.3.1 (2019/12/19)
 
 NEW FEATURES:
 
