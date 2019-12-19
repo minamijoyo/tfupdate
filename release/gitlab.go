@@ -1,46 +1,122 @@
 package release
 
 import (
+	"context"
 	"fmt"
-
-	gitlab "github.com/xanzy/go-gitlab"
+	"github.com/xanzy/go-gitlab"
+	"net/url"
+	"strings"
 )
+
+// GitLabAPI is an interface which calls GitLab API.
+// This abstraction layer is needed for testing with mock.
+type GitLabAPI interface {
+	// RepositoriesGetLatestRelease fetches the latest published release for the project..
+	ProjectGetLatestRelease(owner, project string) (*gitlab.Release, *gitlab.Response, error)
+}
+
+// GitLabConfig is a set of configurations for GitLabRelease..
+type GitLabConfig struct {
+	// api is an instance of GitLabAPI interface.
+	// It can be replaced for testing.
+	api GitLabAPI
+
+	// BaseURL is a URL for GitLab API requests.
+	// Defaults to the public GitLab API.
+	// BaseURL should always be specified with a trailing slash.
+	BaseURL string
+
+	// Token is a personal access token for GitLab, needed to use the api.
+	Token string
+}
+
+// GitLabClient is a real GitLabAPI implementation.
+type GitLabClient struct {
+	client *gitlab.Client
+}
+
+// NewGitLabClient returns a real GitLab instance.
+func NewGitLabClient(config GitLabConfig) (*GitLabClient, error) {
+	if len(config.Token) == 0 {
+		return nil, fmt.Errorf("failed to get personal access token")
+	}
+	c := gitlab.NewClient(nil, config.Token)
+
+	if len(config.BaseURL) != 0 {
+		baseURL, err := url.Parse(config.BaseURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse gitlab base url: %s", err)
+		}
+		c.SetBaseURL(baseURL.String())
+	}
+
+	return &GitLabClient{
+		client: c,
+	}, nil
+}
+
+// ProjectGetLatestRelease fetches the latest published release for the repository.
+func (c *GitLabClient) ProjectGetLatestRelease(owner, project string) (*gitlab.Release, *gitlab.Response, error) {
+	// need to find a way of getting releases from a specific projects
+	opt := &gitlab.ListReleasesOptions{}
+	releases, response, err := c.client.Releases.ListReleases(1, opt)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get releases")
+	}
+	latest := releases[0]
+	return latest, response, err
+}
 
 // GitLabRelease is a release implementation which provides version information with GitLab Release.
 type GitLabRelease struct {
-	client  *gitlab.Client
-	owner   string
+	// api is an instance of GitLabAPI interface.
+	// It can be replaced for testing.
+	api GitLabAPI
+
+	// owner is a namespace of project.
+	// limited to one level (group or personal - not sub-groups?)
+	owner string
+
+	// project is a name of project (repository).
 	project string
 }
 
 // NewGitLabRelease is a factory method which returns an GitLabRelease instance.
-func NewGitLabRelease(owner string, project string, token string) (Release, error) {
-	return &GitLabRelease{
-		client:  gitlab.NewClient(nil, token),
-		owner:   owner,
-		project: project,
-	}, nil
-}
+func NewGitLabRelease(source string, config GitLabConfig) (*GitLabRelease, error) {
+	s := strings.SplitN(source, "/", 2)
+	if len(s) != 2 {
+		return nil, fmt.Errorf("failed to parse source: %s", source)
+	}
 
-// SetGitLabURL sets a custom GitLab endpoint
-func (r *GitLabRelease) SetGitLabURL(url string) {
-	r.client.SetBaseURL(url)
+	// If config.api is not set, create a default GitLabClient
+	var api GitLabAPI
+	if config.api == nil {
+		var err error
+		api, err = NewGitLabClient(config)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		api = config.api
+	}
+
+	return &GitLabRelease{
+		api:     api,
+		owner:   s[0],
+		project: s[1],
+	}, nil
 }
 
 // Latest returns a latest version.
 func (r *GitLabRelease) Latest() (string, error) {
-	opt := &gitlab.ListReleasesOptions{}
-	releases, _, err := r.client.Releases.ListReleases(1, opt)
+	release, _, err := r.api.ProjectGetLatestRelease(r.owner, r.project)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to get the releases from %s/%s: %s", r.owner, r.project, err)
 	}
 
-	// Get latest release
-	latest := releases[0]
-
 	// Use TagName because some releases do not have Name.
-	tagName := latest.TagName
+	tagName := release.TagName
 
 	// if a tagName starts with `v`, remove it.
 	if tagName[0] == 'v' {
