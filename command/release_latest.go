@@ -1,22 +1,24 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/minamijoyo/tfupdate/release"
 	flag "github.com/spf13/pflag"
 )
 
 // ReleaseLatestCommand is a command which gets the latest release version.
 type ReleaseLatestCommand struct {
 	Meta
-	repositoryPath string
+	sourceType string
+	source     string
 }
 
 // Run runs the procedure of this command.
 func (c *ReleaseLatestCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("release latest", flag.ContinueOnError)
+	cmdFlags.StringVarP(&c.sourceType, "source-type", "s", "github", "A type of release data source")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		c.UI.Error(fmt.Sprintf("failed to parse arguments: %s", err))
@@ -29,23 +31,15 @@ func (c *ReleaseLatestCommand) Run(args []string) int {
 		return 1
 	}
 
-	c.repositoryPath = cmdFlags.Arg(0)
-	s := strings.Split(c.repositoryPath, "/")
-	if len(s) != 2 {
-		c.UI.Error(fmt.Sprintf("failed to parse repository path: %s", c.repositoryPath))
-		c.UI.Error(c.Help())
-		return 1
-	}
-	owner := s[0]
-	repo := s[1]
+	c.source = cmdFlags.Arg(0)
 
-	r, err := release.NewGitHubRelease(owner, repo)
+	r, err := newRelease(c.sourceType, c.source)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
 	}
 
-	v, err := r.Latest()
+	v, err := r.Latest(context.Background())
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
@@ -58,16 +52,23 @@ func (c *ReleaseLatestCommand) Run(args []string) int {
 // Help returns long-form help text.
 func (c *ReleaseLatestCommand) Help() string {
 	helpText := `
-Usage: tfupdate release latest [options] <REPOSITORY>
+Usage: tfupdate release latest [options] <SOURCE>
 
 Arguments
-  REPOSITORY         A path of the the GitHub repository
-                     (e.g. terraform-providers/terraform-provider-aws)
+  SOURCE             A path of release data source.
+                     Valid format depends on --source-type option.
+                     - github:
+                         owner/repo
+                         e.g. terraform-providers/terraform-provider-aws
+
+Options:
+  -s  --source-type  A type of release data source.
+                     Valid value is only github. (default: github)
 `
 	return strings.TrimSpace(helpText)
 }
 
 // Synopsis returns one-line help text.
 func (c *ReleaseLatestCommand) Synopsis() string {
-	return "Get the latest release version from GitHub Release"
+	return "Get the latest release version"
 }

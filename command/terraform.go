@@ -1,11 +1,11 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 
-	"github.com/minamijoyo/tfupdate/release"
 	"github.com/minamijoyo/tfupdate/tfupdate"
 	flag "github.com/spf13/pflag"
 )
@@ -41,13 +41,13 @@ func (c *TerraformCommand) Run(args []string) int {
 
 	v := c.version
 	if v == "latest" {
-		r, err := release.NewTerraformRelease()
+		r, err := newRelease("github", "hashicorp/terraform")
 		if err != nil {
 			c.UI.Error(err.Error())
 			return 1
 		}
 
-		v, err = r.Latest()
+		v, err = r.Latest(context.Background())
 		if err != nil {
 			c.UI.Error(err.Error())
 			return 1
