@@ -30,6 +30,7 @@ func newRelease(sourceType string, source string) (release.Release, error) {
 	case "github":
 		config := release.GitHubConfig{
 			BaseURL: env.GitHubBaseURL,
+			Token:   env.GitHubToken,
 		}
 		return release.NewGitHubRelease(source, config)
 	default:

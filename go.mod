@@ -15,6 +15,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/zclconf/go-cty v1.1.0
 	golang.org/x/lint v0.0.0-20190930215403-16217165b5de
+	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6
 )
 
 // Fix invalid pseudo-version: revision is longer than canonical (b0274f40d4c7)

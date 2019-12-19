@@ -7,6 +7,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/go-github/v28/github"
+	"golang.org/x/oauth2"
 )
 
 // GitHubClient is a mock GitHubAPI implementation.
@@ -59,7 +60,7 @@ func TestNewGitHubClient(t *testing.T) {
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("NewGitHubClient() with baseURL = %s expect to return an error, but no error", tc.baseURL)
+			t.Errorf("NewGitHubClient() with baseURL = %s expects to return an error, but no error", tc.baseURL)
 		}
 
 		if tc.ok {
@@ -70,6 +71,27 @@ func TestNewGitHubClient(t *testing.T) {
 	}
 }
 
+func TestNewOAuth2Client(t *testing.T) {
+	cases := []struct {
+		token string
+	}{
+		{
+			token: "hoge",
+		},
+	}
+
+	for _, tc := range cases {
+		c := newOAuth2Client(tc.token)
+		trans := c.Transport.(*oauth2.Transport)
+		got, err := trans.Source.Token()
+		if err != nil {
+			t.Fatalf("failed to get a token from OAuth2 client: %s", err)
+		}
+		if got.AccessToken != tc.token {
+			t.Errorf("newOAuth2Client() expects to set a token = %s, but got = %s", tc.token, got.AccessToken)
+		}
+	}
+}
 func TestNewGitHubRelease(t *testing.T) {
 	cases := []struct {
 		source string
@@ -105,7 +127,7 @@ func TestNewGitHubRelease(t *testing.T) {
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("NewGitHubRelease() with source = %s, api = %#v expect to return an error, but no error", tc.source, tc.api)
+			t.Errorf("NewGitHubRelease() with source = %s, api = %#v expects to return an error, but no error", tc.source, tc.api)
 		}
 
 		if tc.ok {
@@ -183,7 +205,7 @@ func TestGitHubReleaseLatest(t *testing.T) {
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("(*GitHubRelease).Latest() with r = %s expect to return an error, but no error", spew.Sdump(r))
+			t.Errorf("(*GitHubRelease).Latest() with r = %s expects to return an error, but no error", spew.Sdump(r))
 		}
 
 		if got != tc.want {

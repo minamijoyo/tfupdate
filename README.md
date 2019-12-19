@@ -221,6 +221,8 @@ $ tfupdate release latest terraform-providers/terraform-provider-aws
 2.40.0
 ```
 
+If you want to access private repositories on GitHub, export your access token to the `GITHUB_TOKEN` environment variable.
+
 ## Keep your dependencies up-to-date
 
 If you integrate tfupdate with your favorite CI or job scheduler, you can check the latest release daily and create a Pull Request automatically.
