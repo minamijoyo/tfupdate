@@ -206,14 +206,21 @@ Usage: tfupdate release <subcommand> [options] [args]
   This command has subcommands for release version information.
 
 Subcommands:
-    latest    Get the latest release version from GitHub Release
+    latest    Get the latest release version
 
 $ tfupdate release latest --help
-Usage: tfupdate release latest [options] <REPOSITORY>
+Usage: tfupdate release latest [options] <SOURCE>
 
 Arguments
-  REPOSITORY         A path of the the GitHub repository
-                     (e.g. terraform-providers/terraform-provider-aws)
+  SOURCE             A path of release data source.
+                     Valid format depends on --source-type option.
+                     - github:
+                         owner/repo
+                         e.g. terraform-providers/terraform-provider-aws
+
+Options:
+  -s  --source-type  A type of release data source.
+                     Valid value is only github. (default: github)
 ```
 
 ```
