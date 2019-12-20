@@ -238,6 +238,10 @@ An example for tfupdate with CircleCI is available:
 
 https://github.com/minamijoyo/tfupdate-circleci-example
 
+You can also use a CircleCI orb:
+
+https://github.com/masutaka/circleci-tfupdate-orb
+
 ## License
 
 MIT
