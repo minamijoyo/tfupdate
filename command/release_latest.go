@@ -3,7 +3,6 @@ package command
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	flag "github.com/spf13/pflag"
@@ -39,22 +38,6 @@ func (c *ReleaseLatestCommand) Run(args []string) int {
 		c.UI.Error(err.Error())
 		return 1
 	}
-	// else if GitLab (flag?)
-	token := os.Getenv("GITLAB_API_TOKEN")
-	if token == "" {
-		c.UI.Error(fmt.Sprintf("Could not set GitLab API token from env var GITLAB_API_TOKEN."))
-		c.UI.Error(c.Help())
-		return 1
-	}
-	// ok: create gitlabrelease
-	r, err = release.NewGitLabRelease(owner, repo, token)
-	if err != nil {
-		c.UI.Error(err.Error())
-		return 1
-	}
-	// if custom url (flag) url = ...
-	//r.SetGitLabURL(url)
-	// end gitlab if
 
 	v, err := r.Latest(context.Background())
 	if err != nil {
@@ -74,13 +57,15 @@ Usage: tfupdate release latest [options] <SOURCE>
 Arguments
   SOURCE             A path of release data source.
                      Valid format depends on --source-type option.
-                     - github:
+                       - github or gitlab:
                          owner/repo
                          e.g. terraform-providers/terraform-provider-aws
 
 Options:
   -s  --source-type  A type of release data source.
-                     Valid value is only github. (default: github)
+                     Valid values are
+                       - github (default)
+                       - gitlab
 `
 	return strings.TrimSpace(helpText)
 }
