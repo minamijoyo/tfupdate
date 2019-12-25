@@ -58,7 +58,7 @@ func NewGitLabClient(config GitLabConfig) (*GitLabClient, error) {
 // ProjectGetLatestRelease fetches the latest published release for the project.
 func (c *GitLabClient) ProjectGetLatestRelease(ctx context.Context, owner, project string) (*gitlab.Release, *gitlab.Response, error) {
 	opt := &gitlab.ListReleasesOptions{}
-	releases, response, err := c.client.Releases.ListReleases(owner+"/"+project, opt)
+	releases, response, err := c.client.Releases.ListReleases(owner+"/"+project, opt, gitlab.WithContext(ctx))
 	if err != nil {
 		return nil, nil, err
 	}
