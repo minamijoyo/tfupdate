@@ -93,6 +93,13 @@ func TestNewGitLabRelease(t *testing.T) {
 			project: "",
 			ok:      false,
 		},
+		{
+			source:  "gitlab-org/gitlab",
+			api:     nil,
+			owner:   "gitlab-org",
+			project: "gitlab",
+			ok:      false,
+		},
 	}
 
 	for _, tc := range cases {
