@@ -11,8 +11,8 @@ import (
 // GitLabAPI is an interface which calls GitLab API.
 // This abstraction layer is needed for testing with mock.
 type GitLabAPI interface {
-	// RepositoriesGetLatestRelease fetches the latest published release for the project..
-	ProjectGetLatestRelease(owner, project string) (*gitlab.Release, *gitlab.Response, error)
+	// ProjectGetLatestRelease fetches the latest published release for the project.
+	ProjectGetLatestRelease(ctx context.Context, owner, project string) (*gitlab.Release, *gitlab.Response, error)
 }
 
 // GitLabConfig is a set of configurations for GitLabRelease..
@@ -55,13 +55,12 @@ func NewGitLabClient(config GitLabConfig) (*GitLabClient, error) {
 	}, nil
 }
 
-// ProjectGetLatestRelease fetches the latest published release for the repository.
-func (c *GitLabClient) ProjectGetLatestRelease(owner, project string) (*gitlab.Release, *gitlab.Response, error) {
-	// need to find a way of getting releases from a specific projects
+// ProjectGetLatestRelease fetches the latest published release for the project.
+func (c *GitLabClient) ProjectGetLatestRelease(ctx context.Context, owner, project string) (*gitlab.Release, *gitlab.Response, error) {
 	opt := &gitlab.ListReleasesOptions{}
-	releases, response, err := c.client.Releases.ListReleases(1, opt)
+	releases, response, err := c.client.Releases.ListReleases(owner+"/"+project, opt)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get releases")
+		return nil, nil, err
 	}
 	latest := releases[0]
 	return latest, response, err
@@ -108,8 +107,8 @@ func NewGitLabRelease(source string, config GitLabConfig) (*GitLabRelease, error
 }
 
 // Latest returns a latest version.
-func (r *GitLabRelease) Latest() (string, error) {
-	release, _, err := r.api.ProjectGetLatestRelease(r.owner, r.project)
+func (r *GitLabRelease) Latest(ctx context.Context) (string, error) {
+	release, _, err := r.api.ProjectGetLatestRelease(ctx, r.owner, r.project)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to get the releases from %s/%s: %s", r.owner, r.project, err)
