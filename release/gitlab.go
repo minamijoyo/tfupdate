@@ -3,9 +3,10 @@ package release
 import (
 	"context"
 	"fmt"
-	"github.com/xanzy/go-gitlab"
 	"net/url"
 	"strings"
+
+	"github.com/xanzy/go-gitlab"
 )
 
 // GitLabAPI is an interface which calls GitLab API.
