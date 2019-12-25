@@ -38,7 +38,7 @@ type GitLabClient struct {
 // NewGitLabClient returns a real GitLab instance.
 func NewGitLabClient(config GitLabConfig) (*GitLabClient, error) {
 	if len(config.Token) == 0 {
-		return nil, fmt.Errorf("failed to get personal access token")
+		return nil, fmt.Errorf("failed to get personal access token (env: GITLAB_TOKEN)")
 	}
 	c := gitlab.NewClient(nil, config.Token)
 
