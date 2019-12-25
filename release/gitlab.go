@@ -63,6 +63,9 @@ func (c *GitLabClient) ProjectGetLatestRelease(ctx context.Context, owner, proje
 	if err != nil {
 		return nil, nil, err
 	}
+	if len(releases) == 0 {
+		return nil, nil, fmt.Errorf("no releases found for project")
+	}
 	latest := releases[0]
 	return latest, response, err
 }
