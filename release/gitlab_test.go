@@ -16,31 +16,36 @@ type mockGitLabClient struct {
 	err            error
 }
 
+// ProjectGetLatestRelease returns the latest release for the mockGitLabClient.
 func (c *mockGitLabClient) ProjectGetLatestRelease(ctx context.Context, owner, project string) (*gitlab.Release, *gitlab.Response, error) {
 	return c.projectRelease, c.response, c.err
 }
 
+// Test of NewGitLabClient(config GitLabConfig)
 func TestNewGitLabClient(t *testing.T) {
 	cases := []struct {
 		baseURL string
 		want    string
 		ok      bool
-	}{
+	}{ // test default value
 		{
 			baseURL: "",
 			want:    "https://gitlab.com/api/v4/",
 			ok:      true,
 		},
+		// test custom value
 		{
 			baseURL: "https://gitlab.com/api/v4/",
 			want:    "https://gitlab.com/api/v4/",
 			ok:      true,
 		},
+		// test custom value
 		{
 			baseURL: "http://localhost/api/v4/",
 			want:    "http://localhost/api/v4/",
 			ok:      true,
 		},
+		// test unparsable URL
 		{
 			baseURL: `https://gitlab\.com/api/v4/`,
 			want:    "",
@@ -71,6 +76,7 @@ func TestNewGitLabClient(t *testing.T) {
 	}
 }
 
+// Test of NewGitLabRelease(source string, config GitLabConfig)
 func TestNewGitLabRelease(t *testing.T) {
 	cases := []struct {
 		source  string
@@ -78,7 +84,7 @@ func TestNewGitLabRelease(t *testing.T) {
 		owner   string
 		project string
 		ok      bool
-	}{
+	}{ // test complete config
 		{
 			source:  "gitlab-org/gitlab",
 			api:     &mockGitLabClient{},
@@ -86,6 +92,7 @@ func TestNewGitLabRelease(t *testing.T) {
 			project: "gitlab",
 			ok:      true,
 		},
+		// test release without owner or project
 		{
 			source:  "gitlab",
 			api:     &mockGitLabClient{},
@@ -93,6 +100,7 @@ func TestNewGitLabRelease(t *testing.T) {
 			project: "",
 			ok:      false,
 		},
+		// test release with missing api
 		{
 			source:  "gitlab-org/gitlab",
 			api:     nil,
@@ -130,6 +138,7 @@ func TestNewGitLabRelease(t *testing.T) {
 	}
 }
 
+// Test of GitLabRelease.Latest(ctx context.Context)
 func TestGitLabReleaseLatest(t *testing.T) {
 	tagv010 := "v0.1.0"
 	tag010 := "0.1.0"
@@ -137,7 +146,7 @@ func TestGitLabReleaseLatest(t *testing.T) {
 		client *mockGitLabClient
 		want   string
 		ok     bool
-	}{
+	}{ // test v0.1.0 release
 		{
 			client: &mockGitLabClient{
 				projectRelease: &gitlab.Release{
@@ -149,6 +158,7 @@ func TestGitLabReleaseLatest(t *testing.T) {
 			want: "0.1.0",
 			ok:   true,
 		},
+		// test 0.1.0 release
 		{
 			client: &mockGitLabClient{
 				projectRelease: &gitlab.Release{
@@ -160,6 +170,17 @@ func TestGitLabReleaseLatest(t *testing.T) {
 			want: "0.1.0",
 			ok:   true,
 		},
+		// test no release
+		{
+			client: &mockGitLabClient{
+				projectRelease: &gitlab.Release{},
+				response:       &gitlab.Response{},
+				err:            errors.New("no releases found for project"),
+			},
+			want: "",
+			ok:   false,
+		},
+		// test unreachable/invalid project
 		{
 			client: &mockGitLabClient{
 				projectRelease: nil,
