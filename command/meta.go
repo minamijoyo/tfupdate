@@ -33,6 +33,12 @@ func newRelease(sourceType string, source string) (release.Release, error) {
 			Token:   env.GitHubToken,
 		}
 		return release.NewGitHubRelease(source, config)
+	case "gitlab":
+		config := release.GitLabConfig{
+			BaseURL: env.GitLabBaseURL,
+			Token:   env.GitLabToken,
+		}
+		return release.NewGitLabRelease(source, config)
 	default:
 		return nil, fmt.Errorf("failed to new release data source. unknown type: %s", sourceType)
 	}

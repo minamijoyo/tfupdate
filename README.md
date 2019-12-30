@@ -7,7 +7,7 @@
 
 - Update version constraints of Terraform core, providers, and modules
 - Update all your Terraform configurations recursively under a given directory
-- Get the latest release version from GitHub Release
+- Get the latest release version from a GitHub or GitLab Release
 - Terraform v0.12+ support
 
 If you integrate tfupdate with your favorite CI or job scheduler, you can check the latest release daily and create a Pull Request automatically.
@@ -214,13 +214,15 @@ Usage: tfupdate release latest [options] <SOURCE>
 Arguments
   SOURCE             A path of release data source.
                      Valid format depends on --source-type option.
-                     - github:
+                       - github or gitlab:
                          owner/repo
                          e.g. terraform-providers/terraform-provider-aws
 
 Options:
   -s  --source-type  A type of release data source.
-                     Valid value is only github. (default: github)
+                     Valid values are
+                       - github (default)
+                       - gitlab
 ```
 
 ```
@@ -229,6 +231,8 @@ $ tfupdate release latest terraform-providers/terraform-provider-aws
 ```
 
 If you want to access private repositories on GitHub, export your access token to the `GITHUB_TOKEN` environment variable.
+
+If you want to access public or private repositories on GitLab, export your access token with api permissions to the `GITLAB_TOKEN` environment variable. If you are using an instance that is not `https://gitlab.com`, set the correct base URL to the `GITLAB_BASE_URL` environment variable (defaults to `https://gitlab.com/api/v4/`).
 
 ## Keep your dependencies up-to-date
 
