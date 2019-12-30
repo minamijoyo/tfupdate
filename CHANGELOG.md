@@ -1,5 +1,9 @@
 ## 0.3.2 (Unreleased)
 
+NEW FEATURES:
+
+* Add support for GitLab projects to release latest ([#11](https://github.com/minamijoyo/tfupdate/pull/11))
+
 ## 0.3.1 (2019/12/19)
 
 NEW FEATURES:
