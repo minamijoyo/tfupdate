@@ -1,5 +1,9 @@
 ## 0.3.3 (Unreleased)
 
+BUG FIXES:
+
+* Fix a bug for parsing a map index ([#13](https://github.com/minamijoyo/tfupdate/pull/13))
+
 ## 0.3.2 (2019/12/30)
 
 NEW FEATURES:
