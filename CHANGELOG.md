@@ -1,4 +1,6 @@
-## 0.3.3 (Unreleased)
+## 0.3.4 (Unreleased)
+
+## 0.3.3 (2020/01/09)
 
 BUG FIXES:
 
