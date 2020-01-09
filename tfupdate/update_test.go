@@ -155,7 +155,8 @@ provider "invalid" {
 			ok:        false,
 		},
 		{
-			src: `resource "panic" "hoge" {
+			// not panic even if a map index is a variable reference
+			src: `resource "not_panic" "hoge" {
   b = a[var.env]
 }
 `,
@@ -164,9 +165,12 @@ provider "invalid" {
 				name:       "hoge",
 				version:    "2.23.0",
 			},
-			want:      "",
+			want: `resource "not_panic" "hoge" {
+  b = a[var.env]
+}
+`,
 			isUpdated: false,
-			ok:        false,
+			ok:        true,
 		},
 		{
 			src: `
