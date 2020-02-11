@@ -21,11 +21,11 @@ type ModuleV1API interface {
 // ModuleLatestForProviderRequest is a request parameter for ModuleLatestForProvider().
 // https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
 type ModuleLatestForProviderRequest struct {
-	// Namespace is the user name which owns the module.
+	// Namespace is a user name which owns the module.
 	Namespace string `json:"namespace"`
-	// Name is the name of the module.
+	// Name is a name of the module.
 	Name string `json:"name"`
-	// Provider is the name of the provider.
+	// Provider is a name of the provider.
 	Provider string `json:"provider"`
 }
 
