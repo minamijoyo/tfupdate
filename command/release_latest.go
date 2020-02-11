@@ -60,12 +60,16 @@ Arguments
                        - github or gitlab:
                          owner/repo
                          e.g. terraform-providers/terraform-provider-aws
+                      - tfregistryModule
+                         namespace/name/provider
+                         e.g. terraform-aws-modules/vpc/aws
 
 Options:
   -s  --source-type  A type of release data source.
                      Valid values are
                        - github (default)
                        - gitlab
+                       - tfregistryModule
 `
 	return strings.TrimSpace(helpText)
 }
