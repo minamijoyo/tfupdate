@@ -143,7 +143,7 @@ func TestTFRegistryModuleReleaseLatest(t *testing.T) {
 		{
 			client: &mockTFRegistryClient{
 				moduleRes: nil,
-				err:       errors.New(`{"errors":["Not Found"]}`),
+				err:       errors.New(`unexpected HTTP Status Code: 404`),
 			},
 			want: "",
 			ok:   false,

@@ -52,7 +52,7 @@ func (c *Client) ModuleLatestForProvider(ctx context.Context, req *ModuleLatestF
 	}
 
 	if httpResponse.StatusCode != 200 {
-		return nil, fmt.Errorf("unexpected HTTP Status Code: %d, response: %#v", httpResponse.StatusCode, httpResponse)
+		return nil, fmt.Errorf("unexpected HTTP Status Code: %d", httpResponse.StatusCode)
 	}
 
 	var res ModuleLatestForProviderResponse
