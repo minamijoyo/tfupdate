@@ -61,7 +61,7 @@ func (c *TFRegistryClient) ModuleLatestForProvider(ctx context.Context, req *tfr
 
 // TFRegistryModuleRelease is a release implementation which provides version information with TFRegistryModule Release.
 type TFRegistryModuleRelease struct {
-	// api is an instance of TFRegistryModuleAPI interface.
+	// api is an instance of TFRegistryAPI interface.
 	// It can be replaced for testing.
 	api TFRegistryAPI
 

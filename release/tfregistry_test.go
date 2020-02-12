@@ -9,7 +9,7 @@ import (
 	"github.com/minamijoyo/tfupdate/tfregistry"
 )
 
-// TFRegistryClient is a mock TFRegistryAPI implementation.
+// mockTFRegistryClient is a mock TFRegistryAPI implementation.
 type mockTFRegistryClient struct {
 	moduleRes *tfregistry.ModuleLatestForProviderResponse
 	err       error

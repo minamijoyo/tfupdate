@@ -9,7 +9,7 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-// GitLabClient is a mock GitLabAPI implementation.
+// mockGitLabClient is a mock GitLabAPI implementation.
 type mockGitLabClient struct {
 	projectRelease *gitlab.Release
 	response       *gitlab.Response
