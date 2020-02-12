@@ -7,8 +7,13 @@ import (
 
 const (
 	// moduleV1Service is a sub path of module v1 service endpoint.
-	// The service discovery is not implemented for now.
-	moduleV1Service = "v1/modules"
+	// The service discovery protocol is not implemented for now.
+	// https://www.terraform.io/docs/internals/remote-service-discovery.html
+	//
+	// Include slashes for later implementation of service discovery.
+	// curl https://registry.terraform.io/.well-known/terraform.json
+	// {"modules.v1":"/v1/modules/","providers.v1":"/v1/providers/"}
+	moduleV1Service = "/v1/modules/"
 )
 
 // ModuleV1API is an interface for the module v1 service.
@@ -39,7 +44,7 @@ type ModuleLatestForProviderResponse struct {
 // ModuleLatestForProvider returns the latest version of a module for a single provider.
 // https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
 func (c *Client) ModuleLatestForProvider(ctx context.Context, req *ModuleLatestForProviderRequest) (*ModuleLatestForProviderResponse, error) {
-	subPath := fmt.Sprintf("/%s/%s/%s/%s", moduleV1Service, req.Namespace, req.Name, req.Provider)
+	subPath := fmt.Sprintf("%s%s/%s/%s", moduleV1Service, req.Namespace, req.Name, req.Provider)
 
 	httpRequest, err := c.newRequest(ctx, "GET", subPath, nil)
 	if err != nil {

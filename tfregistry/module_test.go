@@ -38,7 +38,7 @@ func TestModuleLatestForProvider(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			subPath := fmt.Sprintf("/%s/%s/%s/%s", moduleV1Service, tc.req.Namespace, tc.req.Name, tc.req.Provider)
+			subPath := fmt.Sprintf("%s%s/%s/%s", moduleV1Service, tc.req.Namespace, tc.req.Name, tc.req.Provider)
 			mux.HandleFunc(subPath, func(w http.ResponseWriter, r *http.Request) {
 				fmt.Fprint(w, tc.res)
 			})
