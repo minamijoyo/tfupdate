@@ -10,7 +10,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// GitHubClient is a mock GitHubAPI implementation.
+// mockGitHubClient is a mock GitHubAPI implementation.
 type mockGitHubClient struct {
 	repositoryRelease *github.RepositoryRelease
 	response          *github.Response

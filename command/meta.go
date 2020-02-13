@@ -39,6 +39,9 @@ func newRelease(sourceType string, source string) (release.Release, error) {
 			Token:   env.GitLabToken,
 		}
 		return release.NewGitLabRelease(source, config)
+	case "tfregistryModule":
+		config := release.TFRegistryConfig{}
+		return release.NewTFRegistryModuleRelease(source, config)
 	default:
 		return nil, fmt.Errorf("failed to new release data source. unknown type: %s", sourceType)
 	}

@@ -7,7 +7,7 @@
 
 - Update version constraints of Terraform core, providers, and modules
 - Update all your Terraform configurations recursively under a given directory
-- Get the latest release version from a GitHub or GitLab Release
+- Get the latest release version from the GitHub, GitLab, or Terraform Registry
 - Terraform v0.12+ support
 
 If you integrate tfupdate with your favorite CI or job scheduler, you can check the latest release daily and create a Pull Request automatically.
@@ -207,7 +207,9 @@ Usage: tfupdate release <subcommand> [options] [args]
 
 Subcommands:
     latest    Get the latest release version
+```
 
+```
 $ tfupdate release latest --help
 Usage: tfupdate release latest [options] <SOURCE>
 
@@ -217,12 +219,16 @@ Arguments
                        - github or gitlab:
                          owner/repo
                          e.g. terraform-providers/terraform-provider-aws
+                      - tfregistryModule
+                         namespace/name/provider
+                         e.g. terraform-aws-modules/vpc/aws
 
 Options:
   -s  --source-type  A type of release data source.
                      Valid values are
                        - github (default)
                        - gitlab
+                       - tfregistryModule
 ```
 
 ```

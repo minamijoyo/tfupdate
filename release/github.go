@@ -25,7 +25,7 @@ type GitHubConfig struct {
 	// It can be replaced for testing.
 	api GitHubAPI
 
-	// BaseURL is a URL for GtiHub API requests.
+	// BaseURL is a URL for GitHub API requests.
 	// Defaults to the public GitHub API.
 	// This looks like the GitHub Enterprise support, but currently for testing purposes only.
 	// The GitHub Enterprise is not supported yet.
