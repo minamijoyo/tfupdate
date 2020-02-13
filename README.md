@@ -7,7 +7,7 @@
 
 - Update version constraints of Terraform core, providers, and modules
 - Update all your Terraform configurations recursively under a given directory
-- Get the latest release version from a GitHub, GitLab, or Terraform Registry
+- Get the latest release version from the GitHub, GitLab, or Terraform Registry
 - Terraform v0.12+ support
 
 If you integrate tfupdate with your favorite CI or job scheduler, you can check the latest release daily and create a Pull Request automatically.
