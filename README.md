@@ -16,7 +16,7 @@ If you integrate tfupdate with your favorite CI or job scheduler, you can check 
 It is a best practice to break your Terraform configuration and state into small pieces to minimize the impact of an accident.
 It is also recommended to lock versions of Terraform core, providers and modules to avoid unexpected breaking changes.
 If you decided to lock version constraints, you probably want to keep them up-to-date frequently to reduce the risk of version upgrade failures.
-It's easy to update a single directory, but what if it's scattered across multiple directories?
+It's easy to update a single directory, but what if they are scattered across multiple directories?
 
 That is why I wrote a tool which parses Terraform configurations and updates all version constraints at once.
 
