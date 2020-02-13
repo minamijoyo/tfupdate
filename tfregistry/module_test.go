@@ -13,6 +13,7 @@ func TestModuleLatestForProvider(t *testing.T) {
 		desc string
 		req  *ModuleLatestForProviderRequest
 		ok   bool
+		code int
 		res  string
 		want *ModuleLatestForProviderResponse
 	}{
@@ -23,23 +24,70 @@ func TestModuleLatestForProvider(t *testing.T) {
 				Name:      "vpc",
 				Provider:  "aws",
 			},
-			ok: true,
-			res: `{
-				"version": "2.24.0"
-			}`,
+			ok:   true,
+			code: 200,
+			res:  `{"version": "2.24.0"}`,
 			want: &ModuleLatestForProviderResponse{
 				Version: "2.24.0",
 			},
 		},
+		{
+			desc: "not found",
+			req: &ModuleLatestForProviderRequest{
+				Namespace: "hoge",
+				Name:      "fuga",
+				Provider:  "piyo",
+			},
+			ok:   false,
+			code: 404,
+			res:  `{"errors":["Not Found"]}`,
+			want: nil,
+		},
+		{
+			desc: "invalid request (Namespace)",
+			req: &ModuleLatestForProviderRequest{
+				Namespace: "",
+				Name:      "fuga",
+				Provider:  "piyo",
+			},
+			ok:   false,
+			code: 0,
+			res:  "",
+			want: nil,
+		},
+		{
+			desc: "invalid request (Name)",
+			req: &ModuleLatestForProviderRequest{
+				Namespace: "hoge",
+				Name:      "",
+				Provider:  "piyo",
+			},
+			ok:   false,
+			code: 0,
+			res:  "",
+			want: nil,
+		},
+		{
+			desc: "invalid request (Provider)",
+			req: &ModuleLatestForProviderRequest{
+				Namespace: "hoge",
+				Name:      "fuga",
+				Provider:  "",
+			},
+			ok:   false,
+			code: 0,
+			res:  "",
+			want: nil,
+		},
 	}
-
-	mux, mockServerURL := newMockServer()
-	client := newTestClient(mockServerURL)
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
+			mux, mockServerURL := newMockServer()
+			client := newTestClient(mockServerURL)
 			subPath := fmt.Sprintf("%s%s/%s/%s", moduleV1Service, tc.req.Namespace, tc.req.Name, tc.req.Provider)
 			mux.HandleFunc(subPath, func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tc.code)
 				fmt.Fprint(w, tc.res)
 			})
 
@@ -50,7 +98,7 @@ func TestModuleLatestForProvider(t *testing.T) {
 			}
 
 			if !tc.ok && err == nil {
-				t.Fatalf("expected to fail, but success: req = %#v", tc.req)
+				t.Fatalf("expected to fail, but success: req = %#v, got = %#v", tc.req, got)
 			}
 
 			if !reflect.DeepEqual(got, tc.want) {

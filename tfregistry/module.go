@@ -44,6 +44,16 @@ type ModuleLatestForProviderResponse struct {
 // ModuleLatestForProvider returns the latest version of a module for a single provider.
 // https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
 func (c *Client) ModuleLatestForProvider(ctx context.Context, req *ModuleLatestForProviderRequest) (*ModuleLatestForProviderResponse, error) {
+	if len(req.Namespace) == 0 {
+		return nil, fmt.Errorf("Invalid request. Namespace is required. req = %#v", req)
+	}
+	if len(req.Name) == 0 {
+		return nil, fmt.Errorf("Invalid request. Name is required. req = %#v", req)
+	}
+	if len(req.Provider) == 0 {
+		return nil, fmt.Errorf("Invalid request. Provider is required. req = %#v", req)
+	}
+
 	subPath := fmt.Sprintf("%s%s/%s/%s", moduleV1Service, req.Namespace, req.Name, req.Provider)
 
 	httpRequest, err := c.newRequest(ctx, "GET", subPath, nil)
