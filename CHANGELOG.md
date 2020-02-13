@@ -1,5 +1,9 @@
 ## 0.3.4 (Unreleased)
 
+NEW FEATURES:
+
+* Add support for Terraform Registry Module as a release data source ([#15](https://github.com/minamijoyo/tfupdate/pull/15))
+
 ## 0.3.3 (2020/01/09)
 
 BUG FIXES:
