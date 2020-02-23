@@ -17,6 +17,10 @@ type GitHubAPI interface {
 	// RepositoriesGetLatestRelease fetches the latest published release for the repository.
 	// GitHub API docs: https://developer.github.com/v3/repos/releases/#get-the-latest-release
 	RepositoriesGetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
+
+	// RepositoriesListReleases lists the releases for a repository.
+	// GitHub API docs: https://developer.github.com/v3/repos/releases/#list-releases-for-a-repository
+	RepositoriesListReleases(ctx context.Context, owner, repo string, opt *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error)
 }
 
 // GitHubConfig is a set of configurations for GitHubRelease.
@@ -79,6 +83,11 @@ func (c *GitHubClient) RepositoriesGetLatestRelease(ctx context.Context, owner, 
 	return c.client.Repositories.GetLatestRelease(ctx, owner, repo)
 }
 
+// RepositoriesListReleases lists the releases for a repository.
+func (c *GitHubClient) RepositoriesListReleases(ctx context.Context, owner, repo string, opt *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error) {
+	return c.client.Repositories.ListReleases(ctx, owner, repo, opt)
+}
+
 // GitHubRelease is a release implementation which provides version information with GitHub Release.
 type GitHubRelease struct {
 	// api is an instance of GitHubAPI interface.
@@ -127,12 +136,43 @@ func (r *GitHubRelease) Latest(ctx context.Context) (string, error) {
 	}
 
 	// Use TagName because some releases do not have Name.
-	tagName := *release.TagName
+	v := tagNameToVersion(*release.TagName)
 
-	// if a tagName starts with `v`, remove it.
-	if tagName[0] == 'v' {
-		return tagName[1:], nil
+	return v, nil
+}
+
+// List returns a list of versions.
+func (r *GitHubRelease) List(ctx context.Context, maxLength int) ([]string, error) {
+	versions := []string{}
+	opt := &github.ListOptions{}
+	for {
+		releases, resp, err := r.api.RepositoriesListReleases(ctx, r.owner, r.repo, opt)
+
+		if err != nil {
+			return versions, fmt.Errorf("failed to list releases for %s/%s: %s", r.owner, r.repo, err)
+		}
+
+		for _, release := range releases {
+			v := tagNameToVersion(*release.TagName)
+			versions = append(versions, v)
+		}
+		if resp.NextPage == 0 || len(versions) >= maxLength {
+			break
+		}
+		opt.Page = resp.NextPage
 	}
 
-	return tagName, nil
+	if maxLength < len(versions) {
+		return versions[:maxLength], nil
+	}
+	return versions, nil
+}
+
+func tagNameToVersion(tagName string) string {
+	// if a tagName starts with `v`, remove it.
+	if tagName[0] == 'v' {
+		return tagName[1:]
+	}
+
+	return tagName
 }

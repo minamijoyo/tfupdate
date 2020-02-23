@@ -2,6 +2,7 @@ package release
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -116,4 +117,9 @@ func (r *TFRegistryModuleRelease) Latest(ctx context.Context) (string, error) {
 	}
 
 	return release.Version, nil
+}
+
+// List returns a list of versions.
+func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int) ([]string, error) {
+	return nil, errors.New("not impplemented yet")
 }

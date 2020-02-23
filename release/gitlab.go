@@ -2,6 +2,7 @@ package release
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -127,4 +128,9 @@ func (r *GitLabRelease) Latest(ctx context.Context) (string, error) {
 	}
 
 	return tagName, nil
+}
+
+// List returns a list of versions.
+func (r *GitLabRelease) List(ctx context.Context, maxLength int) ([]string, error) {
+	return nil, errors.New("not impplemented yet")
 }
