@@ -3,6 +3,7 @@ package release
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -11,14 +12,20 @@ import (
 
 // mockGitLabClient is a mock GitLabAPI implementation.
 type mockGitLabClient struct {
-	projectRelease *gitlab.Release
-	response       *gitlab.Response
-	err            error
+	projectRelease  *gitlab.Release
+	projectReleases []*gitlab.Release
+	response        *gitlab.Response
+	err             error
 }
 
 // ProjectGetLatestRelease returns the latest release for the mockGitLabClient.
 func (c *mockGitLabClient) ProjectGetLatestRelease(ctx context.Context, owner, project string) (*gitlab.Release, *gitlab.Response, error) {
 	return c.projectRelease, c.response, c.err
+}
+
+// ProjectListReleases returns a list of releases for the mockGitLabClient.
+func (c *mockGitLabClient) ProjectListReleases(ctx context.Context, owner, repo string, opt *gitlab.ListReleasesOptions) ([]*gitlab.Release, *gitlab.Response, error) {
+	return c.projectReleases, c.response, c.err
 }
 
 // Test of NewGitLabClient(config GitLabConfig)
@@ -217,6 +224,86 @@ func TestGitLabReleaseLatest(t *testing.T) {
 
 		if got != tc.want {
 			t.Errorf("(*GitLabRelease).Latest() with r = %s returns %s, but want = %s", spew.Sdump(r), got, tc.want)
+		}
+	}
+}
+
+// Test of GitLabRelease.List(ctx context.Context, maxLength int)
+func TestGitLabReleaseList(t *testing.T) {
+	tagv := []string{"v0.3.0", "v0.2.0", "v0.1.0"}
+	tag := []string{"0.3.0", "0.2.0", "0.1.0"}
+	cases := []struct {
+		client    *mockGitLabClient
+		maxLength int
+		want      []string
+		ok        bool
+	}{ // test len(versions) < maxLength
+		{
+			client: &mockGitLabClient{
+				projectReleases: []*gitlab.Release{
+					&gitlab.Release{TagName: tagv[0]},
+					&gitlab.Release{TagName: tagv[1]},
+					&gitlab.Release{TagName: tagv[2]},
+				},
+				response: &gitlab.Response{},
+				err:      nil,
+			},
+			maxLength: 5,
+			want:      tag,
+			ok:        true,
+		},
+		// test len(versions) > maxLength
+		{
+			client: &mockGitLabClient{
+				projectReleases: []*gitlab.Release{
+					&gitlab.Release{TagName: tagv[0]},
+					&gitlab.Release{TagName: tagv[1]},
+					&gitlab.Release{TagName: tagv[2]},
+				},
+				response: &gitlab.Response{},
+				err:      nil,
+			},
+			maxLength: 2,
+			want:      tag[:2],
+			ok:        true,
+		},
+		// test unreachable/invalid project
+		{
+			client: &mockGitLabClient{
+				projectReleases: nil,
+				response:        &gitlab.Response{},
+				// Actual error response type is *gitlab.ErrorResponse,
+				// but we are not interested in the internal structure.
+				err: errors.New(`GET https://gitlab.com/api/v4/projects/gitlab-org%2Fgitlab/releases: 404 Not Found []`),
+			},
+			want: []string{},
+			ok:   false,
+		},
+	}
+
+	source := "gitlab-org/gitlab"
+	for _, tc := range cases {
+		// Set a mock client
+		config := GitLabConfig{
+			api: tc.client,
+		}
+		r, err := NewGitLabRelease(source, config)
+		if err != nil {
+			t.Fatalf("failed to NewGitLabRelease(%s, %#v): %s", source, config, err)
+		}
+
+		got, err := r.List(context.Background(), tc.maxLength)
+
+		if tc.ok && err != nil {
+			t.Errorf("(*GitLabRelease).List() with r = %s, maxLength = %d returns unexpected err: %+v", spew.Sdump(r), tc.maxLength, err)
+		}
+
+		if !tc.ok && err == nil {
+			t.Errorf("(*GitLabRelease).List() with r = %s, maxLength = %d expects to return an error, but no error", spew.Sdump(r), tc.maxLength)
+		}
+
+		if !reflect.DeepEqual(got, tc.want) {
+			t.Errorf("(*GitLabRelease).List() with r = %s, maxLength = %d returns %s, but want = %s", spew.Sdump(r), tc.maxLength, got, tc.want)
 		}
 	}
 }
