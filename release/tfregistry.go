@@ -2,7 +2,6 @@ package release
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -121,5 +120,19 @@ func (r *TFRegistryModuleRelease) Latest(ctx context.Context) (string, error) {
 
 // List returns a list of versions.
 func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int) ([]string, error) {
-	return nil, errors.New("not impplemented yet")
+	req := &tfregistry.ModuleLatestForProviderRequest{
+		Namespace: r.namespace,
+		Name:      r.name,
+		Provider:  r.provider,
+	}
+	release, err := r.api.ModuleLatestForProvider(ctx, req)
+
+	if err != nil {
+		return []string{}, fmt.Errorf("failed to get a list of versions for %s/%s/%s: %s", r.namespace, r.name, r.provider, err)
+	}
+
+	if maxLength < len(release.Versions) {
+		return release.Versions[len(release.Versions)-maxLength:], nil
+	}
+	return release.Versions, nil
 }
