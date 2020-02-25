@@ -162,8 +162,10 @@ func (r *GitHubRelease) List(ctx context.Context, maxLength int) ([]string, erro
 		opt.Page = resp.NextPage
 	}
 
-	if maxLength < len(versions) {
-		return versions[:maxLength], nil
-	}
-	return versions, nil
+	end := minInt(maxLength, len(versions))
+	desc := versions[:end]
+	// return a list order by release asc (probably created_at)
+	// Note that this may be not in version number order.
+	// It's a simply reversed list of release.
+	return reverseStringSlice(desc), nil
 }

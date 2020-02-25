@@ -131,8 +131,8 @@ func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int) ([]st
 		return []string{}, fmt.Errorf("failed to get a list of versions for %s/%s/%s: %s", r.namespace, r.name, r.provider, err)
 	}
 
-	if maxLength < len(release.Versions) {
-		return release.Versions[len(release.Versions)-maxLength:], nil
-	}
-	return release.Versions, nil
+	versions := release.Versions
+	start := len(versions) - minInt(maxLength, len(versions))
+	asc := versions[start:]
+	return asc, nil
 }

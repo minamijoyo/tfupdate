@@ -153,8 +153,7 @@ func (r *GitLabRelease) List(ctx context.Context, maxLength int) ([]string, erro
 		opt.Page = resp.NextPage
 	}
 
-	if maxLength < len(versions) {
-		return versions[:maxLength], nil
-	}
-	return versions, nil
+	end := minInt(maxLength, len(versions))
+	desc := versions[:end]
+	return reverseStringSlice(desc), nil
 }

@@ -231,7 +231,6 @@ func TestGitLabReleaseLatest(t *testing.T) {
 // Test of GitLabRelease.List(ctx context.Context, maxLength int)
 func TestGitLabReleaseList(t *testing.T) {
 	tagv := []string{"v0.3.0", "v0.2.0", "v0.1.0"}
-	tag := []string{"0.3.0", "0.2.0", "0.1.0"}
 	cases := []struct {
 		client    *mockGitLabClient
 		maxLength int
@@ -249,7 +248,7 @@ func TestGitLabReleaseList(t *testing.T) {
 				err:      nil,
 			},
 			maxLength: 5,
-			want:      tag,
+			want:      []string{"0.1.0", "0.2.0", "0.3.0"}, // reverse order
 			ok:        true,
 		},
 		// test len(versions) > maxLength
@@ -264,7 +263,7 @@ func TestGitLabReleaseList(t *testing.T) {
 				err:      nil,
 			},
 			maxLength: 2,
-			want:      tag[:2],
+			want:      []string{"0.2.0", "0.3.0"},
 			ok:        true,
 		},
 		// test unreachable/invalid project
