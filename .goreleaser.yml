@@ -15,6 +15,8 @@ changelog:
     exclude:
       - Merge pull request
       - Merge branch
+      - Update README
+      - Update CHANGELOG
 brew:
   github:
     owner: minamijoyo
