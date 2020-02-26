@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.3.5 (2020/02/26)
+
 NEW FEATURES:
 
 * Add release list command ([#16](https://github.com/minamijoyo/tfupdate/pull/16))
