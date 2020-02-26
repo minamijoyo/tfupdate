@@ -253,7 +253,7 @@ func TestGitHubReleaseList(t *testing.T) {
 				err:      nil,
 			},
 			maxLength: 2,
-			want:      []string{"0.2.0", "0.3.0"},
+			want:      []string{"0.2.0", "0.3.0"}, // limit length
 			ok:        true,
 		},
 		{

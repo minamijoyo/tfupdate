@@ -125,6 +125,8 @@ func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int) ([]st
 		Name:      r.name,
 		Provider:  r.provider,
 	}
+	// Hard to guess from the name, the response of ModuleLatestForProvider API contains
+	// not only the latest version, but also a list of available versions.
 	release, err := r.api.ModuleLatestForProvider(ctx, req)
 
 	if err != nil {
@@ -132,6 +134,7 @@ func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int) ([]st
 	}
 
 	versions := release.Versions
+	// versions are already in asc order unlike github.
 	start := len(versions) - minInt(maxLength, len(versions))
 	asc := versions[start:]
 	return asc, nil

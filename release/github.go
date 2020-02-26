@@ -165,7 +165,7 @@ func (r *GitHubRelease) List(ctx context.Context, maxLength int) ([]string, erro
 	end := minInt(maxLength, len(versions))
 	desc := versions[:end]
 	// return a list order by release asc (probably created_at)
-	// Note that this may be not in version number order.
+	// Note that this may not be in version number order.
 	// It's a simply reversed list of release.
 	return reverseStringSlice(desc), nil
 }
