@@ -14,6 +14,9 @@ import (
 type GitLabAPI interface {
 	// ProjectGetLatestRelease fetches the latest published release for the project.
 	ProjectGetLatestRelease(ctx context.Context, owner, project string) (*gitlab.Release, *gitlab.Response, error)
+
+	// ProjectListReleases gets a pagenated of releases accessible by the authenticated user.
+	ProjectListReleases(ctx context.Context, owner, project string, opt *gitlab.ListReleasesOptions) ([]*gitlab.Release, *gitlab.Response, error)
 }
 
 // GitLabConfig is a set of configurations for GitLabRelease..
@@ -70,6 +73,11 @@ func (c *GitLabClient) ProjectGetLatestRelease(ctx context.Context, owner, proje
 	return latest, response, err
 }
 
+// ProjectListReleases gets a pagenated of releases accessible by the authenticated user.
+func (c *GitLabClient) ProjectListReleases(ctx context.Context, owner, project string, opt *gitlab.ListReleasesOptions) ([]*gitlab.Release, *gitlab.Response, error) {
+	return c.client.Releases.ListReleases(owner+"/"+project, opt, gitlab.WithContext(ctx))
+}
+
 // GitLabRelease is a release implementation which provides version information with GitLab Release.
 type GitLabRelease struct {
 	// api is an instance of GitLabAPI interface.
@@ -119,12 +127,33 @@ func (r *GitLabRelease) Latest(ctx context.Context) (string, error) {
 	}
 
 	// Use TagName because some releases do not have Name.
-	tagName := release.TagName
+	v := tagNameToVersion(release.TagName)
 
-	// if a tagName starts with `v`, remove it.
-	if tagName[0] == 'v' {
-		return tagName[1:], nil
+	return v, nil
+}
+
+// List returns a list of versions.
+func (r *GitLabRelease) List(ctx context.Context, maxLength int) ([]string, error) {
+	versions := []string{}
+	opt := &gitlab.ListReleasesOptions{}
+	for {
+		releases, resp, err := r.api.ProjectListReleases(ctx, r.owner, r.project, opt)
+
+		if err != nil {
+			return versions, fmt.Errorf("failed to list releases for %s/%s: %s", r.owner, r.project, err)
+		}
+
+		for _, release := range releases {
+			v := tagNameToVersion(release.TagName)
+			versions = append(versions, v)
+		}
+		if resp.NextPage == 0 || len(versions) >= maxLength {
+			break
+		}
+		opt.Page = resp.NextPage
 	}
 
-	return tagName, nil
+	end := minInt(maxLength, len(versions))
+	desc := versions[:end]
+	return reverseStringSlice(desc), nil
 }

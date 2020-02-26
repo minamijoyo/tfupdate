@@ -20,7 +20,7 @@ const (
 type ModuleV1API interface {
 	// ModuleLatestForProvider returns the latest version of a module for a single provider.
 	// https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
-	ModuleLatestForProvider(req *ModuleLatestForProviderRequest) (*ModuleLatestForProviderResponse, error)
+	ModuleLatestForProvider(ctx context.Context, req *ModuleLatestForProviderRequest) (*ModuleLatestForProviderResponse, error)
 }
 
 // ModuleLatestForProviderRequest is a request parameter for ModuleLatestForProvider().
@@ -39,6 +39,8 @@ type ModuleLatestForProviderRequest struct {
 type ModuleLatestForProviderResponse struct {
 	// Version is the latest version of the module for a specific provider.
 	Version string `json:"version"`
+	// Versions is a list of available versions.
+	Versions []string `json:"versions"`
 }
 
 // ModuleLatestForProvider returns the latest version of a module for a single provider.

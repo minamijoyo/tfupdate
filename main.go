@@ -103,6 +103,11 @@ func initCommands() map[string]cli.CommandFactory {
 				Meta: meta,
 			}, nil
 		},
+		"release list": func() (cli.Command, error) {
+			return &command.ReleaseListCommand{
+				Meta: meta,
+			}, nil
+		},
 	}
 
 	return commands

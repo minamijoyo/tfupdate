@@ -26,9 +26,10 @@ func TestModuleLatestForProvider(t *testing.T) {
 			},
 			ok:   true,
 			code: 200,
-			res:  `{"version": "2.24.0"}`,
+			res:  `{"version": "2.24.0", "versions": ["2.22.0", "2.23.0", "2.24.0"]}`,
 			want: &ModuleLatestForProviderResponse{
-				Version: "2.24.0",
+				Version:  "2.24.0",
+				Versions: []string{"2.22.0", "2.23.0", "2.24.0"},
 			},
 		},
 		{

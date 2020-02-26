@@ -3,6 +3,7 @@ package release
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -12,13 +13,18 @@ import (
 
 // mockGitHubClient is a mock GitHubAPI implementation.
 type mockGitHubClient struct {
-	repositoryRelease *github.RepositoryRelease
-	response          *github.Response
-	err               error
+	repositoryRelease  *github.RepositoryRelease
+	repositoryReleases []*github.RepositoryRelease
+	response           *github.Response
+	err                error
 }
 
 func (c *mockGitHubClient) RepositoriesGetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error) {
 	return c.repositoryRelease, c.response, c.err
+}
+
+func (c *mockGitHubClient) RepositoriesListReleases(ctx context.Context, owner, repo string, opt *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error) {
+	return c.repositoryReleases, c.response, c.err
 }
 
 func TestNewGitHubClient(t *testing.T) {
@@ -210,6 +216,82 @@ func TestGitHubReleaseLatest(t *testing.T) {
 
 		if got != tc.want {
 			t.Errorf("(*GitHubRelease).Latest() with r = %s returns %s, but want = %s", spew.Sdump(r), got, tc.want)
+		}
+	}
+}
+
+func TestGitHubReleaseList(t *testing.T) {
+	tagv := []string{"v0.3.0", "v0.2.0", "v0.1.0"}
+	cases := []struct {
+		client    *mockGitHubClient
+		maxLength int
+		want      []string
+		ok        bool
+	}{
+		{
+			client: &mockGitHubClient{
+				repositoryReleases: []*github.RepositoryRelease{
+					&github.RepositoryRelease{TagName: &tagv[0]},
+					&github.RepositoryRelease{TagName: &tagv[1]},
+					&github.RepositoryRelease{TagName: &tagv[2]},
+				},
+				response: &github.Response{},
+				err:      nil,
+			},
+			maxLength: 5,
+			want:      []string{"0.1.0", "0.2.0", "0.3.0"}, // reverse order
+			ok:        true,
+		},
+		{
+			client: &mockGitHubClient{
+				repositoryReleases: []*github.RepositoryRelease{
+					&github.RepositoryRelease{TagName: &tagv[0]},
+					&github.RepositoryRelease{TagName: &tagv[1]},
+					&github.RepositoryRelease{TagName: &tagv[2]},
+				},
+				response: &github.Response{},
+				err:      nil,
+			},
+			maxLength: 2,
+			want:      []string{"0.2.0", "0.3.0"}, // limit length
+			ok:        true,
+		},
+		{
+			client: &mockGitHubClient{
+				repositoryReleases: nil,
+				response:           &github.Response{},
+				// Actual error response type is *github.ErrorResponse,
+				// but we are not interested in the internal structure.
+				err: errors.New(`GET https://api.github.com/repos/hoge/fuga/releases: 404 Not Found []`),
+			},
+			want: []string{},
+			ok:   false,
+		},
+	}
+
+	source := "hoge/fuga"
+	for _, tc := range cases {
+		// Set a mock client
+		config := GitHubConfig{
+			api: tc.client,
+		}
+		r, err := NewGitHubRelease(source, config)
+		if err != nil {
+			t.Fatalf("failed to NewGitHubRelease(%s, %#v): %s", source, config, err)
+		}
+
+		got, err := r.List(context.Background(), tc.maxLength)
+
+		if tc.ok && err != nil {
+			t.Errorf("(*GitHubRelease).List() with r = %s, maxLength = %d returns unexpected err: %+v", spew.Sdump(r), tc.maxLength, err)
+		}
+
+		if !tc.ok && err == nil {
+			t.Errorf("(*GitHubRelease).List() with r = %s, maxLength = %d expects to return an error, but no error", spew.Sdump(r), tc.maxLength)
+		}
+
+		if !reflect.DeepEqual(got, tc.want) {
+			t.Errorf("(*GitHubRelease).List() with r = %s, maxLength = %d returns %s, but want = %s", spew.Sdump(r), tc.maxLength, got, tc.want)
 		}
 	}
 }

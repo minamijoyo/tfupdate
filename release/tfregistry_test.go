@@ -3,6 +3,7 @@ package release
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -173,6 +174,74 @@ func TestTFRegistryModuleReleaseLatest(t *testing.T) {
 
 		if got != tc.want {
 			t.Errorf("(*TFRegistryModuleRelease).Latest() with r = %s returns %s, but want = %s", spew.Sdump(r), got, tc.want)
+		}
+	}
+}
+
+func TestTFRegistryModuleReleaseList(t *testing.T) {
+	cases := []struct {
+		client    *mockTFRegistryClient
+		maxLength int
+		want      []string
+		ok        bool
+	}{
+		{
+			client: &mockTFRegistryClient{
+				moduleRes: &tfregistry.ModuleLatestForProviderResponse{
+					Version:  "0.3.0",
+					Versions: []string{"0.1.0", "0.2.0", "0.3.0"},
+				},
+				err: nil,
+			},
+			maxLength: 5,
+			want:      []string{"0.1.0", "0.2.0", "0.3.0"},
+			ok:        true,
+		},
+		{
+			client: &mockTFRegistryClient{
+				moduleRes: &tfregistry.ModuleLatestForProviderResponse{
+					Version:  "0.3.0",
+					Versions: []string{"0.1.0", "0.2.0", "0.3.0"},
+				},
+				err: nil,
+			},
+			maxLength: 2,
+			want:      []string{"0.2.0", "0.3.0"},
+			ok:        true,
+		},
+		{
+			client: &mockTFRegistryClient{
+				moduleRes: nil,
+				err:       errors.New(`unexpected HTTP Status Code: 404`),
+			},
+			want: []string{},
+			ok:   false,
+		},
+	}
+
+	source := "hoge/fuga/piyo"
+	for _, tc := range cases {
+		// Set a mock client
+		config := TFRegistryConfig{
+			api: tc.client,
+		}
+		r, err := NewTFRegistryModuleRelease(source, config)
+		if err != nil {
+			t.Fatalf("failed to NewTFRegistryModuleRelease(%s, %#v): %s", source, config, err)
+		}
+
+		got, err := r.List(context.Background(), tc.maxLength)
+
+		if tc.ok && err != nil {
+			t.Errorf("(*TFRegistryModuleRelease).List() with r = %s, maxLength = %d returns unexpected err: %+v", spew.Sdump(r), tc.maxLength, err)
+		}
+
+		if !tc.ok && err == nil {
+			t.Errorf("(*TFRegistryModuleRelease).List() with r = %s, maxLength = %d expects to return an error, but no error", spew.Sdump(r), tc.maxLength)
+		}
+
+		if !reflect.DeepEqual(got, tc.want) {
+			t.Errorf("(*TFRegistryModuleRelease).List() with r = %s, maxLength = %d returns %s, but want = %s", spew.Sdump(r), tc.maxLength, got, tc.want)
 		}
 	}
 }

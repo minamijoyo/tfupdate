@@ -117,3 +117,25 @@ func (r *TFRegistryModuleRelease) Latest(ctx context.Context) (string, error) {
 
 	return release.Version, nil
 }
+
+// List returns a list of versions.
+func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int) ([]string, error) {
+	req := &tfregistry.ModuleLatestForProviderRequest{
+		Namespace: r.namespace,
+		Name:      r.name,
+		Provider:  r.provider,
+	}
+	// Hard to guess from the name, the response of ModuleLatestForProvider API contains
+	// not only the latest version, but also a list of available versions.
+	release, err := r.api.ModuleLatestForProvider(ctx, req)
+
+	if err != nil {
+		return []string{}, fmt.Errorf("failed to get a list of versions for %s/%s/%s: %s", r.namespace, r.name, r.provider, err)
+	}
+
+	versions := release.Versions
+	// versions are already in asc order unlike github.
+	start := len(versions) - minInt(maxLength, len(versions))
+	asc := versions[start:]
+	return asc, nil
+}
