@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* Add release list command ([#16](https://github.com/minamijoyo/tfupdate/pull/16))
+
 ## 0.3.4 (2020/02/13)
 
 NEW FEATURES:
