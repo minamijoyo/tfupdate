@@ -207,6 +207,7 @@ Usage: tfupdate release <subcommand> [options] [args]
 
 Subcommands:
     latest    Get the latest release version
+    list      Get a list of release versions
 ```
 
 ```
@@ -239,6 +240,39 @@ $ tfupdate release latest terraform-providers/terraform-provider-aws
 If you want to access private repositories on GitHub, export your access token to the `GITHUB_TOKEN` environment variable.
 
 If you want to access public or private repositories on GitLab, export your access token with api permissions to the `GITLAB_TOKEN` environment variable. If you are using an instance that is not `https://gitlab.com`, set the correct base URL to the `GITLAB_BASE_URL` environment variable (defaults to `https://gitlab.com/api/v4/`).
+
+```
+$ tfupdate release list --help
+Usage: tfupdate release list [options] <SOURCE>
+
+Arguments
+  SOURCE             A path of release data source.
+                     Valid format depends on --source-type option.
+                       - github or gitlab:
+                         owner/repo
+                         e.g. terraform-providers/terraform-provider-aws
+                      - tfregistryModule
+                         namespace/name/provider
+                         e.g. terraform-aws-modules/vpc/aws
+
+Options:
+  -s  --source-type  A type of release data source.
+                     Valid values are
+                       - github (default)
+                       - gitlab
+                       - tfregistryModule
+
+  -n  --max-length   The maximum length of list.
+```
+
+```
+$ tfupdate release list -n 5 hashicorp/terraform
+0.12.17
+0.12.18
+0.12.19
+0.12.20
+0.12.21
+```
 
 ## Keep your dependencies up-to-date
 
