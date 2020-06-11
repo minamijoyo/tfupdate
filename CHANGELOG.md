@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+## 0.3.6 (2020/06/11)
+
+BUG FIXES:
+
+* Fix panic with legacy dot access of numeric indexes ([#19](https://github.com/minamijoyo/tfupdate/pull/19))
+
 ## 0.3.5 (2020/02/26)
 
 NEW FEATURES:
