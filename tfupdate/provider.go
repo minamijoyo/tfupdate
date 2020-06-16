@@ -49,13 +49,54 @@ func (u *ProviderUpdater) updateTerraformBlock(f *hclwrite.File) error {
 			continue
 		}
 
-		// set a version to attribute value only if the key exists
-		if p.Body().GetAttribute(u.name) != nil {
-			p.Body().SetAttributeValue(u.name, cty.StringVal(u.version))
+		attr := p.Body().GetAttribute(u.name)
+		if attr != nil {
+			value, err := attributeToValue(attr)
+			if err != nil {
+				return err
+			}
+
+			// There are some variations on the syntax of required_providers.
+			// So we check a type of value and switch implementations.
+			switch {
+			case value.Type().IsObjectType():
+				u.updateTerraformRequiredProvidersBlockAsObject(p, value)
+
+			case value.Type() == cty.String:
+				u.updateTerraformRequiredProvidersBlockAsString(p)
+
+			default:
+				return errors.Errorf("failed to update required_providers. unknown type: %#v", value)
+			}
 		}
 	}
 
 	return nil
+}
+
+func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwrite.Block, value cty.Value) {
+	// terraform {
+	//   required_providers {
+	//     aws = {
+	//       source  = "hashicorp/aws"
+	//       version = "2.65.0"
+	//     }
+	//   }
+	// }
+	m := value.AsValueMap()
+	if _, ok := m["version"]; ok {
+		m["version"] = cty.StringVal(u.version)
+		p.Body().SetAttributeValue(u.name, cty.ObjectVal(m))
+	}
+}
+
+func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsString(p *hclwrite.Block) {
+	// terraform {
+	//   required_providers {
+	//     aws = "2.65.0"
+	//   }
+	// }
+	p.Body().SetAttributeValue(u.name, cty.StringVal(u.version))
 }
 
 func (u *ProviderUpdater) updateProviderBlock(f *hclwrite.File) error {
