@@ -268,6 +268,56 @@ terraform {
 `,
 			ok: true,
 		},
+		{
+			src: `
+terraform {
+  required_providers {
+    # foo
+    aws = "2.65.0" # bar
+  }
+}
+`,
+			name:    "aws",
+			version: "2.66.0",
+			want: `
+terraform {
+  required_providers {
+    # foo
+    aws = "2.66.0" # bar
+  }
+}
+`,
+			ok: true,
+		},
+		{
+			src: `
+terraform {
+  required_providers {
+    # foo
+    aws = {
+      # version = "2.65.0" # bar
+      version = "2.65.0" # baz
+      source  = "hashicorp/aws"
+    }
+  }
+}
+`,
+			name:    "aws",
+			version: "2.66.0",
+			want: `
+terraform {
+  required_providers {
+    # foo
+    aws = {
+      # version = "2.65.0" # bar
+      version = "2.66.0" # baz
+      source  = "hashicorp/aws"
+    }
+  }
+}
+`,
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {
