@@ -1,5 +1,15 @@
 ## master (Unreleased)
 
+## 0.4.0 (2020/06/18)
+
+NEW FEATURES:
+
+* Support a new provider source syntax in Terraform v0.13 ([#21](https://github.com/minamijoyo/tfupdate/pull/21))
+
+ENHANCEMENTS:
+
+* Update Go to v1.14.4 ([#20](https://github.com/minamijoyo/tfupdate/pull/20))
+
 ## 0.3.6 (2020/06/11)
 
 BUG FIXES:
