@@ -185,6 +185,139 @@ provider "aws" {
 `,
 			ok: true,
 		},
+		{
+			src: `
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "2.65.0"
+    }
+  }
+}
+`,
+			name:    "aws",
+			version: "2.66.0",
+			want: `
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "2.66.0"
+    }
+  }
+}
+`,
+			ok: true,
+		},
+		{
+			src: `
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+    }
+  }
+}
+`,
+			name:    "aws",
+			version: "2.66.0",
+			want: `
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+    }
+  }
+}
+`,
+			ok: true,
+		},
+		{
+			src: `
+terraform {
+  required_providers {
+    null = {
+      source  = "hashicorp/null"
+      version = "2.1.2"
+    }
+
+    aws = {
+      source  = "hashicorp/aws"
+      version = "2.65.0"
+    }
+  }
+}
+`,
+			name:    "aws",
+			version: "2.66.0",
+			want: `
+terraform {
+  required_providers {
+    null = {
+      source  = "hashicorp/null"
+      version = "2.1.2"
+    }
+
+    aws = {
+      source  = "hashicorp/aws"
+      version = "2.66.0"
+    }
+  }
+}
+`,
+			ok: true,
+		},
+		{
+			src: `
+terraform {
+  required_providers {
+    # foo
+    aws = "2.65.0" # bar
+  }
+}
+`,
+			name:    "aws",
+			version: "2.66.0",
+			want: `
+terraform {
+  required_providers {
+    # foo
+    aws = "2.66.0" # bar
+  }
+}
+`,
+			ok: true,
+		},
+		{
+			src: `
+terraform {
+  required_providers {
+    # foo
+    aws = {
+      # version = "2.65.0" # bar
+      version = "2.65.0" # baz
+      source  = "hashicorp/aws"
+    }
+  }
+}
+`,
+			name:    "aws",
+			version: "2.66.0",
+			want: `
+terraform {
+  required_providers {
+    # foo
+    aws = {
+      # version = "2.65.0" # bar
+      version = "2.66.0" # baz
+      source  = "hashicorp/aws"
+    }
+  }
+}
+`,
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {

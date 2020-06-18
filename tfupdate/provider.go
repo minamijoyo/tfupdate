@@ -1,6 +1,7 @@
 package tfupdate
 
 import (
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/pkg/errors"
 	"github.com/zclconf/go-cty/cty"
@@ -49,13 +50,92 @@ func (u *ProviderUpdater) updateTerraformBlock(f *hclwrite.File) error {
 			continue
 		}
 
-		// set a version to attribute value only if the key exists
-		if p.Body().GetAttribute(u.name) != nil {
-			p.Body().SetAttributeValue(u.name, cty.StringVal(u.version))
+		attr := p.Body().GetAttribute(u.name)
+		if attr != nil {
+			value, err := getAttributeValue(attr)
+			if err != nil {
+				return err
+			}
+
+			// There are some variations on the syntax of required_providers.
+			// So we check a type of value and switch implementations.
+			switch {
+			case value.Type().IsObjectType():
+				u.updateTerraformRequiredProvidersBlockAsObject(p, value)
+
+			case value.Type() == cty.String:
+				u.updateTerraformRequiredProvidersBlockAsString(p)
+
+			default:
+				return errors.Errorf("failed to update required_providers. unknown type: %#v", value)
+			}
 		}
 	}
 
 	return nil
+}
+
+func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwrite.Block, value cty.Value) {
+	// terraform {
+	//   required_providers {
+	//     aws = {
+	//       source  = "hashicorp/aws"
+	//       version = "2.65.0"
+	//     }
+	//   }
+	// }
+	m := value.AsValueMap()
+	if _, ok := m["version"]; !ok {
+		// If the version key is missing, just ignore it.
+		return
+	}
+
+	// Updating the whole object loses original sort order and comments.
+	// At the time of writing, there is no way to update a value inside an
+	// object directly while preserving original tokens.
+	//
+	// m["version"] = cty.StringVal(u.version)
+	// p.Body().SetAttributeValue(u.name, cty.ObjectVal(m))
+	//
+	// Since we fully understand the valid syntax, we compromise and read the
+	// tokens in order, updating the bytes directly.
+	// It's apparently a fragile dirty hack, but I didn't come up with the better
+	// way to do this.
+	attr := p.Body().GetAttribute(u.name)
+	tokens := attr.Expr().BuildTokens(nil)
+
+	i := 0
+	// find key of version
+	for !(tokens[i].Type == hclsyntax.TokenIdent && string(tokens[i].Bytes) == "version") {
+		i++
+	}
+
+	// find =
+	for tokens[i].Type != hclsyntax.TokenEqual {
+		i++
+	}
+
+	// find value of old version
+	oldVersion := m["version"].AsString()
+	for !(tokens[i].Type == hclsyntax.TokenQuotedLit && string(tokens[i].Bytes) == oldVersion) {
+		i++
+	}
+
+	// Since I've checked for the existence of the version key in advance,
+	// if we reach here, we found the token to be updated.
+	// So we now update bytes of the token in place.
+	tokens[i].Bytes = []byte(u.version)
+
+	return
+}
+
+func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsString(p *hclwrite.Block) {
+	// terraform {
+	//   required_providers {
+	//     aws = "2.65.0"
+	//   }
+	// }
+	p.Body().SetAttributeValue(u.name, cty.StringVal(u.version))
 }
 
 func (u *ProviderUpdater) updateProviderBlock(f *hclwrite.File) error {

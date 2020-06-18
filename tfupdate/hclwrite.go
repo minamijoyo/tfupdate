@@ -1,9 +1,13 @@
 package tfupdate
 
 import (
+	"fmt"
 	"reflect"
 
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/zclconf/go-cty/cty"
 )
 
 // allMatchingBlocks returns all matching blocks from the body that have the
@@ -39,4 +43,29 @@ func allMatchingBlocksByType(b *hclwrite.Body, typeName string) []*hclwrite.Bloc
 	}
 
 	return matched
+}
+
+// getAttributeValue extracts cty.Value from hclwrite.Attribute.
+// At the time of writing, there is no way to do with the hclwrite AST,
+// so we build low-level byte sequences and parse an expression as a
+// hclsyntax.Expression on memory.
+func getAttributeValue(attr *hclwrite.Attribute) (cty.Value, error) {
+	// build low-level byte sequences
+	src := attr.Expr().BuildTokens(nil).Bytes()
+
+	// parse an expression as a hclsyntax.Expression
+	expr, diags := hclsyntax.ParseExpression(src, "generated_by_attributeToValue", hcl.Pos{Line: 1, Column: 1})
+	if diags.HasErrors() {
+		return cty.NilVal, fmt.Errorf("failed to parse expression: %s", diags)
+	}
+
+	// Get value from expression.
+	// We don't need interpolation for any variables and functions here,
+	// so we just pass an empty context.
+	v, diags := expr.Value(&hcl.EvalContext{})
+	if diags.HasErrors() {
+		return cty.NilVal, fmt.Errorf("failed to get cty.Value: %s", diags)
+	}
+
+	return v, nil
 }
