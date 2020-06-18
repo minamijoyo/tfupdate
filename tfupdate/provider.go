@@ -52,7 +52,7 @@ func (u *ProviderUpdater) updateTerraformBlock(f *hclwrite.File) error {
 
 		attr := p.Body().GetAttribute(u.name)
 		if attr != nil {
-			value, err := attributeToValue(attr)
+			value, err := getAttributeValue(attr)
 			if err != nil {
 				return err
 			}

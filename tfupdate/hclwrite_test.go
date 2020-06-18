@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/zclconf/go-cty/cty"
 )
 
 func TestAllMatchingBlocks(t *testing.T) {
@@ -153,6 +154,48 @@ service "label1" {
 				if got != test.want {
 					t.Errorf("wrong result\ngot:  %s\nwant: %s", got, test.want)
 				}
+			}
+		})
+	}
+}
+
+func TestGetAttributeValue(t *testing.T) {
+	tests := []struct {
+		valueAsString string
+		want          cty.Value
+		ok            bool
+	}{
+		{
+			want: cty.StringVal("FOO"),
+			ok:   true,
+		},
+		{
+			want: cty.ObjectVal(map[string]cty.Value{
+				"foo": cty.StringVal("FOO"),
+				"bar": cty.StringVal("BAR"),
+			}),
+			ok: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%s", test.valueAsString), func(t *testing.T) {
+			// build hclwrite.Attribute
+			f := hclwrite.NewEmptyFile()
+			f.Body().SetAttributeValue("test", test.want)
+			attr := f.Body().GetAttribute("test")
+
+			got, err := getAttributeValue(attr)
+			if test.ok && err != nil {
+				t.Errorf("getAttributeValue() with attr = %s returns unexpected err: %+v", test.want, err)
+			}
+
+			if !test.ok && err == nil {
+				t.Errorf("getAttributeValue() with attr = %s expects to return an error, but no error", test.want)
+			}
+
+			if !got.RawEquals(test.want) {
+				t.Errorf("getAttributeValue() with attr = %s returns %#v, but want = %#v", test.want, got, test.want)
 			}
 		})
 	}

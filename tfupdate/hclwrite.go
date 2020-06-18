@@ -45,13 +45,13 @@ func allMatchingBlocksByType(b *hclwrite.Body, typeName string) []*hclwrite.Bloc
 	return matched
 }
 
-// attributeToValue extracts cty.Value from hclwrite.Attribute.
+// getAttributeValue extracts cty.Value from hclwrite.Attribute.
 // At the time of writing, there is no way to do with the hclwrite AST,
 // so we build low-level byte sequences and parse an expression as a
 // hclsyntax.Expression on memory.
-func attributeToValue(a *hclwrite.Attribute) (cty.Value, error) {
+func getAttributeValue(attr *hclwrite.Attribute) (cty.Value, error) {
 	// build low-level byte sequences
-	src := a.Expr().BuildTokens(nil).Bytes()
+	src := attr.Expr().BuildTokens(nil).Bytes()
 
 	// parse an expression as a hclsyntax.Expression
 	expr, diags := hclsyntax.ParseExpression(src, "generated_by_attributeToValue", hcl.Pos{Line: 1, Column: 1})
