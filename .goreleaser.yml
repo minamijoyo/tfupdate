@@ -8,6 +8,8 @@ builds:
       - windows
     goarch:
       - amd64
+    env:
+      - CGO_ENABLED=0
 release:
   prerelease: auto
 changelog:
