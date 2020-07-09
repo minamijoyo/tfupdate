@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+## 0.4.1 (2020/07/09)
+
+BUG FIXES:
+
+* Use static link on build for alpine compatible ([#23](https://github.com/minamijoyo/tfupdate/pull/23))
+
 ## 0.4.0 (2020/06/18)
 
 NEW FEATURES:
