@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/logutils"
 	"github.com/minamijoyo/tfupdate/command"
@@ -64,7 +65,7 @@ func logOutput() io.Writer {
 
 	filter := &logutils.LevelFilter{
 		Levels:   levels,
-		MinLevel: logutils.LogLevel(minLevel),
+		MinLevel: logutils.LogLevel(strings.ToUpper(minLevel)),
 		Writer:   writer,
 	}
 
