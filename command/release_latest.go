@@ -63,7 +63,7 @@ Arguments
                       - tfregistryModule
                          namespace/name/provider
                          e.g. terraform-aws-modules/vpc/aws
-                      - tfregistryProvider
+                      - tfregistryProvider (experimental)
                          namespace/type
                          e.g. hashicorp/aws
 
@@ -73,7 +73,7 @@ Options:
                        - github (default)
                        - gitlab
                        - tfregistryModule
-                       - tfregistryProvider
+                       - tfregistryProvider (experimental)
 `
 	return strings.TrimSpace(helpText)
 }

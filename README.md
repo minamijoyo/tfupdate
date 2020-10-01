@@ -223,6 +223,9 @@ Arguments
                       - tfregistryModule
                          namespace/name/provider
                          e.g. terraform-aws-modules/vpc/aws
+                      - tfregistryProvider (experimental)
+                         namespace/type
+                         e.g. hashicorp/aws
 
 Options:
   -s  --source-type  A type of release data source.
@@ -230,6 +233,7 @@ Options:
                        - github (default)
                        - gitlab
                        - tfregistryModule
+                       - tfregistryProvider (experimental)
 ```
 
 ```
@@ -254,6 +258,9 @@ Arguments
                       - tfregistryModule
                          namespace/name/provider
                          e.g. terraform-aws-modules/vpc/aws
+                      - tfregistryProvider (experimental)
+                         namespace/type
+                         e.g. hashicorp/aws
 
 Options:
   -s  --source-type  A type of release data source.
@@ -261,6 +268,7 @@ Options:
                        - github (default)
                        - gitlab
                        - tfregistryModule
+                       - tfregistryProvider (experimental)
 
   -n  --max-length   The maximum length of list.
 ```
