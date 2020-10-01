@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.4.2 (2020/10/01)
+
 NEW FEATURES:
 
 * (experimental) Support getting release versions of a provider from the terraform registry ([#26](https://github.com/minamijoyo/tfupdate/pull/26)
