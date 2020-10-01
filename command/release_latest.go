@@ -63,6 +63,9 @@ Arguments
                       - tfregistryModule
                          namespace/name/provider
                          e.g. terraform-aws-modules/vpc/aws
+                      - tfregistryProvider
+                         namespace/type
+                         e.g. hashicorp/aws
 
 Options:
   -s  --source-type  A type of release data source.
@@ -70,6 +73,7 @@ Options:
                        - github (default)
                        - gitlab
                        - tfregistryModule
+                       - tfregistryProvider
 `
 	return strings.TrimSpace(helpText)
 }

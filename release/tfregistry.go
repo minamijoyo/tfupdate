@@ -15,6 +15,11 @@ type TFRegistryAPI interface {
 	// ModuleLatestForProvider returns the latest version of a module for a single provider.
 	// https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
 	ModuleLatestForProvider(ctx context.Context, req *tfregistry.ModuleLatestForProviderRequest) (*tfregistry.ModuleLatestForProviderResponse, error)
+
+	// ProviderLatest returns the latest version of a provider.
+	// This relies on a currently undocumented providers API endpoint which behaves exactly like the equivalent documented modules API endpoint.
+	// https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
+	ProviderLatest(ctx context.Context, req *tfregistry.ProviderLatestRequest) (*tfregistry.ProviderLatestResponse, error)
 }
 
 // TFRegistryConfig is a set of configurations for TFRegistryModuleRelease and TFRegistryProviderRelease.
@@ -102,7 +107,7 @@ func NewTFRegistryModuleRelease(source string, config TFRegistryConfig) (Release
 	}, nil
 }
 
-// Latest returns a latest version.
+// Latest returns a latest version of a module for a specific provider.
 func (r *TFRegistryModuleRelease) Latest(ctx context.Context) (string, error) {
 	req := &tfregistry.ModuleLatestForProviderRequest{
 		Namespace: r.namespace,
@@ -118,7 +123,7 @@ func (r *TFRegistryModuleRelease) Latest(ctx context.Context) (string, error) {
 	return release.Version, nil
 }
 
-// List returns a list of versions.
+// List returns a list of versions of a module for a specific provider.
 func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int) ([]string, error) {
 	req := &tfregistry.ModuleLatestForProviderRequest{
 		Namespace: r.namespace,
@@ -131,6 +136,88 @@ func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int) ([]st
 
 	if err != nil {
 		return []string{}, fmt.Errorf("failed to get a list of versions for %s/%s/%s: %s", r.namespace, r.name, r.provider, err)
+	}
+
+	versions := release.Versions
+	// versions are already in asc order unlike github.
+	start := len(versions) - minInt(maxLength, len(versions))
+	asc := versions[start:]
+	return asc, nil
+}
+
+// ProviderLatest returns the latest version of a provider.
+// This relies on a currently undocumented providers API endpoint which behaves exactly like the equivalent documented modules API endpoint.
+// https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
+func (c *TFRegistryClient) ProviderLatest(ctx context.Context, req *tfregistry.ProviderLatestRequest) (*tfregistry.ProviderLatestResponse, error) {
+	return c.client.ProviderLatest(ctx, req)
+}
+
+// TFRegistryProviderRelease is a release implementation which provides version information with TFRegistryProvider Release.
+type TFRegistryProviderRelease struct {
+	// api is an instance of TFRegistryAPI interface.
+	// It can be replaced for testing.
+	api TFRegistryAPI
+
+	// namespace is the name of a namespace, unique on a particular hostname, that can contain one or more providers that are somehow related. On the public Terraform Registry the "namespace" represents the organization that is packaging and distributing the provider.
+	namespace string
+
+	// providerType is the provider type, like "azurerm", "aws", "google", "dns", etc. A provider type is unique within a particular hostname and namespace.
+	providerType string
+}
+
+// NewTFRegistryProviderRelease is a factory method which returns an TFRegistryProviderRelease instance.
+func NewTFRegistryProviderRelease(source string, config TFRegistryConfig) (Release, error) {
+	s := strings.SplitN(source, "/", 2)
+	if len(s) != 2 {
+		return nil, fmt.Errorf("failed to parse source: %s", source)
+	}
+
+	// If config.api is not set, create a default TFRegistryClient
+	var api TFRegistryAPI
+	if config.api == nil {
+		var err error
+		api, err = NewTFRegistryClient(config)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		api = config.api
+	}
+
+	return &TFRegistryProviderRelease{
+		api:          api,
+		namespace:    s[0],
+		providerType: s[1],
+	}, nil
+}
+
+// Latest returns a latest version.
+func (r *TFRegistryProviderRelease) Latest(ctx context.Context) (string, error) {
+	req := &tfregistry.ProviderLatestRequest{
+		Namespace: r.namespace,
+		Type:      r.providerType,
+	}
+	release, err := r.api.ProviderLatest(ctx, req)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to get the latest release for %s/%s: %s", r.namespace, r.providerType, err)
+	}
+
+	return release.Version, nil
+}
+
+// List returns a list of versions.
+func (r *TFRegistryProviderRelease) List(ctx context.Context, maxLength int) ([]string, error) {
+	req := &tfregistry.ProviderLatestRequest{
+		Namespace: r.namespace,
+		Type:      r.providerType,
+	}
+	// Hard to guess from the name, the response of ProviderLatest API contains
+	// not only the latest version, but also a list of available versions.
+	release, err := r.api.ProviderLatest(ctx, req)
+
+	if err != nil {
+		return []string{}, fmt.Errorf("failed to get a list of versions for %s/%s: %s", r.namespace, r.providerType, err)
 	}
 
 	versions := release.Versions
