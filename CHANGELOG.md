@@ -4,7 +4,7 @@
 
 NEW FEATURES:
 
-* (experimental) Support getting release versions of a provider from the terraform registry ([#26](https://github.com/minamijoyo/tfupdate/pull/26)
+* (experimental) Support getting release versions of a provider from the terraform registry ([#26](https://github.com/minamijoyo/tfupdate/pull/26))
 
 The release list/latest command now allows you to get the release version from Terraform Registry with `--source-type tfregistryProvider`, which is an experimental feature because we are currently depending on an undocumented Registry API. We are planning to switch another API which Terraform CLI depends on.
 
