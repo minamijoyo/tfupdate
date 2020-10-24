@@ -28,7 +28,7 @@ brew:
     email: minamijoyo@gmail.com
   homepage: https://github.com/minamijoyo/tfupdate
   description: "Update version constraints in your Terraform configurations"
-  skip_upload: false
+  skip_upload: auto
   test: |
     system "#{bin}/tfupdate --version"
   install: |
