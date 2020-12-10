@@ -1,5 +1,15 @@
 ## master (Unreleased)
 
+## 0.4.3 (2020/12/10)
+
+BUG FIXES:
+
+* Fix unexpected broken parentheses expression ([#34](https://github.com/minamijoyo/tfupdate/pull/34))
+
+ENHANCEMENTS:
+
+* Prevent uploading pre-release to Homebrew ([#29](https://github.com/minamijoyo/tfupdate/pull/29))
+
 ## 0.4.2 (2020/10/01)
 
 NEW FEATURES:
