@@ -2,7 +2,7 @@ version: 2.1
 executors:
   go:
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.16.3
     working_directory: /go/src/github.com/minamijoyo/tfupdate
     environment:
       GO111MODULE: "on"
