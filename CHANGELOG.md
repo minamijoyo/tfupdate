@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * Update Go to v1.16.3 ([#37](https://github.com/minamijoyo/tfupdate/pull/37))
 * Update hcl to v2.10.0 ([#38](https://github.com/minamijoyo/tfupdate/pull/38))
+* Update alpine to v3.12 ([#39](https://github.com/minamijoyo/tfupdate/pull/39))
 
 ## 0.4.3 (2020/12/10)
 
