@@ -6,7 +6,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/go-github/v28 v28.1.1
 	github.com/goreleaser/goreleaser v0.119.0
-	github.com/hashicorp/hcl/v2 v2.8.0
+	github.com/hashicorp/hcl/v2 v2.10.0
 	github.com/hashicorp/logutils v1.0.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mitchellh/cli v1.0.0
@@ -14,7 +14,7 @@ require (
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/pflag v1.0.5
 	github.com/xanzy/go-gitlab v0.20.1
-	github.com/zclconf/go-cty v1.2.0
+	github.com/zclconf/go-cty v1.8.0
 	golang.org/x/lint v0.0.0-20190930215403-16217165b5de
 	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6
 )
