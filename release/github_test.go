@@ -13,14 +13,9 @@ import (
 
 // mockGitHubClient is a mock GitHubAPI implementation.
 type mockGitHubClient struct {
-	repositoryRelease  *github.RepositoryRelease
 	repositoryReleases []*github.RepositoryRelease
 	response           *github.Response
 	err                error
-}
-
-func (c *mockGitHubClient) RepositoriesGetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error) {
-	return c.repositoryRelease, c.response, c.err
 }
 
 func (c *mockGitHubClient) RepositoriesListReleases(ctx context.Context, owner, repo string, opt *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error) {
@@ -151,8 +146,7 @@ func TestNewGitHubRelease(t *testing.T) {
 }
 
 func TestGitHubReleaseLatest(t *testing.T) {
-	tagv010 := "v0.1.0"
-	tag010 := "0.1.0"
+	tagv := []string{"v0.3.0", "v0.2.0", "v0.1.0"}
 	cases := []struct {
 		client *mockGitHubClient
 		want   string
@@ -160,30 +154,20 @@ func TestGitHubReleaseLatest(t *testing.T) {
 	}{
 		{
 			client: &mockGitHubClient{
-				repositoryRelease: &github.RepositoryRelease{
-					TagName: &tagv010,
+				repositoryReleases: []*github.RepositoryRelease{
+					&github.RepositoryRelease{TagName: &tagv[0]},
+					&github.RepositoryRelease{TagName: &tagv[1]},
+					&github.RepositoryRelease{TagName: &tagv[2]},
 				},
 				response: &github.Response{},
 				err:      nil,
 			},
-			want: "0.1.0",
+			want: "0.3.0",
 			ok:   true,
 		},
 		{
 			client: &mockGitHubClient{
-				repositoryRelease: &github.RepositoryRelease{
-					TagName: &tag010,
-				},
 				response: &github.Response{},
-				err:      nil,
-			},
-			want: "0.1.0",
-			ok:   true,
-		},
-		{
-			client: &mockGitHubClient{
-				repositoryRelease: nil,
-				response:          &github.Response{},
 				// Actual error response type is *github.ErrorResponse,
 				// but we are not interested in the internal structure.
 				err: errors.New(`GET https://api.github.com/repos/hoge/fuga/releases/latest: 404 Not Found []`),
@@ -223,10 +207,11 @@ func TestGitHubReleaseLatest(t *testing.T) {
 func TestGitHubReleaseList(t *testing.T) {
 	tagv := []string{"v0.3.0", "v0.2.0", "v0.1.0"}
 	cases := []struct {
-		client    *mockGitHubClient
-		maxLength int
-		want      []string
-		ok        bool
+		client     *mockGitHubClient
+		maxLength  int
+		preRelease bool
+		want       []string
+		ok         bool
 	}{
 		{
 			client: &mockGitHubClient{
@@ -238,9 +223,10 @@ func TestGitHubReleaseList(t *testing.T) {
 				response: &github.Response{},
 				err:      nil,
 			},
-			maxLength: 5,
-			want:      []string{"0.1.0", "0.2.0", "0.3.0"}, // reverse order
-			ok:        true,
+			maxLength:  5,
+			preRelease: true,
+			want:       []string{"0.1.0", "0.2.0", "0.3.0"}, // semver order
+			ok:         true,
 		},
 		{
 			client: &mockGitHubClient{
@@ -252,9 +238,10 @@ func TestGitHubReleaseList(t *testing.T) {
 				response: &github.Response{},
 				err:      nil,
 			},
-			maxLength: 2,
-			want:      []string{"0.2.0", "0.3.0"}, // limit length
-			ok:        true,
+			maxLength:  2,
+			preRelease: true,
+			want:       []string{"0.2.0", "0.3.0"}, // limit length
+			ok:         true,
 		},
 		{
 			client: &mockGitHubClient{
@@ -264,7 +251,7 @@ func TestGitHubReleaseList(t *testing.T) {
 				// but we are not interested in the internal structure.
 				err: errors.New(`GET https://api.github.com/repos/hoge/fuga/releases: 404 Not Found []`),
 			},
-			want: []string{},
+			want: nil,
 			ok:   false,
 		},
 	}
@@ -280,7 +267,7 @@ func TestGitHubReleaseList(t *testing.T) {
 			t.Fatalf("failed to NewGitHubRelease(%s, %#v): %s", source, config, err)
 		}
 
-		got, err := r.List(context.Background(), tc.maxLength)
+		got, err := r.List(context.Background(), tc.maxLength, tc.preRelease)
 
 		if tc.ok && err != nil {
 			t.Errorf("(*GitHubRelease).List() with r = %s, maxLength = %d returns unexpected err: %+v", spew.Sdump(r), tc.maxLength, err)

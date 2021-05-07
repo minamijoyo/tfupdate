@@ -41,7 +41,7 @@ func (c *ReleaseListCommand) Run(args []string) int {
 		return 1
 	}
 
-	versions, err := r.List(context.Background(), c.maxLength)
+	versions, err := r.List(context.Background(), c.maxLength, true)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

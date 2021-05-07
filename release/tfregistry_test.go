@@ -190,11 +190,11 @@ func TestTFRegistryModuleReleaseLatest(t *testing.T) {
 		{
 			client: &mockTFRegistryClient{
 				moduleRes: &tfregistry.ModuleLatestForProviderResponse{
-					Version: "0.1.0",
+					Versions: []string{"0.1.0", "0.2.0", "0.3.0"},
 				},
 				err: nil,
 			},
-			want: "0.1.0",
+			want: "0.3.0",
 			ok:   true,
 		},
 		{
@@ -243,11 +243,11 @@ func TestTFRegistryProviderReleaseLatest(t *testing.T) {
 		{
 			client: &mockTFRegistryClient{
 				providerRes: &tfregistry.ProviderLatestResponse{
-					Version: "0.1.0",
+					Versions: []string{"0.1.0", "0.2.0", "0.3.0"},
 				},
 				err: nil,
 			},
-			want: "0.1.0",
+			want: "0.3.0",
 			ok:   true,
 		},
 		{
@@ -288,10 +288,11 @@ func TestTFRegistryProviderReleaseLatest(t *testing.T) {
 }
 func TestTFRegistryModuleReleaseList(t *testing.T) {
 	cases := []struct {
-		client    *mockTFRegistryClient
-		maxLength int
-		want      []string
-		ok        bool
+		client     *mockTFRegistryClient
+		maxLength  int
+		preRelease bool
+		want       []string
+		ok         bool
 	}{
 		{
 			client: &mockTFRegistryClient{
@@ -301,9 +302,10 @@ func TestTFRegistryModuleReleaseList(t *testing.T) {
 				},
 				err: nil,
 			},
-			maxLength: 5,
-			want:      []string{"0.1.0", "0.2.0", "0.3.0"},
-			ok:        true,
+			maxLength:  5,
+			preRelease: true,
+			want:       []string{"0.1.0", "0.2.0", "0.3.0"},
+			ok:         true,
 		},
 		{
 			client: &mockTFRegistryClient{
@@ -313,16 +315,17 @@ func TestTFRegistryModuleReleaseList(t *testing.T) {
 				},
 				err: nil,
 			},
-			maxLength: 2,
-			want:      []string{"0.2.0", "0.3.0"},
-			ok:        true,
+			maxLength:  2,
+			preRelease: true,
+			want:       []string{"0.2.0", "0.3.0"},
+			ok:         true,
 		},
 		{
 			client: &mockTFRegistryClient{
 				moduleRes: nil,
 				err:       errors.New(`unexpected HTTP Status Code: 404`),
 			},
-			want: []string{},
+			want: nil,
 			ok:   false,
 		},
 	}
@@ -338,7 +341,7 @@ func TestTFRegistryModuleReleaseList(t *testing.T) {
 			t.Fatalf("failed to NewTFRegistryModuleRelease(%s, %#v): %s", source, config, err)
 		}
 
-		got, err := r.List(context.Background(), tc.maxLength)
+		got, err := r.List(context.Background(), tc.maxLength, tc.preRelease)
 
 		if tc.ok && err != nil {
 			t.Errorf("(*TFRegistryModuleRelease).List() with r = %s, maxLength = %d returns unexpected err: %+v", spew.Sdump(r), tc.maxLength, err)
@@ -356,10 +359,11 @@ func TestTFRegistryModuleReleaseList(t *testing.T) {
 
 func TestTFRegistryProviderReleaseList(t *testing.T) {
 	cases := []struct {
-		client    *mockTFRegistryClient
-		maxLength int
-		want      []string
-		ok        bool
+		client     *mockTFRegistryClient
+		maxLength  int
+		preRelease bool
+		want       []string
+		ok         bool
 	}{
 		{
 			client: &mockTFRegistryClient{
@@ -369,9 +373,10 @@ func TestTFRegistryProviderReleaseList(t *testing.T) {
 				},
 				err: nil,
 			},
-			maxLength: 5,
-			want:      []string{"0.1.0", "0.2.0", "0.3.0"},
-			ok:        true,
+			maxLength:  5,
+			preRelease: true,
+			want:       []string{"0.1.0", "0.2.0", "0.3.0"},
+			ok:         true,
 		},
 		{
 			client: &mockTFRegistryClient{
@@ -381,16 +386,17 @@ func TestTFRegistryProviderReleaseList(t *testing.T) {
 				},
 				err: nil,
 			},
-			maxLength: 2,
-			want:      []string{"0.2.0", "0.3.0"},
-			ok:        true,
+			maxLength:  2,
+			preRelease: true,
+			want:       []string{"0.2.0", "0.3.0"},
+			ok:         true,
 		},
 		{
 			client: &mockTFRegistryClient{
 				providerRes: nil,
 				err:         errors.New(`unexpected HTTP Status Code: 404`),
 			},
-			want: []string{},
+			want: nil,
 			ok:   false,
 		},
 	}
@@ -406,7 +412,7 @@ func TestTFRegistryProviderReleaseList(t *testing.T) {
 			t.Fatalf("failed to NewTFRegistryProviderRelease(%s, %#v): %s", source, config, err)
 		}
 
-		got, err := r.List(context.Background(), tc.maxLength)
+		got, err := r.List(context.Background(), tc.maxLength, tc.preRelease)
 
 		if tc.ok && err != nil {
 			t.Errorf("(*NewTFRegistryProviderRelease).List() with r = %s, maxLength = %d returns unexpected err: %+v", spew.Sdump(r), tc.maxLength, err)

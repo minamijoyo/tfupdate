@@ -14,10 +14,6 @@ import (
 // GitHubAPI is an interface which calls GitHub API.
 // This abstraction layer is needed for testing with mock.
 type GitHubAPI interface {
-	// RepositoriesGetLatestRelease fetches the latest published release for the repository.
-	// GitHub API docs: https://developer.github.com/v3/repos/releases/#get-the-latest-release
-	RepositoriesGetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
-
 	// RepositoriesListReleases lists the releases for a repository.
 	// GitHub API docs: https://developer.github.com/v3/repos/releases/#list-releases-for-a-repository
 	RepositoriesListReleases(ctx context.Context, owner, repo string, opt *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error)
@@ -78,11 +74,6 @@ func newOAuth2Client(token string) *http.Client {
 	return oauth2.NewClient(context.Background(), ts)
 }
 
-// RepositoriesGetLatestRelease fetches the latest published release for the repository.
-func (c *GitHubClient) RepositoriesGetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error) {
-	return c.client.Repositories.GetLatestRelease(ctx, owner, repo)
-}
-
 // RepositoriesListReleases lists the releases for a repository.
 func (c *GitHubClient) RepositoriesListReleases(ctx context.Context, owner, repo string, opt *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error) {
 	return c.client.Repositories.ListReleases(ctx, owner, repo, opt)
@@ -127,24 +118,49 @@ func NewGitHubRelease(source string, config GitHubConfig) (Release, error) {
 	}, nil
 }
 
-// Latest returns a latest version.
+// Latest returns the latest version.
+// Note that GetLatestRelease API in GitHub returns the most recent release, which
+// doesn't means the latest stable release. So we sort versions in semver order
+// and find the latest non pre-release.
 func (r *GitHubRelease) Latest(ctx context.Context) (string, error) {
-	release, _, err := r.api.RepositoriesGetLatestRelease(ctx, r.owner, r.repo)
-
+	versions, err := r.List(ctx, 1, false)
 	if err != nil {
-		return "", fmt.Errorf("failed to get the latest release for %s/%s: %s", r.owner, r.repo, err)
+		return "", err
 	}
 
-	// Use TagName because some releases do not have Name.
-	v := tagNameToVersion(*release.TagName)
+	if len(versions) == 0 {
+		return "", fmt.Errorf("no releases found for %s/%s", r.owner, r.repo)
+	}
 
-	return v, nil
+	return versions[0], nil
 }
 
-// List returns a list of versions.
-func (r *GitHubRelease) List(ctx context.Context, maxLength int) ([]string, error) {
+// List returns a list of versions in semver order.
+// If preRelease is set to false, the result doesn't contain pre-releases.
+func (r *GitHubRelease) List(ctx context.Context, maxLength int, preRelease bool) ([]string, error) {
+	versions, err := r.listAllVersions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	sorted := sortVersions(versions)
+	releases := sorted
+
+	if !preRelease {
+		releases = excludePreReleases(sorted)
+	}
+
+	start := len(releases) - minInt(maxLength, len(releases))
+	return releases[start:], nil
+}
+
+// List returns a list of all versions.
+func (r *GitHubRelease) listAllVersions(ctx context.Context) ([]string, error) {
 	versions := []string{}
-	opt := &github.ListOptions{}
+	opt := &github.ListOptions{
+		PerPage: 100, // max
+	}
+
 	for {
 		releases, resp, err := r.api.RepositoriesListReleases(ctx, r.owner, r.repo, opt)
 
@@ -156,16 +172,11 @@ func (r *GitHubRelease) List(ctx context.Context, maxLength int) ([]string, erro
 			v := tagNameToVersion(*release.TagName)
 			versions = append(versions, v)
 		}
-		if resp.NextPage == 0 || len(versions) >= maxLength {
+		if resp.NextPage == 0 {
 			break
 		}
 		opt.Page = resp.NextPage
 	}
 
-	end := minInt(maxLength, len(versions))
-	desc := versions[:end]
-	// return a list order by release asc (probably created_at)
-	// Note that this may not be in version number order.
-	// It's a simply reversed list of release.
-	return reverseStringSlice(desc), nil
+	return versions, nil
 }

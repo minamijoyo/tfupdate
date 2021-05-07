@@ -12,9 +12,6 @@ import (
 // GitLabAPI is an interface which calls GitLab API.
 // This abstraction layer is needed for testing with mock.
 type GitLabAPI interface {
-	// ProjectGetLatestRelease fetches the latest published release for the project.
-	ProjectGetLatestRelease(ctx context.Context, owner, project string) (*gitlab.Release, *gitlab.Response, error)
-
 	// ProjectListReleases gets a pagenated of releases accessible by the authenticated user.
 	ProjectListReleases(ctx context.Context, owner, project string, opt *gitlab.ListReleasesOptions) ([]*gitlab.Release, *gitlab.Response, error)
 }
@@ -57,20 +54,6 @@ func NewGitLabClient(config GitLabConfig) (*GitLabClient, error) {
 	return &GitLabClient{
 		client: c,
 	}, nil
-}
-
-// ProjectGetLatestRelease fetches the latest published release for the project.
-func (c *GitLabClient) ProjectGetLatestRelease(ctx context.Context, owner, project string) (*gitlab.Release, *gitlab.Response, error) {
-	opt := &gitlab.ListReleasesOptions{}
-	releases, response, err := c.client.Releases.ListReleases(owner+"/"+project, opt, gitlab.WithContext(ctx))
-	if err != nil {
-		return nil, nil, err
-	}
-	if len(releases) == 0 {
-		return nil, nil, fmt.Errorf("no releases found for project")
-	}
-	latest := releases[0]
-	return latest, response, err
 }
 
 // ProjectListReleases gets a pagenated of releases accessible by the authenticated user.
@@ -118,24 +101,50 @@ func NewGitLabRelease(source string, config GitLabConfig) (*GitLabRelease, error
 	}, nil
 }
 
-// Latest returns a latest version.
+// Latest returns the latest version.
+// Note that GetLatestRelease API in GitLab returns the most recent release
+// order by released_at (default) or created_at, which doesn't means the latest
+// stable release. So we sort versions in semver order and find the latest non
+// pre-release.
 func (r *GitLabRelease) Latest(ctx context.Context) (string, error) {
-	release, _, err := r.api.ProjectGetLatestRelease(ctx, r.owner, r.project)
-
+	versions, err := r.List(ctx, 1, false)
 	if err != nil {
-		return "", fmt.Errorf("failed to get the releases from %s/%s: %s", r.owner, r.project, err)
+		return "", err
 	}
 
-	// Use TagName because some releases do not have Name.
-	v := tagNameToVersion(release.TagName)
+	if len(versions) == 0 {
+		return "", fmt.Errorf("no releases found for %s/%s", r.owner, r.project)
+	}
 
-	return v, nil
+	return versions[0], nil
 }
 
-// List returns a list of versions.
-func (r *GitLabRelease) List(ctx context.Context, maxLength int) ([]string, error) {
+// List returns a list of versions in semver order.
+// If preRelease is set to false, the result doesn't contain pre-releases.
+func (r *GitLabRelease) List(ctx context.Context, maxLength int, preRelease bool) ([]string, error) {
+	versions, err := r.listAllVersions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	sorted := sortVersions(versions)
+	releases := sorted
+
+	if !preRelease {
+		releases = excludePreReleases(sorted)
+	}
+
+	start := len(releases) - minInt(maxLength, len(releases))
+	return releases[start:], nil
+}
+
+// List returns a list of all versions.
+func (r *GitLabRelease) listAllVersions(ctx context.Context) ([]string, error) {
 	versions := []string{}
-	opt := &gitlab.ListReleasesOptions{}
+	opt := &gitlab.ListReleasesOptions{
+		PerPage: 100, // max
+	}
+
 	for {
 		releases, resp, err := r.api.ProjectListReleases(ctx, r.owner, r.project, opt)
 
@@ -147,13 +156,11 @@ func (r *GitLabRelease) List(ctx context.Context, maxLength int) ([]string, erro
 			v := tagNameToVersion(release.TagName)
 			versions = append(versions, v)
 		}
-		if resp.NextPage == 0 || len(versions) >= maxLength {
+		if resp.NextPage == 0 {
 			break
 		}
 		opt.Page = resp.NextPage
 	}
 
-	end := minInt(maxLength, len(versions))
-	desc := versions[:end]
-	return reverseStringSlice(desc), nil
+	return versions, nil
 }

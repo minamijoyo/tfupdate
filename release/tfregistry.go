@@ -109,22 +109,39 @@ func NewTFRegistryModuleRelease(source string, config TFRegistryConfig) (Release
 
 // Latest returns a latest version of a module for a specific provider.
 func (r *TFRegistryModuleRelease) Latest(ctx context.Context) (string, error) {
-	req := &tfregistry.ModuleLatestForProviderRequest{
-		Namespace: r.namespace,
-		Name:      r.name,
-		Provider:  r.provider,
-	}
-	release, err := r.api.ModuleLatestForProvider(ctx, req)
-
+	versions, err := r.List(ctx, 1, false)
 	if err != nil {
-		return "", fmt.Errorf("failed to get the latest release for %s/%s/%s: %s", r.namespace, r.name, r.provider, err)
+		return "", err
 	}
 
-	return release.Version, nil
+	if len(versions) == 0 {
+		return "", fmt.Errorf("no releases found for %s/%s/%s", r.namespace, r.name, r.provider)
+	}
+
+	return versions[0], nil
 }
 
-// List returns a list of versions of a module for a specific provider.
-func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int) ([]string, error) {
+// List returns a list of versions in semver order.
+// If preRelease is set to false, the result doesn't contain pre-releases.
+func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int, preRelease bool) ([]string, error) {
+	versions, err := r.listAllVersions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	sorted := sortVersions(versions)
+	releases := sorted
+
+	if !preRelease {
+		releases = excludePreReleases(sorted)
+	}
+
+	start := len(releases) - minInt(maxLength, len(releases))
+	return releases[start:], nil
+}
+
+// List returns a list of all versions.
+func (r *TFRegistryModuleRelease) listAllVersions(ctx context.Context) ([]string, error) {
 	req := &tfregistry.ModuleLatestForProviderRequest{
 		Namespace: r.namespace,
 		Name:      r.name,
@@ -138,11 +155,7 @@ func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int) ([]st
 		return []string{}, fmt.Errorf("failed to get a list of versions for %s/%s/%s: %s", r.namespace, r.name, r.provider, err)
 	}
 
-	versions := release.Versions
-	// versions are already in asc order unlike github.
-	start := len(versions) - minInt(maxLength, len(versions))
-	asc := versions[start:]
-	return asc, nil
+	return release.Versions, nil
 }
 
 // ProviderLatest returns the latest version of a provider.
@@ -193,21 +206,39 @@ func NewTFRegistryProviderRelease(source string, config TFRegistryConfig) (Relea
 
 // Latest returns a latest version.
 func (r *TFRegistryProviderRelease) Latest(ctx context.Context) (string, error) {
-	req := &tfregistry.ProviderLatestRequest{
-		Namespace: r.namespace,
-		Type:      r.providerType,
-	}
-	release, err := r.api.ProviderLatest(ctx, req)
-
+	versions, err := r.List(ctx, 1, false)
 	if err != nil {
-		return "", fmt.Errorf("failed to get the latest release for %s/%s: %s", r.namespace, r.providerType, err)
+		return "", err
 	}
 
-	return release.Version, nil
+	if len(versions) == 0 {
+		return "", fmt.Errorf("no releases found for %s/%s", r.namespace, r.providerType)
+	}
+
+	return versions[0], nil
 }
 
-// List returns a list of versions.
-func (r *TFRegistryProviderRelease) List(ctx context.Context, maxLength int) ([]string, error) {
+// List returns a list of versions in semver order.
+// If preRelease is set to false, the result doesn't contain pre-releases.
+func (r *TFRegistryProviderRelease) List(ctx context.Context, maxLength int, preRelease bool) ([]string, error) {
+	versions, err := r.listAllVersions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	sorted := sortVersions(versions)
+	releases := sorted
+
+	if !preRelease {
+		releases = excludePreReleases(sorted)
+	}
+
+	start := len(releases) - minInt(maxLength, len(releases))
+	return releases[start:], nil
+}
+
+// List returns a list of all versions.
+func (r *TFRegistryProviderRelease) listAllVersions(ctx context.Context) ([]string, error) {
 	req := &tfregistry.ProviderLatestRequest{
 		Namespace: r.namespace,
 		Type:      r.providerType,
@@ -220,9 +251,5 @@ func (r *TFRegistryProviderRelease) List(ctx context.Context, maxLength int) ([]
 		return []string{}, fmt.Errorf("failed to get a list of versions for %s/%s: %s", r.namespace, r.providerType, err)
 	}
 
-	versions := release.Versions
-	// versions are already in asc order unlike github.
-	start := len(versions) - minInt(maxLength, len(versions))
-	asc := versions[start:]
-	return asc, nil
+	return release.Versions, nil
 }
