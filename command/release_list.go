@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/minamijoyo/tfupdate/release"
 	flag "github.com/spf13/pflag"
 )
 
@@ -41,7 +42,7 @@ func (c *ReleaseListCommand) Run(args []string) int {
 		return 1
 	}
 
-	versions, err := r.List(context.Background(), c.maxLength, true)
+	versions, err := release.List(context.Background(), r, c.maxLength, true)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

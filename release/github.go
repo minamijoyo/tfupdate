@@ -42,6 +42,8 @@ type GitHubClient struct {
 	client *github.Client
 }
 
+var _ GitHubAPI = (*GitHubClient)(nil)
+
 // NewGitHubClient returns a real GitHubClient instance.
 func NewGitHubClient(config GitHubConfig) (*GitHubClient, error) {
 	var hc *http.Client
@@ -92,6 +94,8 @@ type GitHubRelease struct {
 	repo string
 }
 
+var _ Release = (*GitHubRelease)(nil)
+
 // NewGitHubRelease is a factory method which returns an GitHubRelease instance.
 func NewGitHubRelease(source string, config GitHubConfig) (Release, error) {
 	s := strings.SplitN(source, "/", 2)
@@ -118,44 +122,8 @@ func NewGitHubRelease(source string, config GitHubConfig) (Release, error) {
 	}, nil
 }
 
-// Latest returns the latest version.
-// Note that GetLatestRelease API in GitHub returns the most recent release, which
-// doesn't means the latest stable release. So we sort versions in semver order
-// and find the latest non pre-release.
-func (r *GitHubRelease) Latest(ctx context.Context) (string, error) {
-	versions, err := r.List(ctx, 1, false)
-	if err != nil {
-		return "", err
-	}
-
-	if len(versions) == 0 {
-		return "", fmt.Errorf("no releases found for %s/%s", r.owner, r.repo)
-	}
-
-	return versions[0], nil
-}
-
-// List returns a list of versions in semver order.
-// If preRelease is set to false, the result doesn't contain pre-releases.
-func (r *GitHubRelease) List(ctx context.Context, maxLength int, preRelease bool) ([]string, error) {
-	versions, err := r.listAllVersions(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	sorted := sortVersions(versions)
-	releases := sorted
-
-	if !preRelease {
-		releases = excludePreReleases(sorted)
-	}
-
-	start := len(releases) - minInt(maxLength, len(releases))
-	return releases[start:], nil
-}
-
-// List returns a list of all versions.
-func (r *GitHubRelease) listAllVersions(ctx context.Context) ([]string, error) {
+// ListReleases returns a list of unsorted all releases including pre-release.
+func (r *GitHubRelease) ListReleases(ctx context.Context) ([]string, error) {
 	versions := []string{}
 	opt := &github.ListOptions{
 		PerPage: 100, // max
@@ -165,7 +133,7 @@ func (r *GitHubRelease) listAllVersions(ctx context.Context) ([]string, error) {
 		releases, resp, err := r.api.RepositoriesListReleases(ctx, r.owner, r.repo, opt)
 
 		if err != nil {
-			return versions, fmt.Errorf("failed to list releases for %s/%s: %s", r.owner, r.repo, err)
+			return nil, fmt.Errorf("failed to list releases for %s/%s: %s", r.owner, r.repo, err)
 		}
 
 		for _, release := range releases {

@@ -18,6 +18,8 @@ type mockGitHubClient struct {
 	err                error
 }
 
+var _ GitHubAPI = (*mockGitHubClient)(nil)
+
 func (c *mockGitHubClient) RepositoriesListReleases(ctx context.Context, owner, repo string, opt *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error) {
 	return c.repositoryReleases, c.response, c.err
 }
@@ -93,6 +95,7 @@ func TestNewOAuth2Client(t *testing.T) {
 		}
 	}
 }
+
 func TestNewGitHubRelease(t *testing.T) {
 	cases := []struct {
 		source string
@@ -145,103 +148,25 @@ func TestNewGitHubRelease(t *testing.T) {
 	}
 }
 
-func TestGitHubReleaseLatest(t *testing.T) {
+func TestGitHubReleaseListReleases(t *testing.T) {
 	tagv := []string{"v0.3.0", "v0.2.0", "v0.1.0"}
 	cases := []struct {
 		client *mockGitHubClient
-		want   string
+		want   []string
 		ok     bool
 	}{
 		{
 			client: &mockGitHubClient{
 				repositoryReleases: []*github.RepositoryRelease{
-					&github.RepositoryRelease{TagName: &tagv[0]},
-					&github.RepositoryRelease{TagName: &tagv[1]},
-					&github.RepositoryRelease{TagName: &tagv[2]},
+					{TagName: &tagv[0]},
+					{TagName: &tagv[1]},
+					{TagName: &tagv[2]},
 				},
 				response: &github.Response{},
 				err:      nil,
 			},
-			want: "0.3.0",
+			want: []string{"0.3.0", "0.2.0", "0.1.0"},
 			ok:   true,
-		},
-		{
-			client: &mockGitHubClient{
-				response: &github.Response{},
-				// Actual error response type is *github.ErrorResponse,
-				// but we are not interested in the internal structure.
-				err: errors.New(`GET https://api.github.com/repos/hoge/fuga/releases/latest: 404 Not Found []`),
-			},
-			want: "",
-			ok:   false,
-		},
-	}
-
-	source := "hoge/fuga"
-	for _, tc := range cases {
-		// Set a mock client
-		config := GitHubConfig{
-			api: tc.client,
-		}
-		r, err := NewGitHubRelease(source, config)
-		if err != nil {
-			t.Fatalf("failed to NewGitHubRelease(%s, %#v): %s", source, config, err)
-		}
-
-		got, err := r.Latest(context.Background())
-
-		if tc.ok && err != nil {
-			t.Errorf("(*GitHubRelease).Latest() with r = %s returns unexpected err: %+v", spew.Sdump(r), err)
-		}
-
-		if !tc.ok && err == nil {
-			t.Errorf("(*GitHubRelease).Latest() with r = %s expects to return an error, but no error", spew.Sdump(r))
-		}
-
-		if got != tc.want {
-			t.Errorf("(*GitHubRelease).Latest() with r = %s returns %s, but want = %s", spew.Sdump(r), got, tc.want)
-		}
-	}
-}
-
-func TestGitHubReleaseList(t *testing.T) {
-	tagv := []string{"v0.3.0", "v0.2.0", "v0.1.0"}
-	cases := []struct {
-		client     *mockGitHubClient
-		maxLength  int
-		preRelease bool
-		want       []string
-		ok         bool
-	}{
-		{
-			client: &mockGitHubClient{
-				repositoryReleases: []*github.RepositoryRelease{
-					&github.RepositoryRelease{TagName: &tagv[0]},
-					&github.RepositoryRelease{TagName: &tagv[1]},
-					&github.RepositoryRelease{TagName: &tagv[2]},
-				},
-				response: &github.Response{},
-				err:      nil,
-			},
-			maxLength:  5,
-			preRelease: true,
-			want:       []string{"0.1.0", "0.2.0", "0.3.0"}, // semver order
-			ok:         true,
-		},
-		{
-			client: &mockGitHubClient{
-				repositoryReleases: []*github.RepositoryRelease{
-					&github.RepositoryRelease{TagName: &tagv[0]},
-					&github.RepositoryRelease{TagName: &tagv[1]},
-					&github.RepositoryRelease{TagName: &tagv[2]},
-				},
-				response: &github.Response{},
-				err:      nil,
-			},
-			maxLength:  2,
-			preRelease: true,
-			want:       []string{"0.2.0", "0.3.0"}, // limit length
-			ok:         true,
 		},
 		{
 			client: &mockGitHubClient{
@@ -267,18 +192,18 @@ func TestGitHubReleaseList(t *testing.T) {
 			t.Fatalf("failed to NewGitHubRelease(%s, %#v): %s", source, config, err)
 		}
 
-		got, err := r.List(context.Background(), tc.maxLength, tc.preRelease)
+		got, err := r.ListReleases(context.Background())
 
 		if tc.ok && err != nil {
-			t.Errorf("(*GitHubRelease).List() with r = %s, maxLength = %d returns unexpected err: %+v", spew.Sdump(r), tc.maxLength, err)
+			t.Errorf("(*GitHubRelease).ListReleases() with r = %s returns unexpected err: %+v", spew.Sdump(r), err)
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("(*GitHubRelease).List() with r = %s, maxLength = %d expects to return an error, but no error", spew.Sdump(r), tc.maxLength)
+			t.Errorf("(*GitHubRelease).ListReleases() with r = %s expects to return an error, but no error", spew.Sdump(r))
 		}
 
 		if !reflect.DeepEqual(got, tc.want) {
-			t.Errorf("(*GitHubRelease).List() with r = %s, maxLength = %d returns %s, but want = %s", spew.Sdump(r), tc.maxLength, got, tc.want)
+			t.Errorf("(*GitHubRelease).ListReleases() with r = %s returns %s, but want = %s", spew.Sdump(r), got, tc.want)
 		}
 	}
 }

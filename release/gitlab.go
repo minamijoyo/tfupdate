@@ -36,6 +36,8 @@ type GitLabClient struct {
 	client *gitlab.Client
 }
 
+var _ GitLabAPI = (*GitLabClient)(nil)
+
 // NewGitLabClient returns a real GitLab instance.
 func NewGitLabClient(config GitLabConfig) (*GitLabClient, error) {
 	if len(config.Token) == 0 {
@@ -75,6 +77,8 @@ type GitLabRelease struct {
 	project string
 }
 
+var _ Release = (*GitLabRelease)(nil)
+
 // NewGitLabRelease is a factory method which returns an GitLabRelease instance.
 func NewGitLabRelease(source string, config GitLabConfig) (*GitLabRelease, error) {
 	s := strings.SplitN(source, "/", 2)
@@ -101,45 +105,8 @@ func NewGitLabRelease(source string, config GitLabConfig) (*GitLabRelease, error
 	}, nil
 }
 
-// Latest returns the latest version.
-// Note that GetLatestRelease API in GitLab returns the most recent release
-// order by released_at (default) or created_at, which doesn't means the latest
-// stable release. So we sort versions in semver order and find the latest non
-// pre-release.
-func (r *GitLabRelease) Latest(ctx context.Context) (string, error) {
-	versions, err := r.List(ctx, 1, false)
-	if err != nil {
-		return "", err
-	}
-
-	if len(versions) == 0 {
-		return "", fmt.Errorf("no releases found for %s/%s", r.owner, r.project)
-	}
-
-	return versions[0], nil
-}
-
-// List returns a list of versions in semver order.
-// If preRelease is set to false, the result doesn't contain pre-releases.
-func (r *GitLabRelease) List(ctx context.Context, maxLength int, preRelease bool) ([]string, error) {
-	versions, err := r.listAllVersions(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	sorted := sortVersions(versions)
-	releases := sorted
-
-	if !preRelease {
-		releases = excludePreReleases(sorted)
-	}
-
-	start := len(releases) - minInt(maxLength, len(releases))
-	return releases[start:], nil
-}
-
-// List returns a list of all versions.
-func (r *GitLabRelease) listAllVersions(ctx context.Context) ([]string, error) {
+// ListReleases returns a list of unsorted all releases including pre-release.
+func (r *GitLabRelease) ListReleases(ctx context.Context) ([]string, error) {
 	versions := []string{}
 	opt := &gitlab.ListReleasesOptions{
 		PerPage: 100, // max
@@ -149,7 +116,7 @@ func (r *GitLabRelease) listAllVersions(ctx context.Context) ([]string, error) {
 		releases, resp, err := r.api.ProjectListReleases(ctx, r.owner, r.project, opt)
 
 		if err != nil {
-			return versions, fmt.Errorf("failed to list releases for %s/%s: %s", r.owner, r.project, err)
+			return nil, fmt.Errorf("failed to list releases for %s/%s: %s", r.owner, r.project, err)
 		}
 
 		for _, release := range releases {
