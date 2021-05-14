@@ -13,6 +13,7 @@ import (
 type ReleaseListCommand struct {
 	Meta
 	maxLength  int
+	preRelease bool
 	sourceType string
 	source     string
 }
@@ -21,6 +22,7 @@ type ReleaseListCommand struct {
 func (c *ReleaseListCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("release list", flag.ContinueOnError)
 	cmdFlags.IntVarP(&c.maxLength, "max-length", "n", 10, "the maximum length of list")
+	cmdFlags.BoolVar(&c.preRelease, "pre-release", false, "show pre-releases")
 	cmdFlags.StringVarP(&c.sourceType, "source-type", "s", "github", "A type of release data source")
 
 	if err := cmdFlags.Parse(args); err != nil {
@@ -42,7 +44,7 @@ func (c *ReleaseListCommand) Run(args []string) int {
 		return 1
 	}
 
-	versions, err := release.List(context.Background(), r, c.maxLength, true)
+	versions, err := release.List(context.Background(), r, c.maxLength, c.preRelease)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
@@ -79,6 +81,7 @@ Options:
                        - tfregistryProvider (experimental)
 
   -n  --max-length   The maximum length of list.
+      --pre-release  Show pre-releases. (default: false)
 `
 	return strings.TrimSpace(helpText)
 }
