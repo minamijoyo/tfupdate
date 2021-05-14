@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+BREAKING CHANGES:
+* Sort releases in semver order ([#41](https://github.com/minamijoyo/tfupdate/pull/41))
+* Hide pre-releases by default in the release list command ([#42](https://github.com/minamijoyo/tfupdate/pull/42))
+
 ENHANCEMENTS:
 
 * Update Go to v1.16.3 ([#37](https://github.com/minamijoyo/tfupdate/pull/37))
