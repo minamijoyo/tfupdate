@@ -12,9 +12,6 @@ import (
 // GitLabAPI is an interface which calls GitLab API.
 // This abstraction layer is needed for testing with mock.
 type GitLabAPI interface {
-	// ProjectGetLatestRelease fetches the latest published release for the project.
-	ProjectGetLatestRelease(ctx context.Context, owner, project string) (*gitlab.Release, *gitlab.Response, error)
-
 	// ProjectListReleases gets a pagenated of releases accessible by the authenticated user.
 	ProjectListReleases(ctx context.Context, owner, project string, opt *gitlab.ListReleasesOptions) ([]*gitlab.Release, *gitlab.Response, error)
 }
@@ -39,6 +36,8 @@ type GitLabClient struct {
 	client *gitlab.Client
 }
 
+var _ GitLabAPI = (*GitLabClient)(nil)
+
 // NewGitLabClient returns a real GitLab instance.
 func NewGitLabClient(config GitLabConfig) (*GitLabClient, error) {
 	if len(config.Token) == 0 {
@@ -59,20 +58,6 @@ func NewGitLabClient(config GitLabConfig) (*GitLabClient, error) {
 	}, nil
 }
 
-// ProjectGetLatestRelease fetches the latest published release for the project.
-func (c *GitLabClient) ProjectGetLatestRelease(ctx context.Context, owner, project string) (*gitlab.Release, *gitlab.Response, error) {
-	opt := &gitlab.ListReleasesOptions{}
-	releases, response, err := c.client.Releases.ListReleases(owner+"/"+project, opt, gitlab.WithContext(ctx))
-	if err != nil {
-		return nil, nil, err
-	}
-	if len(releases) == 0 {
-		return nil, nil, fmt.Errorf("no releases found for project")
-	}
-	latest := releases[0]
-	return latest, response, err
-}
-
 // ProjectListReleases gets a pagenated of releases accessible by the authenticated user.
 func (c *GitLabClient) ProjectListReleases(ctx context.Context, owner, project string, opt *gitlab.ListReleasesOptions) ([]*gitlab.Release, *gitlab.Response, error) {
 	return c.client.Releases.ListReleases(owner+"/"+project, opt, gitlab.WithContext(ctx))
@@ -91,6 +76,8 @@ type GitLabRelease struct {
 	// project is a name of project (repository).
 	project string
 }
+
+var _ Release = (*GitLabRelease)(nil)
 
 // NewGitLabRelease is a factory method which returns an GitLabRelease instance.
 func NewGitLabRelease(source string, config GitLabConfig) (*GitLabRelease, error) {
@@ -118,42 +105,29 @@ func NewGitLabRelease(source string, config GitLabConfig) (*GitLabRelease, error
 	}, nil
 }
 
-// Latest returns a latest version.
-func (r *GitLabRelease) Latest(ctx context.Context) (string, error) {
-	release, _, err := r.api.ProjectGetLatestRelease(ctx, r.owner, r.project)
-
-	if err != nil {
-		return "", fmt.Errorf("failed to get the releases from %s/%s: %s", r.owner, r.project, err)
+// ListReleases returns a list of unsorted all releases including pre-release.
+func (r *GitLabRelease) ListReleases(ctx context.Context) ([]string, error) {
+	versions := []string{}
+	opt := &gitlab.ListReleasesOptions{
+		PerPage: 100, // max
 	}
 
-	// Use TagName because some releases do not have Name.
-	v := tagNameToVersion(release.TagName)
-
-	return v, nil
-}
-
-// List returns a list of versions.
-func (r *GitLabRelease) List(ctx context.Context, maxLength int) ([]string, error) {
-	versions := []string{}
-	opt := &gitlab.ListReleasesOptions{}
 	for {
 		releases, resp, err := r.api.ProjectListReleases(ctx, r.owner, r.project, opt)
 
 		if err != nil {
-			return versions, fmt.Errorf("failed to list releases for %s/%s: %s", r.owner, r.project, err)
+			return nil, fmt.Errorf("failed to list releases for %s/%s: %s", r.owner, r.project, err)
 		}
 
 		for _, release := range releases {
 			v := tagNameToVersion(release.TagName)
 			versions = append(versions, v)
 		}
-		if resp.NextPage == 0 || len(versions) >= maxLength {
+		if resp.NextPage == 0 {
 			break
 		}
 		opt.Page = resp.NextPage
 	}
 
-	end := minInt(maxLength, len(versions))
-	desc := versions[:end]
-	return reverseStringSlice(desc), nil
+	return versions, nil
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/minamijoyo/tfupdate/release"
 	"github.com/minamijoyo/tfupdate/tfupdate"
 	flag "github.com/spf13/pflag"
 )
@@ -47,7 +48,7 @@ func (c *TerraformCommand) Run(args []string) int {
 			return 1
 		}
 
-		v, err = r.Latest(context.Background())
+		v, err = release.Latest(context.Background(), r)
 		if err != nil {
 			c.UI.Error(err.Error())
 			return 1

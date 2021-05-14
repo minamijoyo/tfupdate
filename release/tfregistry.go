@@ -41,6 +41,8 @@ type TFRegistryClient struct {
 	client *tfregistry.Client
 }
 
+var _ TFRegistryAPI = (*TFRegistryClient)(nil)
+
 // NewTFRegistryClient returns a real TFRegistryClient instance.
 func NewTFRegistryClient(config TFRegistryConfig) (*TFRegistryClient, error) {
 	c := tfregistry.NewClient(nil)
@@ -80,6 +82,8 @@ type TFRegistryModuleRelease struct {
 	provider string
 }
 
+var _ Release = (*TFRegistryModuleRelease)(nil)
+
 // NewTFRegistryModuleRelease is a factory method which returns an TFRegistryModuleRelease instance.
 func NewTFRegistryModuleRelease(source string, config TFRegistryConfig) (Release, error) {
 	s := strings.SplitN(source, "/", 3)
@@ -107,24 +111,8 @@ func NewTFRegistryModuleRelease(source string, config TFRegistryConfig) (Release
 	}, nil
 }
 
-// Latest returns a latest version of a module for a specific provider.
-func (r *TFRegistryModuleRelease) Latest(ctx context.Context) (string, error) {
-	req := &tfregistry.ModuleLatestForProviderRequest{
-		Namespace: r.namespace,
-		Name:      r.name,
-		Provider:  r.provider,
-	}
-	release, err := r.api.ModuleLatestForProvider(ctx, req)
-
-	if err != nil {
-		return "", fmt.Errorf("failed to get the latest release for %s/%s/%s: %s", r.namespace, r.name, r.provider, err)
-	}
-
-	return release.Version, nil
-}
-
-// List returns a list of versions of a module for a specific provider.
-func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int) ([]string, error) {
+// ListReleases returns a list of unsorted all releases including pre-release.
+func (r *TFRegistryModuleRelease) ListReleases(ctx context.Context) ([]string, error) {
 	req := &tfregistry.ModuleLatestForProviderRequest{
 		Namespace: r.namespace,
 		Name:      r.name,
@@ -135,14 +123,10 @@ func (r *TFRegistryModuleRelease) List(ctx context.Context, maxLength int) ([]st
 	release, err := r.api.ModuleLatestForProvider(ctx, req)
 
 	if err != nil {
-		return []string{}, fmt.Errorf("failed to get a list of versions for %s/%s/%s: %s", r.namespace, r.name, r.provider, err)
+		return nil, fmt.Errorf("failed to get a list of versions for %s/%s/%s: %s", r.namespace, r.name, r.provider, err)
 	}
 
-	versions := release.Versions
-	// versions are already in asc order unlike github.
-	start := len(versions) - minInt(maxLength, len(versions))
-	asc := versions[start:]
-	return asc, nil
+	return release.Versions, nil
 }
 
 // ProviderLatest returns the latest version of a provider.
@@ -164,6 +148,8 @@ type TFRegistryProviderRelease struct {
 	// providerType is the provider type, like "azurerm", "aws", "google", "dns", etc. A provider type is unique within a particular hostname and namespace.
 	providerType string
 }
+
+var _ Release = (*TFRegistryProviderRelease)(nil)
 
 // NewTFRegistryProviderRelease is a factory method which returns an TFRegistryProviderRelease instance.
 func NewTFRegistryProviderRelease(source string, config TFRegistryConfig) (Release, error) {
@@ -191,23 +177,8 @@ func NewTFRegistryProviderRelease(source string, config TFRegistryConfig) (Relea
 	}, nil
 }
 
-// Latest returns a latest version.
-func (r *TFRegistryProviderRelease) Latest(ctx context.Context) (string, error) {
-	req := &tfregistry.ProviderLatestRequest{
-		Namespace: r.namespace,
-		Type:      r.providerType,
-	}
-	release, err := r.api.ProviderLatest(ctx, req)
-
-	if err != nil {
-		return "", fmt.Errorf("failed to get the latest release for %s/%s: %s", r.namespace, r.providerType, err)
-	}
-
-	return release.Version, nil
-}
-
-// List returns a list of versions.
-func (r *TFRegistryProviderRelease) List(ctx context.Context, maxLength int) ([]string, error) {
+// ListReleases returns a list of unsorted all releases including pre-release.
+func (r *TFRegistryProviderRelease) ListReleases(ctx context.Context) ([]string, error) {
 	req := &tfregistry.ProviderLatestRequest{
 		Namespace: r.namespace,
 		Type:      r.providerType,
@@ -217,12 +188,8 @@ func (r *TFRegistryProviderRelease) List(ctx context.Context, maxLength int) ([]
 	release, err := r.api.ProviderLatest(ctx, req)
 
 	if err != nil {
-		return []string{}, fmt.Errorf("failed to get a list of versions for %s/%s: %s", r.namespace, r.providerType, err)
+		return nil, fmt.Errorf("failed to get a list of versions for %s/%s: %s", r.namespace, r.providerType, err)
 	}
 
-	versions := release.Versions
-	// versions are already in asc order unlike github.
-	start := len(versions) - minInt(maxLength, len(versions))
-	asc := versions[start:]
-	return asc, nil
+	return release.Versions, nil
 }

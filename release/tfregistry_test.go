@@ -17,6 +17,8 @@ type mockTFRegistryClient struct {
 	err         error
 }
 
+var _ TFRegistryAPI = (*mockTFRegistryClient)(nil)
+
 func (c *mockTFRegistryClient) ModuleLatestForProvider(ctx context.Context, req *tfregistry.ModuleLatestForProviderRequest) (*tfregistry.ModuleLatestForProviderResponse, error) {
 	return c.moduleRes, c.err
 }
@@ -181,20 +183,21 @@ func TestNewTFRegistryProviderRelease(t *testing.T) {
 		}
 	}
 }
-func TestTFRegistryModuleReleaseLatest(t *testing.T) {
+
+func TestTFRegistryModuleReleaseListReleases(t *testing.T) {
 	cases := []struct {
 		client *mockTFRegistryClient
-		want   string
+		want   []string
 		ok     bool
 	}{
 		{
 			client: &mockTFRegistryClient{
 				moduleRes: &tfregistry.ModuleLatestForProviderResponse{
-					Version: "0.1.0",
+					Versions: []string{"0.3.0", "0.2.0", "0.1.0"},
 				},
 				err: nil,
 			},
-			want: "0.1.0",
+			want: []string{"0.3.0", "0.2.0", "0.1.0"},
 			ok:   true,
 		},
 		{
@@ -202,7 +205,7 @@ func TestTFRegistryModuleReleaseLatest(t *testing.T) {
 				moduleRes: nil,
 				err:       errors.New(`unexpected HTTP Status Code: 404`),
 			},
-			want: "",
+			want: nil,
 			ok:   false,
 		},
 	}
@@ -218,36 +221,36 @@ func TestTFRegistryModuleReleaseLatest(t *testing.T) {
 			t.Fatalf("failed to NewTFRegistryModuleRelease(%s, %#v): %s", source, config, err)
 		}
 
-		got, err := r.Latest(context.Background())
+		got, err := r.ListReleases(context.Background())
 
 		if tc.ok && err != nil {
-			t.Errorf("(*TFRegistryModuleRelease).Latest() with r = %s returns unexpected err: %+v", spew.Sdump(r), err)
+			t.Errorf("(*TFRegistryModuleRelease).ListReleases() with r = %s returns unexpected err: %+v", spew.Sdump(r), err)
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("(*TFRegistryModuleRelease).Latest() with r = %s expects to return an error, but no error", spew.Sdump(r))
+			t.Errorf("(*TFRegistryModuleRelease).ListReleases() with r = %s expects to return an error, but no error", spew.Sdump(r))
 		}
 
-		if got != tc.want {
-			t.Errorf("(*TFRegistryModuleRelease).Latest() with r = %s returns %s, but want = %s", spew.Sdump(r), got, tc.want)
+		if !reflect.DeepEqual(got, tc.want) {
+			t.Errorf("(*TFRegistryModuleRelease).ListReleases() with r = %s returns %s, but want = %s", spew.Sdump(r), got, tc.want)
 		}
 	}
 }
 
-func TestTFRegistryProviderReleaseLatest(t *testing.T) {
+func TestTFRegistryProviderReleaseListReleases(t *testing.T) {
 	cases := []struct {
 		client *mockTFRegistryClient
-		want   string
+		want   []string
 		ok     bool
 	}{
 		{
 			client: &mockTFRegistryClient{
 				providerRes: &tfregistry.ProviderLatestResponse{
-					Version: "0.1.0",
+					Versions: []string{"0.3.0", "0.2.0", "0.1.0"},
 				},
 				err: nil,
 			},
-			want: "0.1.0",
+			want: []string{"0.3.0", "0.2.0", "0.1.0"},
 			ok:   true,
 		},
 		{
@@ -255,7 +258,7 @@ func TestTFRegistryProviderReleaseLatest(t *testing.T) {
 				providerRes: nil,
 				err:         errors.New(`unexpected HTTP Status Code: 404`),
 			},
-			want: "",
+			want: nil,
 			ok:   false,
 		},
 	}
@@ -271,153 +274,18 @@ func TestTFRegistryProviderReleaseLatest(t *testing.T) {
 			t.Fatalf("failed to NewTFRegistryProviderRelease(%s, %#v): %s", source, config, err)
 		}
 
-		got, err := r.Latest(context.Background())
+		got, err := r.ListReleases(context.Background())
 
 		if tc.ok && err != nil {
-			t.Errorf("(*NewTFRegistryProviderRelease).Latest() with r = %s returns unexpected err: %+v", spew.Sdump(r), err)
+			t.Errorf("(*NewTFRegistryProviderRelease).ListReleases() with r = %s returns unexpected err: %+v", spew.Sdump(r), err)
 		}
 
 		if !tc.ok && err == nil {
-			t.Errorf("(*NewTFRegistryProviderRelease).Latest() with r = %s expects to return an error, but no error", spew.Sdump(r))
-		}
-
-		if got != tc.want {
-			t.Errorf("(*NewTFRegistryProviderRelease).Latest() with r = %s returns %s, but want = %s", spew.Sdump(r), got, tc.want)
-		}
-	}
-}
-func TestTFRegistryModuleReleaseList(t *testing.T) {
-	cases := []struct {
-		client    *mockTFRegistryClient
-		maxLength int
-		want      []string
-		ok        bool
-	}{
-		{
-			client: &mockTFRegistryClient{
-				moduleRes: &tfregistry.ModuleLatestForProviderResponse{
-					Version:  "0.3.0",
-					Versions: []string{"0.1.0", "0.2.0", "0.3.0"},
-				},
-				err: nil,
-			},
-			maxLength: 5,
-			want:      []string{"0.1.0", "0.2.0", "0.3.0"},
-			ok:        true,
-		},
-		{
-			client: &mockTFRegistryClient{
-				moduleRes: &tfregistry.ModuleLatestForProviderResponse{
-					Version:  "0.3.0",
-					Versions: []string{"0.1.0", "0.2.0", "0.3.0"},
-				},
-				err: nil,
-			},
-			maxLength: 2,
-			want:      []string{"0.2.0", "0.3.0"},
-			ok:        true,
-		},
-		{
-			client: &mockTFRegistryClient{
-				moduleRes: nil,
-				err:       errors.New(`unexpected HTTP Status Code: 404`),
-			},
-			want: []string{},
-			ok:   false,
-		},
-	}
-
-	source := "hoge/fuga/piyo"
-	for _, tc := range cases {
-		// Set a mock client
-		config := TFRegistryConfig{
-			api: tc.client,
-		}
-		r, err := NewTFRegistryModuleRelease(source, config)
-		if err != nil {
-			t.Fatalf("failed to NewTFRegistryModuleRelease(%s, %#v): %s", source, config, err)
-		}
-
-		got, err := r.List(context.Background(), tc.maxLength)
-
-		if tc.ok && err != nil {
-			t.Errorf("(*TFRegistryModuleRelease).List() with r = %s, maxLength = %d returns unexpected err: %+v", spew.Sdump(r), tc.maxLength, err)
-		}
-
-		if !tc.ok && err == nil {
-			t.Errorf("(*TFRegistryModuleRelease).List() with r = %s, maxLength = %d expects to return an error, but no error", spew.Sdump(r), tc.maxLength)
+			t.Errorf("(*NewTFRegistryProviderRelease).ListReleases() with r = %s expects to return an error, but no error", spew.Sdump(r))
 		}
 
 		if !reflect.DeepEqual(got, tc.want) {
-			t.Errorf("(*TFRegistryModuleRelease).List() with r = %s, maxLength = %d returns %s, but want = %s", spew.Sdump(r), tc.maxLength, got, tc.want)
-		}
-	}
-}
-
-func TestTFRegistryProviderReleaseList(t *testing.T) {
-	cases := []struct {
-		client    *mockTFRegistryClient
-		maxLength int
-		want      []string
-		ok        bool
-	}{
-		{
-			client: &mockTFRegistryClient{
-				providerRes: &tfregistry.ProviderLatestResponse{
-					Version:  "0.3.0",
-					Versions: []string{"0.1.0", "0.2.0", "0.3.0"},
-				},
-				err: nil,
-			},
-			maxLength: 5,
-			want:      []string{"0.1.0", "0.2.0", "0.3.0"},
-			ok:        true,
-		},
-		{
-			client: &mockTFRegistryClient{
-				providerRes: &tfregistry.ProviderLatestResponse{
-					Version:  "0.3.0",
-					Versions: []string{"0.1.0", "0.2.0", "0.3.0"},
-				},
-				err: nil,
-			},
-			maxLength: 2,
-			want:      []string{"0.2.0", "0.3.0"},
-			ok:        true,
-		},
-		{
-			client: &mockTFRegistryClient{
-				providerRes: nil,
-				err:         errors.New(`unexpected HTTP Status Code: 404`),
-			},
-			want: []string{},
-			ok:   false,
-		},
-	}
-
-	source := "hoge/piyo"
-	for _, tc := range cases {
-		// Set a mock client
-		config := TFRegistryConfig{
-			api: tc.client,
-		}
-		r, err := NewTFRegistryProviderRelease(source, config)
-		if err != nil {
-			t.Fatalf("failed to NewTFRegistryProviderRelease(%s, %#v): %s", source, config, err)
-		}
-
-		got, err := r.List(context.Background(), tc.maxLength)
-
-		if tc.ok && err != nil {
-			t.Errorf("(*NewTFRegistryProviderRelease).List() with r = %s, maxLength = %d returns unexpected err: %+v", spew.Sdump(r), tc.maxLength, err)
-		}
-
-		if !tc.ok && err == nil {
-			t.Errorf("(*NewTFRegistryProviderRelease).List() with r = %s, maxLength = %d expects to return an error, but no error", spew.Sdump(r), tc.maxLength)
-		}
-
-		if !reflect.DeepEqual(got, tc.want) {
-			t.Errorf("(*NewTFRegistryProviderRelease).List() with r = %s, maxLength = %d returns %s, but want = %s", spew.Sdump(r), tc.maxLength, got, tc.want)
+			t.Errorf("(*NewTFRegistryProviderRelease).ListReleases() with r = %s returns %s, but want = %s", spew.Sdump(r), got, tc.want)
 		}
 	}
 }
