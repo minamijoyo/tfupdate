@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.5.0 (2021/05/14)
+
 BREAKING CHANGES:
 
 * Sort releases in semver order ([#41](https://github.com/minamijoyo/tfupdate/pull/41))
