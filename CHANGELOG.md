@@ -1,8 +1,13 @@
 ## master (Unreleased)
 
 BREAKING CHANGES:
+
 * Sort releases in semver order ([#41](https://github.com/minamijoyo/tfupdate/pull/41))
 * Hide pre-releases by default in the release list command ([#42](https://github.com/minamijoyo/tfupdate/pull/42))
+
+The `release latest` command now returns the latest release in semantic versioning order. Previously it returned the most recent release. In many cases it was the same, but in some cases the most recent older patch release was returned.
+
+The `release list` command now sorts releases in semantic versioning order and hides pre-releases. If you want to show pre-releases, use the `--pre-release` flag.
 
 ENHANCEMENTS:
 
