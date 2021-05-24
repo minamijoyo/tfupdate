@@ -2,12 +2,13 @@ package tfupdate
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/zclconf/go-cty/cty"
 )
 
 func TestAllMatchingBlocks(t *testing.T) {
@@ -159,43 +160,88 @@ service "label1" {
 	}
 }
 
-func TestGetAttributeValue(t *testing.T) {
-	tests := []struct {
-		valueAsString string
-		want          cty.Value
-		ok            bool
+func TestGetHCLNativeAttributeValue(t *testing.T) {
+	cases := []struct {
+		desc         string
+		src          string
+		name         string
+		wantExprType hcl.Expression
+		ok           bool
 	}{
 		{
-			want: cty.StringVal("FOO"),
-			ok:   true,
+			desc: "string literal",
+			src: `
+foo = "123"
+`,
+			name:         "foo",
+			wantExprType: &hclsyntax.TemplateExpr{},
+			ok:           true,
 		},
 		{
-			want: cty.ObjectVal(map[string]cty.Value{
-				"foo": cty.StringVal("FOO"),
-				"bar": cty.StringVal("BAR"),
-			}),
-			ok: true,
+			desc: "object literal",
+			src: `
+foo = {
+  bar = "123"
+  baz = "BAZ"
+}
+`,
+			name:         "foo",
+			wantExprType: &hclsyntax.ObjectConsExpr{},
+			ok:           true,
+		},
+		{
+			desc: "object with references",
+			src: `
+foo = {
+  bar = "123"
+  baz = "BAZ"
+
+  items = [
+    var.aaa,
+    var.bbb,
+  ]
+}
+`,
+			name:         "foo",
+			wantExprType: &hclsyntax.ObjectConsExpr{},
+			ok:           true,
+		},
+		{
+			desc: "not found",
+			src: `
+foo = "123"
+`,
+			name:         "bar",
+			wantExprType: nil,
+			ok:           true,
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("%s", test.valueAsString), func(t *testing.T) {
-			// build hclwrite.Attribute
-			f := hclwrite.NewEmptyFile()
-			f.Body().SetAttributeValue("test", test.want)
-			attr := f.Body().GetAttribute("test")
-
-			got, err := getAttributeValue(attr)
-			if test.ok && err != nil {
-				t.Errorf("getAttributeValue() with attr = %s returns unexpected err: %+v", test.want, err)
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			f, diags := hclwrite.ParseConfig([]byte(tc.src), "", hcl.Pos{Line: 1, Column: 1})
+			if len(diags) != 0 {
+				for _, diag := range diags {
+					t.Logf("- %s", diag.Error())
+				}
+				t.Fatalf("unexpected diagnostics")
 			}
 
-			if !test.ok && err == nil {
-				t.Errorf("getAttributeValue() with attr = %s expects to return an error, but no error", test.want)
+			got, err := getHCLNativeAttribute(f.Body(), tc.name)
+			if tc.ok && err != nil {
+				t.Errorf("unexpected err: %#v", err)
 			}
 
-			if !got.RawEquals(test.want) {
-				t.Errorf("getAttributeValue() with attr = %s returns %#v, but want = %#v", test.want, got, test.want)
+			if !tc.ok && err == nil {
+				t.Errorf("expects to return an error, but no error. got = %#v", got)
+			}
+
+			if tc.ok && got != nil {
+				// An expression is a complicated object and hard to build from literal.
+				// So we simply compare it by type.
+				if reflect.TypeOf(got.Expr) != reflect.TypeOf(tc.wantExprType) {
+					t.Errorf("got = %#v, but want = %#v", got.Expr, tc.wantExprType)
+				}
 			}
 		})
 	}

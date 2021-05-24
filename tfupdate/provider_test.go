@@ -318,6 +318,41 @@ terraform {
 `,
 			ok: true,
 		},
+		{
+			src: `
+terraform {
+  required_providers {
+    aws = {
+      version = "2.65.0"
+      source  = "hashicorp/aws"
+
+      configuration_aliases = [
+        aws.primary,
+        aws.secondary,
+      ]
+    }
+  }
+}
+`,
+			name:    "aws",
+			version: "2.66.0",
+			want: `
+terraform {
+  required_providers {
+    aws = {
+      version = "2.66.0"
+      source  = "hashicorp/aws"
+
+      configuration_aliases = [
+        aws.primary,
+        aws.secondary,
+      ]
+    }
+  }
+}
+`,
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {
