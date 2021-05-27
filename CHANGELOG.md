@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+## 0.5.1 (2021/05/27)
+
+ENHANCEMENTS:
+
+* Allow to parse the configuration_aliases syntax in Terraform v0.15 ([#43](https://github.com/minamijoyo/tfupdate/pull/43))
+
 ## 0.5.0 (2021/05/14)
 
 BREAKING CHANGES:
