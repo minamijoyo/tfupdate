@@ -5,9 +5,8 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/zclconf/go-cty/cty"
 )
 
 // allMatchingBlocks returns all matching blocks from the body that have the
@@ -45,27 +44,40 @@ func allMatchingBlocksByType(b *hclwrite.Body, typeName string) []*hclwrite.Bloc
 	return matched
 }
 
-// getAttributeValue extracts cty.Value from hclwrite.Attribute.
+// getHCLNativeAttribute gets hclwrite.Attribute as a native hcl.Attribute.
 // At the time of writing, there is no way to do with the hclwrite AST,
-// so we build low-level byte sequences and parse an expression as a
-// hclsyntax.Expression on memory.
-func getAttributeValue(attr *hclwrite.Attribute) (cty.Value, error) {
+// so we build low-level byte sequences and parse an attribute as a
+// hcl.Attribute on memory.
+// If not found, returns nil without an error.
+func getHCLNativeAttribute(body *hclwrite.Body, name string) (*hcl.Attribute, error) {
+	attr := body.GetAttribute(name)
+	if attr == nil {
+		return nil, nil
+	}
+
 	// build low-level byte sequences
-	src := attr.Expr().BuildTokens(nil).Bytes()
+	attrAsBytes := attr.Expr().BuildTokens(nil).Bytes()
+	src := append([]byte(name+" = "), attrAsBytes...)
 
-	// parse an expression as a hclsyntax.Expression
-	expr, diags := hclsyntax.ParseExpression(src, "generated_by_attributeToValue", hcl.Pos{Line: 1, Column: 1})
+	// parse an expression as a hcl.File.
+	// Note that an attribute may contains references, which are defined outside the file.
+	// So we cannot simply use hclsyntax.ParseExpression or hclsyntax.ParseConfig here.
+	// We need to use a loe-level parser not to resolve all references.
+	parser := hclparse.NewParser()
+	file, diags := parser.ParseHCL(src, "generated_by_getHCLNativeAttribute")
 	if diags.HasErrors() {
-		return cty.NilVal, fmt.Errorf("failed to parse expression: %s", diags)
+		return nil, fmt.Errorf("failed to parse expression: %s", diags)
 	}
 
-	// Get value from expression.
-	// We don't need interpolation for any variables and functions here,
-	// so we just pass an empty context.
-	v, diags := expr.Value(&hcl.EvalContext{})
+	attrs, diags := file.Body.JustAttributes()
 	if diags.HasErrors() {
-		return cty.NilVal, fmt.Errorf("failed to get cty.Value: %s", diags)
+		return nil, fmt.Errorf("failed to get attributes: %s", diags)
 	}
 
-	return v, nil
+	hclAttr, ok := attrs[name]
+	if !ok {
+		return nil, fmt.Errorf("attribute not found: %s", src)
+	}
+
+	return hclAttr, nil
 }

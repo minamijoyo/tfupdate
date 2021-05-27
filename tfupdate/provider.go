@@ -1,6 +1,9 @@
 package tfupdate
 
 import (
+	"fmt"
+
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/pkg/errors"
@@ -50,24 +53,25 @@ func (u *ProviderUpdater) updateTerraformBlock(f *hclwrite.File) error {
 			continue
 		}
 
-		attr := p.Body().GetAttribute(u.name)
-		if attr != nil {
-			value, err := getAttributeValue(attr)
-			if err != nil {
-				return err
-			}
+		// The hclwrite.Attribute doesn't have enough AST for object type to check.
+		// Get the attribute as a native hcl.Attribute as a compromise.
+		hclAttr, err := getHCLNativeAttribute(p.Body(), u.name)
+		if err != nil {
+			return err
+		}
 
+		if hclAttr != nil {
 			// There are some variations on the syntax of required_providers.
-			// So we check a type of value and switch implementations.
-			switch {
-			case value.Type().IsObjectType():
-				u.updateTerraformRequiredProvidersBlockAsObject(p, value)
-
-			case value.Type() == cty.String:
+			// So we check a type of the value and switch implementations.
+			// If the expression can be parsed as a static expression and it's type is a primitive,
+			// then it's a legacy string syntax.
+			if expr, err := hclAttr.Expr.Value(nil); err == nil && expr.Type().IsPrimitiveType() {
 				u.updateTerraformRequiredProvidersBlockAsString(p)
-
-			default:
-				return errors.Errorf("failed to update required_providers. unknown type: %#v", value)
+			} else {
+				// Otherwise, it's an object syntax.
+				if err := u.updateTerraformRequiredProvidersBlockAsObject(p, hclAttr); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -75,27 +79,34 @@ func (u *ProviderUpdater) updateTerraformBlock(f *hclwrite.File) error {
 	return nil
 }
 
-func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwrite.Block, value cty.Value) {
+func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwrite.Block, hclAttr *hcl.Attribute) error {
 	// terraform {
 	//   required_providers {
 	//     aws = {
 	//       source  = "hashicorp/aws"
 	//       version = "2.65.0"
+	//
+	//       configuration_aliases = [
+	//         aws.primary,
+	//         aws.secondary,
+	//       ]
 	//     }
 	//   }
 	// }
-	m := value.AsValueMap()
-	if _, ok := m["version"]; !ok {
+
+	oldVersion, err := detectVersionInObject(hclAttr)
+	if err != nil {
+		return err
+	}
+
+	if len(oldVersion) == 0 {
 		// If the version key is missing, just ignore it.
-		return
+		return nil
 	}
 
 	// Updating the whole object loses original sort order and comments.
 	// At the time of writing, there is no way to update a value inside an
 	// object directly while preserving original tokens.
-	//
-	// m["version"] = cty.StringVal(u.version)
-	// p.Body().SetAttributeValue(u.name, cty.ObjectVal(m))
 	//
 	// Since we fully understand the valid syntax, we compromise and read the
 	// tokens in order, updating the bytes directly.
@@ -116,7 +127,6 @@ func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwr
 	}
 
 	// find value of old version
-	oldVersion := m["version"].AsString()
 	for !(tokens[i].Type == hclsyntax.TokenQuotedLit && string(tokens[i].Bytes) == oldVersion) {
 		i++
 	}
@@ -126,7 +136,37 @@ func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwr
 	// So we now update bytes of the token in place.
 	tokens[i].Bytes = []byte(u.version)
 
-	return
+	return nil
+}
+
+// detectVersionInObject parses an object expression and detects a value for
+// the "version" key.
+// If the version key is missing, just returns an empty string without an error.
+func detectVersionInObject(hclAttr *hcl.Attribute) (string, error) {
+	// The configuration_aliases syntax isn't directly related version updateing,
+	// but it contains provider references and causes an parse error without an EvalContext.
+	// So we treat the expression as a hcl.ExprMap to avoid fully decoding the object.
+	kvs, diags := hcl.ExprMap(hclAttr.Expr)
+	if diags.HasErrors() {
+		return "", fmt.Errorf("failed to parse expr as hcl.ExprMap: %s", diags)
+	}
+
+	oldVersion := ""
+	for _, kv := range kvs {
+		key, diags := kv.Key.Value(nil)
+		if diags.HasErrors() {
+			return "", fmt.Errorf("failed to get key: %s", diags)
+		}
+		if key.AsString() == "version" {
+			value, diags := kv.Value.Value(nil)
+			if diags.HasErrors() {
+				return "", fmt.Errorf("failed to get value: %s", diags)
+			}
+			oldVersion = value.AsString()
+		}
+	}
+
+	return oldVersion, nil
 }
 
 func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsString(p *hclwrite.Block) {
