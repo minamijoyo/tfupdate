@@ -1,5 +1,16 @@
 ## master (Unreleased)
 
+BREAKING CHANGES:
+
+* Build & push docker images on GitHub Actions  ([#49](https://github.com/minamijoyo/tfupdate/pull/49))
+
+The `latest` tag of docker image now points at the latest release. Previously the `latest` tag pointed at the master branch, if you want to use the master branch, use the `master` tag instead.
+
+ENHANCEMENTS:
+
+* Drop goreleaser dependencies ([#48](https://github.com/minamijoyo/tfupdate/pull/48))
+* Move CI to GitHub Actions ([#47](https://github.com/minamijoyo/tfupdate/pull/47))
+
 ## 0.5.1 (2021/05/27)
 
 ENHANCEMENTS:
