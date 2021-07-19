@@ -5,10 +5,8 @@ GOBIN := $(shell echo "$${GOPATH%%:*}/bin")
 endif
 
 GOLINT := $(GOBIN)/golint
-GORELEASER := $(GOBIN)/goreleaser
 
 $(GOLINT): ; @go install golang.org/x/lint/golint
-$(GORELEASER): ; @go install github.com/goreleaser/goreleaser
 
 .DEFAULT_GOAL := build
 
@@ -38,7 +36,3 @@ test: deps
 
 .PHONY: check
 check: lint vet test build
-
-.PHONY: release
-release: check $(GORELEASER)
-	goreleaser --rm-dist
