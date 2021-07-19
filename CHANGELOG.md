@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.6.0 (2021/07/19)
+
 BREAKING CHANGES:
 
 * Build & push docker images on GitHub Actions  ([#49](https://github.com/minamijoyo/tfupdate/pull/49))
