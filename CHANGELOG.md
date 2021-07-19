@@ -1,10 +1,14 @@
 ## master (Unreleased)
 
+BUG FIXES:
+
+* Fix goreleaser settings for brew ([#50](https://github.com/minamijoyo/tfupdate/pull/50))
+
 ## 0.6.0 (2021/07/19)
 
 BREAKING CHANGES:
 
-* Build & push docker images on GitHub Actions  ([#49](https://github.com/minamijoyo/tfupdate/pull/49))
+* Build & push docker images on GitHub Actions ([#49](https://github.com/minamijoyo/tfupdate/pull/49))
 
 The `latest` tag of docker image now points at the latest release. Previously the `latest` tag pointed at the master branch, if you want to use the master branch, use the `master` tag instead.
 
