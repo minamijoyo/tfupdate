@@ -23,6 +23,7 @@ brews:
   - tap:
       owner: minamijoyo
       name: homebrew-tfupdate
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     commit_author:
       name: "Masayuki Morita"
       email: minamijoyo@gmail.com
