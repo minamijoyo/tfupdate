@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.6.1 (2021/07/19)
+
 BUG FIXES:
 
 * Fix goreleaser settings for brew ([#50](https://github.com/minamijoyo/tfupdate/pull/50))
