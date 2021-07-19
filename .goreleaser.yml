@@ -19,17 +19,17 @@ changelog:
       - Merge branch
       - Update README
       - Update CHANGELOG
-brew:
-  github:
-    owner: minamijoyo
-    name: homebrew-tfupdate
-  commit_author:
-    name: "Masayuki Morita"
-    email: minamijoyo@gmail.com
-  homepage: https://github.com/minamijoyo/tfupdate
-  description: "Update version constraints in your Terraform configurations"
-  skip_upload: auto
-  test: |
-    system "#{bin}/tfupdate --version"
-  install: |
-    bin.install "tfupdate"
+brews:
+  - tap:
+      owner: minamijoyo
+      name: homebrew-tfupdate
+    commit_author:
+      name: "Masayuki Morita"
+      email: minamijoyo@gmail.com
+    homepage: https://github.com/minamijoyo/tfupdate
+    description: "Update version constraints in your Terraform configurations"
+    skip_upload: auto
+    test: |
+      system "#{bin}/tfupdate --version"
+    install: |
+      bin.install "tfupdate"
