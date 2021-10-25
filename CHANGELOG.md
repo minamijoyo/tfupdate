@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.6.2 (2021/10/25)
+
 BUG FIXES:
 
 * Fix panic when version key is quoted ([#52](https://github.com/minamijoyo/tfupdate/pull/52))
