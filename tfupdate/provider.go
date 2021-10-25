@@ -117,7 +117,13 @@ func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwr
 
 	i := 0
 	// find key of version
-	for !(tokens[i].Type == hclsyntax.TokenIdent && string(tokens[i].Bytes) == "version") {
+	// Although not explicitly stated in the required_providers documentation,
+	// a TokenQuotedLit is also valid token. Strict speaking there are more
+	// variants because the left hand side of object key accepts an expression in
+	// HCL. For accurate implementation, it should be implemented using the
+	// original parser.
+	for !((tokens[i].Type == hclsyntax.TokenIdent || tokens[i].Type == hclsyntax.TokenQuotedLit) &&
+		string(tokens[i].Bytes) == "version") {
 		i++
 	}
 

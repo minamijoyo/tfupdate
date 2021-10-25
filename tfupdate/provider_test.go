@@ -323,6 +323,31 @@ terraform {
 terraform {
   required_providers {
     aws = {
+      "version" = "2.65.0"
+      "source"  = "hashicorp/aws"
+    }
+  }
+}
+`,
+			name:    "aws",
+			version: "2.66.0",
+			want: `
+terraform {
+  required_providers {
+    aws = {
+      "version" = "2.66.0"
+      "source"  = "hashicorp/aws"
+    }
+  }
+}
+`,
+			ok: true,
+		},
+		{
+			src: `
+terraform {
+  required_providers {
+    aws = {
       version = "2.65.0"
       source  = "hashicorp/aws"
 
