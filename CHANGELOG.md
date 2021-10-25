@@ -1,5 +1,14 @@
 ## master (Unreleased)
 
+BUG FIXES:
+
+* Fix panic when version key is quoted ([#52](https://github.com/minamijoyo/tfupdate/pull/52))
+
+ENHANCEMENTS:
+
+* Restrict permissions for GitHub Actions ([#53](https://github.com/minamijoyo/tfupdate/pull/53))
+* Set timeout for GitHub Actions ([#54](https://github.com/minamijoyo/tfupdate/pull/54))
+
 ## 0.6.1 (2021/07/19)
 
 BUG FIXES:
