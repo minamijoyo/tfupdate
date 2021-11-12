@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Update Go to v1.17.3 and Alpine to 3.14 ([#56](https://github.com/minamijoyo/tfupdate/pull/56))
+* Update hcl to v2.10.1 ([#57](https://github.com/minamijoyo/tfupdate/pull/57))
+* Add arm64 builds to support M1 mac ([#58](https://github.com/minamijoyo/tfupdate/pull/58))
+
 ## 0.6.2 (2021/10/25)
 
 BUG FIXES:
