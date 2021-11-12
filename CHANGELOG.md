@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.6.3 (2021/11/12)
+
 ENHANCEMENTS:
 
 * Update Go to v1.17.3 and Alpine to 3.14 ([#56](https://github.com/minamijoyo/tfupdate/pull/56))
