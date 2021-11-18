@@ -9,9 +9,6 @@ on:
     - "docker-build-*"
     tags:
     - "v[0-9]+.*"
-  pull_request:
-    branches:
-    - master
 
 jobs:
   docker:
