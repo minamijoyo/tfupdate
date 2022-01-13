@@ -50,7 +50,9 @@ func NewGitLabClient(config GitLabConfig) (*GitLabClient, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse gitlab base url: %s", err)
 		}
-		c.SetBaseURL(baseURL.String()) // nolint: errcheck
+		if err = c.SetBaseURL(baseURL.String()); err != nil {
+			return nil, err
+		}
 	}
 
 	return &GitLabClient{

@@ -55,7 +55,10 @@ func UpdateHCL(r io.Reader, w io.Writer, filename string, o Option) (bool, error
 		return false, err
 	}
 
-	u.Update(f) // nolint: errcheck
+	if err = u.Update(f); err != nil {
+		return false, err
+	}
+
 	output := f.BuildTokens(nil).Bytes()
 
 	if _, err := w.Write(output); err != nil {
