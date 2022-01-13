@@ -204,7 +204,7 @@ provider "aws" {
 			t.Errorf("UpdateHCL() with src = %s, o = %#v expects to return isUpdated = %t, but want = %t", tc.src, tc.o, isUpdated, tc.isUpdated)
 		}
 
-		got := string(w.Bytes())
+		got := string(w.Bytes()) // nolint: gosimple
 		if got != tc.want {
 			t.Errorf("UpdateHCL() with src = %s, o = %#v returns %s, but want = %s", tc.src, tc.o, got, tc.want)
 		}
