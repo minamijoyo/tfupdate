@@ -1,5 +1,10 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Use golangci-lint instead of golint ([#60](https://github.com/minamijoyo/tfupdate/pull/60))
+* Fix lint errors ([#61](https://github.com/minamijoyo/tfupdate/pull/61))
+
 ## 0.6.3 (2021/11/12)
 
 ENHANCEMENTS:
