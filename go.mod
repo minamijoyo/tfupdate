@@ -15,7 +15,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/xanzy/go-gitlab v0.20.1
 	github.com/zclconf/go-cty v1.8.0
-	golang.org/x/lint v0.0.0-20190930215403-16217165b5de
 	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6
 )
 
@@ -38,7 +37,6 @@ require (
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
 	golang.org/x/sys v0.0.0-20190502175342-a43fa875dd82 // indirect
 	golang.org/x/text v0.3.5 // indirect
-	golang.org/x/tools v0.0.0-20190311212946-11955173bddd // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 )
 
