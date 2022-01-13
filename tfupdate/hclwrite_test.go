@@ -129,7 +129,7 @@ service "label1" {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%s", test.typeName), func(t *testing.T) { // nolint: gosimple
+		t.Run(test.typeName, func(t *testing.T) {
 			f, diags := hclwrite.ParseConfig([]byte(test.src), "", hcl.Pos{Line: 1, Column: 1})
 			if len(diags) != 0 {
 				for _, diag := range diags {
