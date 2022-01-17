@@ -294,6 +294,41 @@ You can also use a CircleCI orb:
 
 https://github.com/masutaka/circleci-tfupdate-orb
 
+
+### Pre-commit
+
+You can integrate tfupdate with [pre-commit](https://pre-commit.com/), example `.pre-commit-config.yaml` :
+
+```
+repos:
+  - repo: https://github.com/minamijoyo/tfupdate
+    rev: v0.7.0
+    hooks:
+      - id: tfupdate_terraform
+      - id: tfupdate_provider
+        args: ["vsphere", "."]
+```
+
+
+The pre-commit hook will automatically update your dependencies :
+
+```
+diff --git a/main.tf b/main.tf
+index 8cfb9f1..dd3a393 100644
+--- a/main.tf
++++ b/main.tf
+@@ -2,9 +2,9 @@
+ # Provider Info
+ #--------------------------------------------------------------
+ terraform {
+-  required_version = ">= 0.13"
++  required_version = "1.1.3"
+   required_providers {
+-    vsphere = ">= 1.24.0"
++    vsphere = "2.0.2"
+   }
+ }```
+
 ## License
 
 MIT

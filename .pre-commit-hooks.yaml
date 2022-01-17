@@ -1,0 +1,18 @@
+- id: tfupdate_terraform
+  description: Uses 'tfupdate' to update all terraform version recursively under a given directory (requires `tfupdate` in the PATH)
+  entry: tfupdate terraform -r
+  args: ["."]
+  language: system
+  name: tfupdate terraform
+  require_serial: true
+  always_run: true
+  pass_filenames: false
+
+- id: tfupdate_provider
+  description: Uses 'tfupdate' to update all your terraform provider recursively under a given directory (requires `tfupdate` in the PATH)
+  entry: tfupdate provider -r
+  language: system
+  name: tfupdate provider
+  require_serial: true
+  always_run: true
+  pass_filenames: false
