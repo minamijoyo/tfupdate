@@ -107,6 +107,17 @@ terraform {
 }
 ```
 
+A value of version flag accepts any string literal. You can also pass a [version constraint](https://www.terraform.io/language/expressions/version-constraints):
+
+```
+$ tfupdate terraform -v "~> 1.0" main.tf
+
+$ cat main.tf
+terraform {
+  required_version = "~> 1.0"
+}
+```
+
 If you want to update all your Terraform configurations under the current directory recursively,
 use `-r (--recursive)` option:
 
@@ -148,15 +159,41 @@ Options:
 
 ```
 $ cat main.tf
-provider "aws" {
-  version = "2.39.0"
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "3.70.0"
+    }
+  }
 }
 
-$ tfupdate provider aws -v 2.40.0 main.tf
+$ tfupdate provider aws -v 3.74.0 main.tf
 
 $ cat main.tf
-provider "aws" {
-  version = "2.40.0"
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "3.74.0"
+    }
+  }
+}
+```
+
+A value of version flag accepts any string literal. You can also pass a [version constraint](https://www.terraform.io/language/expressions/version-constraints):
+
+```
+$ tfupdate provider aws -v "~> 3.0" main.tf
+
+$ cat main.tf
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
 }
 ```
 
@@ -183,17 +220,50 @@ Options:
 
 ```
 $ cat main.tf
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "2.20.0"
+module "s3_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "2.14.0"
+
+  bucket = "my-s3-bucket"
+  acl    = "private"
+
+  versioning = {
+    enabled = true
+  }
 }
 
-$ tfupdate module -v 2.21.0 terraform-aws-modules/vpc/aws main.tf
+$ tfupdate module -v 2.14.1 terraform-aws-modules/s3-bucket/aws main.tf
 
 $ cat main.tf
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "2.21.0"
+module "s3_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "2.14.1"
+
+  bucket = "my-s3-bucket"
+  acl    = "private"
+
+  versioning = {
+    enabled = true
+  }
+}
+```
+
+A value of version flag accepts any string literal. You can also pass a [version constraint](https://www.terraform.io/language/expressions/version-constraints):
+
+```
+$ tfupdate module -v "~> 2.14.1" terraform-aws-modules/s3-bucket/aws main.tf
+
+$ cat main.tf
+module "s3_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "~> 2.14.1"
+
+  bucket = "my-s3-bucket"
+  acl    = "private"
+
+  versioning = {
+    enabled = true
+  }
 }
 ```
 
