@@ -39,6 +39,3 @@ require (
 	golang.org/x/text v0.3.5 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 )
-
-// Fix invalid pseudo-version: revision is longer than canonical (b0274f40d4c7)
-replace github.com/go-macaron/cors => github.com/go-macaron/cors v0.0.0-20190925001837-b0274f40d4c7
