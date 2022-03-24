@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+BUG FIXES:
+
+* Fix go install error ([#70](https://github.com/minamijoyo/tfupdate/pull/70))
+
 ## 0.6.4 (2022/01/13)
 
 ENHANCEMENTS:
