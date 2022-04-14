@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Update golangci-lint to v1.45.2 and actions to latest ([#71](https://github.com/minamijoyo/tfupdate/pull/71))
+
 ## 0.6.5 (2022/03/24)
 
 BUG FIXES:
