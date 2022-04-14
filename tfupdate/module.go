@@ -25,11 +25,11 @@ type ModuleUpdater struct {
 // NewModuleUpdater is a factory method which returns an ModuleUpdater instance.
 func NewModuleUpdater(name string, version string) (Updater, error) {
 	if len(name) == 0 {
-		return nil, errors.Errorf("failed to new module updater. name is required.")
+		return nil, errors.Errorf("failed to new module updater. name is required")
 	}
 
 	if len(version) == 0 {
-		return nil, errors.Errorf("failed to new module updater. version is required.")
+		return nil, errors.Errorf("failed to new module updater. version is required")
 	}
 
 	return &ModuleUpdater{

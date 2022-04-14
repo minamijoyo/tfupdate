@@ -19,11 +19,11 @@ type ProviderUpdater struct {
 // NewProviderUpdater is a factory method which returns an ProviderUpdater instance.
 func NewProviderUpdater(name string, version string) (Updater, error) {
 	if len(name) == 0 {
-		return nil, errors.Errorf("failed to new provider updater. name is required.")
+		return nil, errors.Errorf("failed to new provider updater. name is required")
 	}
 
 	if len(version) == 0 {
-		return nil, errors.Errorf("failed to new provider updater. version is required.")
+		return nil, errors.Errorf("failed to new provider updater. version is required")
 	}
 
 	return &ProviderUpdater{
