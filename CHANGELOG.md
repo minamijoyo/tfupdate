@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.6.6 (2022/08/10)
+
 ENHANCEMENTS:
 
 * Update golangci-lint to v1.45.2 and actions to latest ([#71](https://github.com/minamijoyo/tfupdate/pull/71))
