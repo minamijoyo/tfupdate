@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * Update golangci-lint to v1.45.2 and actions to latest ([#71](https://github.com/minamijoyo/tfupdate/pull/71))
+* Use GitHub App token for updating brew formula on release ([#73](https://github.com/minamijoyo/tfupdate/pull/73))
 
 ## 0.6.5 (2022/03/24)
 
