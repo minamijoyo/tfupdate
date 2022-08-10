@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"runtime/debug"
 
@@ -40,7 +39,7 @@ func NewUpdater(o Option) (Updater, error) {
 // If contents changed successfully, it returns true, or otherwise returns false.
 // If an error occurs, Nothing is written to the output stream.
 func UpdateHCL(r io.Reader, w io.Writer, filename string, o Option) (bool, error) {
-	input, err := ioutil.ReadAll(r)
+	input, err := io.ReadAll(r)
 	if err != nil {
 		return false, fmt.Errorf("failed to read input: %s", err)
 	}
