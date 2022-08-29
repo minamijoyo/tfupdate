@@ -23,7 +23,7 @@ RUN ./script/build -o bin/hub
 # Note: Required Tools for Primary Containers on CircleCI
 # https://circleci.com/docs/2.0/custom-images/#required-tools-for-primary-containers
 FROM alpine:3.16
-RUN apk --no-cache add bash git openssh-client tar gzip ca-certificates
+RUN apk --no-cache add bash git openssh-client tar gzip ca-certificates jq openssl curl
 COPY --from=tfupdate /work/bin/tfupdate /usr/local/bin/
 COPY --from=hub /work/bin/hub /usr/local/bin/
 ENTRYPOINT ["tfupdate"]
