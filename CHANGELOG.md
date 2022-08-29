@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.6.7 (2022/08/29)
+
 ENHANCEMENTS:
 
 * deps: update to use go1.19 ([#74](https://github.com/minamijoyo/tfupdate/pull/74))
