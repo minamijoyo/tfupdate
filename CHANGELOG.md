@@ -1,5 +1,10 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* deps: update to use go1.19 ([#74](https://github.com/minamijoyo/tfupdate/pull/74))
+* Add jq, openssl, and curl to Docker image ([#76](https://github.com/minamijoyo/tfupdate/pull/76))
+
 ## 0.6.6 (2022/08/10)
 
 ENHANCEMENTS:
