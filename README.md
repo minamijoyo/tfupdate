@@ -22,12 +22,20 @@ That is why I wrote a tool which parses Terraform configurations and updates all
 
 ## Install
 
-### Homebrew
+### macOS
 
-If you are macOS user:
+If you are a macOS user, you can install `tfupdate` via either [Homebrew](https://brew.sh) or [MacPorts](https://www.macports.org):
 
-```
+#### Homebrew
+
+```bash
 $ brew install minamijoyo/tfupdate/tfupdate
+```
+
+#### MacPorts
+
+```bash
+$ sudo port install tfupdate
 ```
 
 ### Download
