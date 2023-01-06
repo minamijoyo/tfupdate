@@ -56,8 +56,12 @@ func (c *Client) ModuleLatestForProvider(ctx context.Context, req *ModuleLatestF
 		return nil, fmt.Errorf("Invalid request. Provider is required. req = %#v", req)
 	}
 
-	subPath := fmt.Sprintf("%s%s/%s/%s", moduleV1Service, req.Namespace, req.Name, req.Provider)
+	if c.BaseURL == nil {
 
+	}
+	subPath := fmt.Sprintf("%s%s/%s/%s", moduleV1Service, req.Namespace, req.Name, req.Provider)
+	//  https://registry.terraform.io:443/v1/providers/datadog/datadog/versions
+	//  https://artifactory.foo.com:443/artifactory/api/terraform/v1/modules/terraform__modules/k8s-namespace/foo/versions
 	httpRequest, err := c.newRequest(ctx, "GET", subPath, nil)
 	if err != nil {
 		return nil, err
