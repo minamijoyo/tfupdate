@@ -46,7 +46,7 @@ func newRelease(sourceType string, source string) (release.Release, error) {
 	case "tfregistryProvider":
 		config := release.TFRegistryConfig{}
 		return release.NewTFRegistryProviderRelease(source, config)
-	case "artifactory":
+	case "artifactoryModule":
 		s := strings.Split(source, "/")
 		if len(s) == 4 {
 			config := release.ArtifactoryConfig{

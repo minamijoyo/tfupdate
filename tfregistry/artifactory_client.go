@@ -25,6 +25,19 @@ type ArtifactoryClient struct {
 	BaseURL *url.URL
 }
 
+type ArtifactoryModuleListResponse struct {
+	Modules []ArtifactoryModuleVersionList `json:"modules"`
+}
+
+type ArtifactoryModuleVersionList struct {
+	Versions []ArtifactoryModule `json:"versions"`
+	Source   string              `json:"source"`
+}
+
+type ArtifactoryModule struct {
+	Version string `json:"version"`
+}
+
 // NewClient returns a new Client instance.
 func NewArtifactoryClient(httpClient *http.Client) *ArtifactoryClient {
 	if httpClient == nil {
@@ -82,10 +95,27 @@ func (c *ArtifactoryClient) ModuleLatestForProvider(ctx context.Context, req *Mo
 		return nil, fmt.Errorf("unexpected HTTP Status Code: %d", httpResponse.StatusCode)
 	}
 
-	var res ModuleLatestForProviderResponse
+	var res ArtifactoryModuleListResponse
 	if err := decodeBody(httpResponse, &res); err != nil {
 		return nil, err
 	}
 
-	return &res, nil
+	if len(res.Modules) == 0 {
+		return nil, fmt.Errorf("No modules found for %s/%s/%s", req.Namespace, req.Name, req.Provider)
+	}
+
+	if len(res.Modules[0].Versions) == 0 {
+		return nil, fmt.Errorf("No versions found for %s/%s/%s", req.Namespace, req.Name, req.Provider)
+	}
+
+	// Iterate over the versions and create an array of versions
+	versions := make([]string, len(res.Modules[0].Versions))
+	for i, v := range res.Modules[0].Versions {
+		versions[i] = v.Version
+	}
+
+	return &ModuleLatestForProviderResponse{
+		Version:  res.Modules[0].Versions[0].Version,
+		Versions: versions,
+	}, nil
 }
