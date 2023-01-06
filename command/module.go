@@ -1,7 +1,9 @@
 package command
 
 import (
+	"context"
 	"fmt"
+	"github.com/minamijoyo/tfupdate/release"
 	"log"
 	"strings"
 
@@ -17,6 +19,7 @@ type ModuleCommand struct {
 	path        string
 	recursive   bool
 	ignorePaths []string
+	sourceType  string
 }
 
 // Run runs the procedure of this command.
@@ -25,6 +28,7 @@ func (c *ModuleCommand) Run(args []string) int {
 	cmdFlags.StringVarP(&c.version, "version", "v", "", "A new version constraint")
 	cmdFlags.BoolVarP(&c.recursive, "recursive", "r", false, "Check a directory recursively")
 	cmdFlags.StringArrayVarP(&c.ignorePaths, "ignore-path", "i", []string{}, "A regular expression for path to ignore")
+	cmdFlags.StringVarP(&c.sourceType, "source-type", "s", "", "A type of module to update")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		c.UI.Error(fmt.Sprintf("failed to parse arguments: %s", err))
@@ -43,9 +47,21 @@ func (c *ModuleCommand) Run(args []string) int {
 	v := c.version
 	if len(v) == 0 {
 		// For modules, automatic latest version resolution is not simple.
-		// To implement, we will probably need to get information from the Terraform Registry.
-		c.UI.Error("A new version constraint is required. Automatic latest version resolution is not currently supported for modules.")
-		return 1
+		if len(c.sourceType) == 0 {
+			c.UI.Error("Source type must be specified to update module to latest")
+			return 1
+		}
+		r, err := newRelease(c.sourceType, c.name)
+		if err != nil {
+			c.UI.Error(err.Error())
+			return 1
+		}
+		v, err = release.Latest(context.Background(), r)
+		if err != nil {
+			c.UI.Error(err.Error())
+			return 1
+		}
+		c.UI.Output(v)
 	}
 
 	log.Printf("[INFO] Update module %s to %s", c.name, v)
@@ -79,6 +95,13 @@ Arguments
 Options:
   -v  --version      A new version constraint (required)
                      Automatic latest version resolution is not currently supported for modules.
+  -s  --source-type  A type of release data source.
+                     Valid values are
+                       - github (default)
+                       - gitlab
+                       - tfregistryModule
+                       - tfregistryProvider (experimental)
+                       - artifactoryModule (experimental)
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.
