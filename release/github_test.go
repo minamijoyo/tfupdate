@@ -20,7 +20,7 @@ type mockGitHubClient struct {
 
 var _ GitHubAPI = (*mockGitHubClient)(nil)
 
-func (c *mockGitHubClient) RepositoriesListReleases(ctx context.Context, owner, repo string, opt *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error) {
+func (c *mockGitHubClient) RepositoriesListReleases(ctx context.Context, owner, repo string, opt *github.ListOptions) ([]*github.RepositoryRelease, *github.Response, error) { // nolint revive unused-parameter
 	return c.repositoryReleases, c.response, c.err
 }
 

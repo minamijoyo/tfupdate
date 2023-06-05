@@ -14,7 +14,7 @@ type mockRelease struct {
 
 var _ Release = (*mockRelease)(nil)
 
-func (r *mockRelease) ListReleases(ctx context.Context) ([]string, error) {
+func (r *mockRelease) ListReleases(ctx context.Context) ([]string, error) { // nolint revive unused-parameter
 	return r.versions, r.err
 }
 

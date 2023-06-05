@@ -20,7 +20,7 @@ type mockGitLabClient struct {
 var _ GitLabAPI = (*mockGitLabClient)(nil)
 
 // ProjectListReleases returns a list of releases for the mockGitLabClient.
-func (c *mockGitLabClient) ProjectListReleases(ctx context.Context, owner, repo string, opt *gitlab.ListReleasesOptions) ([]*gitlab.Release, *gitlab.Response, error) {
+func (c *mockGitLabClient) ProjectListReleases(ctx context.Context, owner, repo string, opt *gitlab.ListReleasesOptions) ([]*gitlab.Release, *gitlab.Response, error) { // nolint revive unused-parameter
 	return c.projectReleases, c.response, c.err
 }
 
