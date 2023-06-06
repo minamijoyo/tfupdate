@@ -39,11 +39,7 @@ func (u *ProviderUpdater) Update(f *hclwrite.File) error {
 		return err
 	}
 
-	if err := u.updateProviderBlock(f); err != nil {
-		return err
-	}
-
-	return nil
+	return u.updateProviderBlock(f)
 }
 
 func (u *ProviderUpdater) updateTerraformBlock(f *hclwrite.File) error {

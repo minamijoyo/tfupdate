@@ -19,11 +19,11 @@ type mockTFRegistryClient struct {
 
 var _ TFRegistryAPI = (*mockTFRegistryClient)(nil)
 
-func (c *mockTFRegistryClient) ModuleLatestForProvider(ctx context.Context, req *tfregistry.ModuleLatestForProviderRequest) (*tfregistry.ModuleLatestForProviderResponse, error) {
+func (c *mockTFRegistryClient) ModuleLatestForProvider(ctx context.Context, req *tfregistry.ModuleLatestForProviderRequest) (*tfregistry.ModuleLatestForProviderResponse, error) { // nolint revive unused-parameter
 	return c.moduleRes, c.err
 }
 
-func (c *mockTFRegistryClient) ProviderLatest(ctx context.Context, req *tfregistry.ProviderLatestRequest) (*tfregistry.ProviderLatestResponse, error) {
+func (c *mockTFRegistryClient) ProviderLatest(ctx context.Context, req *tfregistry.ProviderLatestRequest) (*tfregistry.ProviderLatestResponse, error) { // nolint revive unused-parameter
 	return c.providerRes, c.err
 }
 

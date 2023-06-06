@@ -12,7 +12,7 @@ type ReleaseCommand struct {
 }
 
 // Run runs the procedure of this command.
-func (c *ReleaseCommand) Run(args []string) int {
+func (c *ReleaseCommand) Run(args []string) int { // nolint revive unused-parameter
 	return cli.RunResultHelp
 }
 
