@@ -71,6 +71,9 @@ Arguments
                       - tfregistryProvider (experimental)
                          namespace/type
                          e.g. hashicorp/aws
+                      - artifactoryModule (experimental)
+                         url/namespace__repository/module_name/provider
+                         e.g. artifactory.foo.com/terraform__modules/module_name/aws
 
 Options:
   -s  --source-type  A type of release data source.
@@ -79,6 +82,7 @@ Options:
                        - gitlab
                        - tfregistryModule
                        - tfregistryProvider (experimental)
+                       - artifactoryModule (experimental)
 
   -n  --max-length   The maximum length of list.
       --pre-release  Show pre-releases. (default: false)

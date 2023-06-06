@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/minamijoyo/tfupdate/release"
@@ -45,6 +46,16 @@ func newRelease(sourceType string, source string) (release.Release, error) {
 	case "tfregistryProvider":
 		config := release.TFRegistryConfig{}
 		return release.NewTFRegistryProviderRelease(source, config)
+	case "artifactoryModule":
+		s := strings.Split(source, "/")
+		if len(s) == 4 {
+			config := release.ArtifactoryConfig{
+				// Artifactory api format requires us to prefix the TF api with /api/terraform
+				BaseURL: fmt.Sprintf("https://%s/artifactory/api/terraform", s[0]),
+			}
+			return release.NewArtifactoryModuleRelease(source, config)
+		}
+		return nil, fmt.Errorf("invalid artifactory source - must match ARTIFACTORY_URL/REPOSITORY__NAMESPACE/MODULE_NAME/PROVIDER_NAME - got: %s", source)
 	default:
 		return nil, fmt.Errorf("failed to new release data source. unknown type: %s", sourceType)
 	}
