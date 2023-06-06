@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Update Go to v1.20 and Alpine 3.18 ([#87](https://github.com/minamijoyo/tfupdate/pull/87))
+* Update hcl to v2.17.0 ([#88](https://github.com/minamijoyo/tfupdate/pull/88))
+* Set docker build timeout to 10m ([#89](https://github.com/minamijoyo/tfupdate/pull/89))
+
 ## 0.6.7 (2022/08/29)
 
 ENHANCEMENTS:
