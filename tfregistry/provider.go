@@ -21,4 +21,8 @@ type ProviderV1API interface {
 	// This relies on a currently undocumented providers API endpoint which behaves exactly like the equivalent documented modules API endpoint.
 	// https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
 	ProviderLatest(ctx context.Context, req *ProviderLatestRequest) (*ProviderLatestResponse, error)
+
+	// ProviderPackageMetadata returns a package metadata of a provider.
+	// https://developer.hashicorp.com/terraform/internals/provider-registry-protocol#find-a-provider-package
+	ProviderPackageMetadata(ctx context.Context, req *ProviderPackageMetadataRequest) (*ProviderPackageMetadataResponse, error)
 }
