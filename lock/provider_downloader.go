@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/minamijoyo/tfupdate/tfregistry"
 )
@@ -69,8 +70,8 @@ type ProviderDownloadResponse struct {
 	// zipData is the raw byte sequence of the provider package.
 	zipData []byte
 
-	// SHA256Sum is a check sum for zipData in the sha256 sum function.
-	SHA256Sum string
+	// shaSumsData is the raw byte sequence of the provider shasum file.
+	shaSumsData []byte
 }
 
 // ProviderDownload downloads a provider package.
@@ -94,21 +95,31 @@ func (c *ProviderDownloaderClient) ProviderDownload(ctx context.Context, req *Pr
 		return nil, err
 	}
 
-	sha256sum := metadataRes.SHASum
 	err = validateSHA256Sum(zipData, metadataRes.SHASum)
 	if err != nil {
 		return nil, err
 	}
 
+	shaSumsURL := metadataRes.SHASumsURL
+	shaSumsData, err := c.download(ctx, shaSumsURL)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validateSHASumsData(shaSumsData, metadataRes.Filename, metadataRes.SHASum)
+	if err != nil {
+		return nil, err
+	}
+
 	ret := &ProviderDownloadResponse{
-		zipData:   zipData,
-		SHA256Sum: sha256sum,
+		zipData:     zipData,
+		shaSumsData: shaSumsData,
 	}
 
 	return ret, nil
 }
 
-// download is a helper function that downloads a package from a given url.
+// download is a helper function that downloads contents from a given url.
 func (c *ProviderDownloaderClient) download(ctx context.Context, url string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
@@ -151,4 +162,27 @@ func sha256sumAsHexString(b []byte) string {
 	h := sha256.New()
 	h.Write(b)
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+// validateSHASumsData checks whether the SHA256Sum document contains a matching hash value for a given filename.
+func validateSHASumsData(b []byte, filename string, sha256sum string) error {
+	document := string(b)
+	for _, line := range strings.Split(document, "\n") {
+		if len(line) == 0 {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) != 2 {
+			return fmt.Errorf("checksum parse error: %s", document)
+		}
+		if fields[1] == filename {
+			if fields[0] != sha256sum {
+				return fmt.Errorf("checksum missmatch error. got = %s, expected = %s", fields[0], sha256sum)
+			}
+			return nil // ok
+		}
+	}
+
+	// not found
+	return fmt.Errorf("checksum not found error: %s", document)
 }

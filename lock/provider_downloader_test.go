@@ -14,11 +14,22 @@ import (
 func TestProviderDownloaderClientProviderDownload(t *testing.T) {
 	downloadPath := "/terraform-provider-dummy/3.2.1/terraform-provider-dummy_3.2.1_darwin_arm64.zip"
 	shaSumsPath := "/terraform-provider-dummy/3.2.1/terraform-provider-dummy_3.2.1_SHA256SUMS"
-	resData := []byte("dummy")
+	zipData := []byte("dummy_3.2.1_darwin_arm64")
+	shaSumsData := []byte(`
+4e064a3094a30c462503e5b589659d46e9b2613d83847dbc5339616b3be26018  terraform-provider-dummy_3.2.1_windows_amd64.zip
+6112a5213d3973cb7cdaba1235fdf087f0daa607478fa416fb13766b5d86ab35  terraform-provider-dummy_3.2.1_darwin_amd64.zip
+e58101cac36f88a77d20d3192ba7ed81dd3a6af08bd9d7bb52b7568a6b552e4b  terraform-provider-dummy_3.2.1_linux_amd64.zip
+d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90  terraform-provider-dummy_3.2.1_darwin_arm64.zip
+`)
+
 	mux, mockServerURL := newMockServer()
 	mux.HandleFunc(downloadPath, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
-		w.Write(resData)
+		w.Write(zipData)
+	})
+	mux.HandleFunc(shaSumsPath, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		w.Write(shaSumsData)
 	})
 
 	cases := []struct {
@@ -33,14 +44,14 @@ func TestProviderDownloaderClientProviderDownload(t *testing.T) {
 				metadataRes: &tfregistry.ProviderPackageMetadataResponse{
 					Filename:    "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
 					DownloadURL: mockServerURL.String() + downloadPath,
-					SHASum:      sha256sumAsHexString(resData),
+					SHASum:      sha256sumAsHexString(zipData),
 					SHASumsURL:  mockServerURL.String() + shaSumsPath,
 				},
 				err: nil,
 			},
 			want: &ProviderDownloadResponse{
-				zipData:   resData,
-				SHA256Sum: sha256sumAsHexString(resData),
+				zipData:     zipData,
+				shaSumsData: shaSumsData,
 			},
 			ok: true,
 		},
@@ -169,13 +180,13 @@ func TestValidateSHA256Sum(t *testing.T) {
 	}{
 		{
 			desc:      "simple",
-			b:         []byte("dummy"),
-			sha256sum: "b5a2c96250612366ea272ffac6d9744aaf4b45aacd96aa7cfcb931ee3b558259",
+			b:         []byte("dummy_3.2.1_darwin_arm64"),
+			sha256sum: "d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90",
 			ok:        true,
 		},
 		{
 			desc:      "checksum missmatch",
-			b:         []byte("dummy"),
+			b:         []byte("dummy_3.2.1_darwin_arm64"),
 			sha256sum: "aaa",
 			ok:        false,
 		},
@@ -187,6 +198,75 @@ func TestValidateSHA256Sum(t *testing.T) {
 
 			if tc.ok && err != nil {
 				t.Fatalf("failed to validate sha256sum: err = %s", err)
+			}
+
+			if !tc.ok && err == nil {
+				t.Fatal("expected to fail, but success")
+			}
+		})
+	}
+}
+
+func TestValidateSHASumsData(t *testing.T) {
+	shaSumsData := []byte(`
+4e064a3094a30c462503e5b589659d46e9b2613d83847dbc5339616b3be26018  terraform-provider-dummy_3.2.1_windows_amd64.zip
+6112a5213d3973cb7cdaba1235fdf087f0daa607478fa416fb13766b5d86ab35  terraform-provider-dummy_3.2.1_darwin_amd64.zip
+e58101cac36f88a77d20d3192ba7ed81dd3a6af08bd9d7bb52b7568a6b552e4b  terraform-provider-dummy_3.2.1_linux_amd64.zip
+d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90  terraform-provider-dummy_3.2.1_darwin_arm64.zip
+`)
+
+	cases := []struct {
+		desc      string
+		b         []byte
+		filename  string
+		sha256sum string
+		ok        bool
+	}{
+		{
+			desc:      "simple",
+			b:         shaSumsData,
+			filename:  "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
+			sha256sum: "d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90",
+			ok:        true,
+		},
+		{
+			desc:      "checksum missmatch",
+			b:         shaSumsData,
+			filename:  "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
+			sha256sum: "aaa",
+			ok:        false,
+		},
+		{
+			desc:      "not found",
+			b:         shaSumsData,
+			filename:  "foo.zip",
+			sha256sum: "d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90",
+			ok:        false,
+		},
+		{
+			desc: "parse error",
+			b: []byte(`
+d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90
+`),
+			filename:  "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
+			sha256sum: "d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90",
+			ok:        false,
+		},
+		{
+			desc:      "empty",
+			b:         []byte(""),
+			filename:  "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
+			sha256sum: "d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90",
+			ok:        false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			err := validateSHASumsData(tc.b, tc.filename, tc.sha256sum)
+
+			if tc.ok && err != nil {
+				t.Fatalf("failed to validate SHASumsData: err = %s", err)
 			}
 
 			if !tc.ok && err == nil {
