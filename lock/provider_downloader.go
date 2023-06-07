@@ -2,6 +2,8 @@ package lock
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -64,7 +66,11 @@ type ProviderDownloadRequest struct {
 
 // ProviderDownloadResponse is a response type for ProviderDownload.
 type ProviderDownloadResponse struct {
-	Data []byte
+	// zipData is the raw byte sequence of the provider package.
+	zipData []byte
+
+	// SHA256Sum is a check sum for zipData in the sha256 sum function.
+	SHA256Sum string
 }
 
 // ProviderDownload downloads a provider package.
@@ -83,18 +89,26 @@ func (c *ProviderDownloaderClient) ProviderDownload(ctx context.Context, req *Pr
 	}
 
 	downloadURL := metadataRes.DownloadURL
-	data, err := c.download(ctx, downloadURL)
+	zipData, err := c.download(ctx, downloadURL)
+	if err != nil {
+		return nil, err
+	}
+
+	sha256sum := metadataRes.SHASum
+	err = validateSHA256Sum(zipData, metadataRes.SHASum)
 	if err != nil {
 		return nil, err
 	}
 
 	ret := &ProviderDownloadResponse{
-		Data: data,
+		zipData:   zipData,
+		SHA256Sum: sha256sum,
 	}
 
 	return ret, nil
 }
 
+// download is a helper function that downloads a package from a given url.
 func (c *ProviderDownloaderClient) download(ctx context.Context, url string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
@@ -117,4 +131,24 @@ func (c *ProviderDownloaderClient) download(ctx context.Context, url string) ([]
 	}
 
 	return data, nil
+}
+
+// validateSHA256Sum calculates the sha256 sum of the given byte sequence and
+// checks whether it matches the expected hash value.
+// The hash value is specified as a hexadecimal string.
+func validateSHA256Sum(b []byte, sha256sum string) error {
+	got := sha256sumAsHexString(b)
+	if got != sha256sum {
+		return fmt.Errorf("checksum missmatch error. got = %s, expected = %s", got, sha256sum)
+	}
+
+	return nil
+}
+
+// sha256sumAsHexString calculates the sha256 sum of the given byte sequence and
+// returns it as a hexadecimal string.
+func sha256sumAsHexString(b []byte) string {
+	h := sha256.New()
+	h.Write(b)
+	return hex.EncodeToString(h.Sum(nil))
 }

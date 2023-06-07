@@ -12,8 +12,8 @@ import (
 )
 
 func TestProviderDownloaderClientProviderDownload(t *testing.T) {
-	downloadPath := "/terraform-provider-null/3.2.1/terraform-provider-null_3.2.1_darwin_arm64.zip"
-	shaSumsPath := "/terraform-provider-null/3.2.1/terraform-provider-null_3.2.1_SHA256SUMS"
+	downloadPath := "/terraform-provider-dummy/3.2.1/terraform-provider-dummy_3.2.1_darwin_arm64.zip"
+	shaSumsPath := "/terraform-provider-dummy/3.2.1/terraform-provider-dummy_3.2.1_SHA256SUMS"
 	resData := []byte("dummy")
 	mux, mockServerURL := newMockServer()
 	mux.HandleFunc(downloadPath, func(w http.ResponseWriter, r *http.Request) {
@@ -31,15 +31,16 @@ func TestProviderDownloaderClientProviderDownload(t *testing.T) {
 			desc: "simple",
 			client: &mockTFRegistryClient{
 				metadataRes: &tfregistry.ProviderPackageMetadataResponse{
-					Filename:    "terraform-provider-null_3.2.1_darwin_arm64.zip",
+					Filename:    "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
 					DownloadURL: mockServerURL.String() + downloadPath,
-					SHASum:      "e4453fbebf90c53ca3323a92e7ca0f9961427d2f0ce0d2b65523cc04d5d999c2",
+					SHASum:      sha256sumAsHexString(resData),
 					SHASumsURL:  mockServerURL.String() + shaSumsPath,
 				},
 				err: nil,
 			},
 			want: &ProviderDownloadResponse{
-				Data: resData,
+				zipData:   resData,
+				SHA256Sum: sha256sumAsHexString(resData),
 			},
 			ok: true,
 		},
@@ -48,6 +49,20 @@ func TestProviderDownloaderClientProviderDownload(t *testing.T) {
 			client: &mockTFRegistryClient{
 				metadataRes: nil,
 				err:         errors.New(`unexpected HTTP Status Code: 404`),
+			},
+			want: nil,
+			ok:   false,
+		},
+		{
+			desc: "checksum missmatch",
+			client: &mockTFRegistryClient{
+				metadataRes: &tfregistry.ProviderPackageMetadataResponse{
+					Filename:    "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
+					DownloadURL: mockServerURL.String() + downloadPath,
+					SHASum:      "aaa",
+					SHASumsURL:  mockServerURL.String() + shaSumsPath,
+				},
+				err: nil,
 			},
 			want: nil,
 			ok:   false,
@@ -62,8 +77,8 @@ func TestProviderDownloaderClientProviderDownload(t *testing.T) {
 			client := newTestClient(mockServerURL, config)
 
 			req := &ProviderDownloadRequest{
-				Namespace: "hashicorp",
-				Type:      "null",
+				Namespace: "minamijoyo",
+				Type:      "dummy",
 				Version:   "3.2.1",
 				OS:        "darwin",
 				Arch:      "arm64",
@@ -140,6 +155,42 @@ func TestProviderDownloaderClientDownload(t *testing.T) {
 
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("got=%#v, but want=%#v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestValidateSHA256Sum(t *testing.T) {
+	cases := []struct {
+		desc      string
+		b         []byte
+		sha256sum string
+		ok        bool
+	}{
+		{
+			desc:      "simple",
+			b:         []byte("dummy"),
+			sha256sum: "b5a2c96250612366ea272ffac6d9744aaf4b45aacd96aa7cfcb931ee3b558259",
+			ok:        true,
+		},
+		{
+			desc:      "checksum missmatch",
+			b:         []byte("dummy"),
+			sha256sum: "aaa",
+			ok:        false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			err := validateSHA256Sum(tc.b, tc.sha256sum)
+
+			if tc.ok && err != nil {
+				t.Fatalf("failed to validate sha256sum: err = %s", err)
+			}
+
+			if !tc.ok && err == nil {
+				t.Fatal("expected to fail, but success")
 			}
 		})
 	}
