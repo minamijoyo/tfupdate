@@ -14,12 +14,18 @@ import (
 func TestProviderDownloaderClientProviderDownload(t *testing.T) {
 	downloadPath := "/terraform-provider-dummy/3.2.1/terraform-provider-dummy_3.2.1_darwin_arm64.zip"
 	shaSumsPath := "/terraform-provider-dummy/3.2.1/terraform-provider-dummy_3.2.1_SHA256SUMS"
-	zipData := []byte("dummy_3.2.1_darwin_arm64")
+
+	// create a zip file in memory.
+	zipData, err := newMockZipData("terraform-provider-dummy_v3.2.1_x5", "dummy_3.2.1_darwin_arm64")
+	if err != nil {
+		t.Fatalf("failed to create a zip file in memory: err = %s", err)
+	}
+
 	shaSumsData := []byte(`
-4e064a3094a30c462503e5b589659d46e9b2613d83847dbc5339616b3be26018  terraform-provider-dummy_3.2.1_windows_amd64.zip
-6112a5213d3973cb7cdaba1235fdf087f0daa607478fa416fb13766b5d86ab35  terraform-provider-dummy_3.2.1_darwin_amd64.zip
-e58101cac36f88a77d20d3192ba7ed81dd3a6af08bd9d7bb52b7568a6b552e4b  terraform-provider-dummy_3.2.1_linux_amd64.zip
-d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90  terraform-provider-dummy_3.2.1_darwin_arm64.zip
+5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086  terraform-provider-dummy_3.2.1_darwin_arm64.zip
+8b75ff41191a7fe6c5d9129ed19a01eacde5a3797b48b738eefa21f5330c081e  terraform-provider-dummy_3.2.1_windows_amd64.zip
+c5f0a44e3a3795cb3ee0abb0076097c738294c241f74c145dfb50f2b9fd71fd2  terraform-provider-dummy_3.2.1_linux_amd64.zip
+fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2  terraform-provider-dummy_3.2.1_darwin_amd64.zip
 `)
 
 	mux, mockServerURL := newMockServer()
@@ -113,7 +119,7 @@ d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90  terraform-prov
 }
 
 func TestProviderDownloaderClientDownload(t *testing.T) {
-	subPath := "/terraform-provider-null/3.2.1/terraform-provider-null_3.2.1_darwin_arm64.zip"
+	subPath := "/terraform-provider-dummy/3.2.1/terraform-provider-dummy_3.2.1_darwin_arm64.zip"
 	cases := []struct {
 		desc    string
 		subPath string
@@ -127,8 +133,11 @@ func TestProviderDownloaderClientDownload(t *testing.T) {
 			subPath: subPath,
 			ok:      true,
 			code:    200,
-			res:     []byte("dummy"),
-			want:    []byte("dummy"),
+			// A byte sequence of zip should be returned, but for testing it does not
+			// have to be really a zip format, so we use a dummy string here for easy
+			// comparison in case of failure.
+			res:  []byte("dummy"),
+			want: []byte("dummy"),
 		},
 		{
 			desc:    "not found",
@@ -172,6 +181,12 @@ func TestProviderDownloaderClientDownload(t *testing.T) {
 }
 
 func TestValidateSHA256Sum(t *testing.T) {
+	// create a zip file in memory.
+	zipData, err := newMockZipData("terraform-provider-dummy_v3.2.1_x5", "dummy_3.2.1_darwin_arm64")
+	if err != nil {
+		t.Fatalf("failed to create a zip file in memory: err = %s", err)
+	}
+
 	cases := []struct {
 		desc      string
 		b         []byte
@@ -180,13 +195,13 @@ func TestValidateSHA256Sum(t *testing.T) {
 	}{
 		{
 			desc:      "simple",
-			b:         []byte("dummy_3.2.1_darwin_arm64"),
-			sha256sum: "d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90",
+			b:         zipData,
+			sha256sum: "5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086",
 			ok:        true,
 		},
 		{
 			desc:      "checksum missmatch",
-			b:         []byte("dummy_3.2.1_darwin_arm64"),
+			b:         zipData,
 			sha256sum: "aaa",
 			ok:        false,
 		},
@@ -209,10 +224,10 @@ func TestValidateSHA256Sum(t *testing.T) {
 
 func TestValidateSHASumsData(t *testing.T) {
 	shaSumsData := []byte(`
-4e064a3094a30c462503e5b589659d46e9b2613d83847dbc5339616b3be26018  terraform-provider-dummy_3.2.1_windows_amd64.zip
-6112a5213d3973cb7cdaba1235fdf087f0daa607478fa416fb13766b5d86ab35  terraform-provider-dummy_3.2.1_darwin_amd64.zip
-e58101cac36f88a77d20d3192ba7ed81dd3a6af08bd9d7bb52b7568a6b552e4b  terraform-provider-dummy_3.2.1_linux_amd64.zip
-d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90  terraform-provider-dummy_3.2.1_darwin_arm64.zip
+5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086  terraform-provider-dummy_3.2.1_darwin_arm64.zip
+8b75ff41191a7fe6c5d9129ed19a01eacde5a3797b48b738eefa21f5330c081e  terraform-provider-dummy_3.2.1_windows_amd64.zip
+c5f0a44e3a3795cb3ee0abb0076097c738294c241f74c145dfb50f2b9fd71fd2  terraform-provider-dummy_3.2.1_linux_amd64.zip
+fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2  terraform-provider-dummy_3.2.1_darwin_amd64.zip
 `)
 
 	cases := []struct {
@@ -226,7 +241,7 @@ d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90  terraform-prov
 			desc:      "simple",
 			b:         shaSumsData,
 			filename:  "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
-			sha256sum: "d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90",
+			sha256sum: "5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086",
 			ok:        true,
 		},
 		{
@@ -240,23 +255,23 @@ d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90  terraform-prov
 			desc:      "not found",
 			b:         shaSumsData,
 			filename:  "foo.zip",
-			sha256sum: "d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90",
+			sha256sum: "5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086",
 			ok:        false,
 		},
 		{
 			desc: "parse error",
 			b: []byte(`
-d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90
+5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086
 `),
 			filename:  "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
-			sha256sum: "d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90",
+			sha256sum: "5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086",
 			ok:        false,
 		},
 		{
 			desc:      "empty",
 			b:         []byte(""),
 			filename:  "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
-			sha256sum: "d95ca113388ef9530b5f664eb086f798f8eae75047bd0a0eaef00f980fd34c90",
+			sha256sum: "5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086",
 			ok:        false,
 		},
 	}

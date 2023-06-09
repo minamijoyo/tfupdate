@@ -168,9 +168,14 @@ func sha256sumAsHexString(b []byte) string {
 func validateSHASumsData(b []byte, filename string, sha256sum string) error {
 	document := string(b)
 	for _, line := range strings.Split(document, "\n") {
+		// We expect that blank lines are not normally included, but to make the
+		// test data easier to read, ignore blank lines.
 		if len(line) == 0 {
 			continue
 		}
+
+		// Split rows into columns with spaces, but note that there are two spaces between the columns.
+		// e4453fbebf90c53ca3323a92e7ca0f9961427d2f0ce0d2b65523cc04d5d999c2  terraform-provider-null_3.2.1_darwin_arm64.zip
 		fields := strings.Fields(line)
 		if len(fields) != 2 {
 			return fmt.Errorf("checksum parse error: %s", document)
