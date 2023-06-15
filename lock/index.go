@@ -138,6 +138,16 @@ func newProviderDownloadRequest(address string, version string, platform string)
 		return nil, fmt.Errorf("failed to parse provider aaddress: %s", address)
 	}
 
+	// Since .terraform.lock.hcl was introduced from v0.14, we assume that
+	// provider address is qualified with namespaces at least. We won't support
+	// implicit legacy things.
+	if !pAddr.HasKnownNamespace() {
+		return nil, fmt.Errorf("failed to parse unknown provider aaddress: %s.", address)
+	}
+	if pAddr.IsLegacy() {
+		return nil, fmt.Errorf("failed to parse legacy provider aaddress: %s.", address)
+	}
+
 	pf := strings.Split(platform, "_")
 	if len(pf) != 2 {
 		return nil, fmt.Errorf("failed to parse platform: %s", platform)
