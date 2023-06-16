@@ -24,6 +24,54 @@ func (c *mockProviderDownloaderClient) ProviderDownload(ctx context.Context, req
 	return res, err
 }
 
+func TestIndexGetOrCreateProviderVersion(t *testing.T) {
+	platform := "darwin_arm64"
+	res, err := newMockProviderDownloadResponse(platform)
+	if err != nil {
+		t.Fatalf("failed to create mockResponses: err = %s", err)
+	}
+	// duplicate mocked responses
+	mockResponses := []*ProviderDownloadResponse{res, res}
+	mockNoErrors := []error{nil, nil}
+
+	client := &mockProviderDownloaderClient{
+		responses: mockResponses,
+		errs:      mockNoErrors,
+	}
+	index := NewIndex(client)
+
+	for _, address := range []string{"minamijoyo/dummy", "minamijoyo/null"} {
+		for _, version := range []string{"3.2.1", "3.2.2"} {
+			// In this test case, only the number of calls is verified for testing
+			// the cache behavior. A returned valued is intentionally ignored because
+			// the address and version are hard-coded in the the mock response.
+
+			// 1st call
+			_, err = index.GetOrCreateProviderVersion(context.Background(), address, version, []string{platform})
+			if err != nil {
+				t.Fatalf("%s@%s: failed to call GetOrCreateProviderVersion: err = %s", address, version, err)
+			}
+			// expect cache miss
+			if client.called != 1 {
+				t.Fatalf("%s@%s: api was called %d times, but expected to be called %d times", address, version, client.called, 1)
+			}
+
+			// 2nd call
+			_, err = index.GetOrCreateProviderVersion(context.Background(), address, version, []string{platform})
+			if err != nil {
+				t.Fatalf("%s@%s: failed to call GetOrCreateProviderVersion: err = %s", address, version, err)
+			}
+			// expect cache hit
+			if client.called != 1 {
+				t.Fatalf("%s@%s: api was called %d times, but expected to be called %d times", address, version, client.called, 1)
+			}
+
+			// reset the called counter
+			client.called = 0
+		}
+	}
+}
+
 func TestProviderIndexGetOrCreateProviderVersion(t *testing.T) {
 	address := "minamijoyo/dummy"
 	platforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64"}
@@ -76,7 +124,7 @@ func TestProviderIndexGetOrCreateProviderVersion(t *testing.T) {
 			got, err := pi.getOrCreateProviderVersion(context.Background(), tc.version, tc.platforms)
 
 			if tc.ok && err != nil {
-				t.Fatalf("failed to call createProviderVersion: err = %s", err)
+				t.Fatalf("failed to call getOrCreateProviderVersion: err = %s", err)
 			}
 
 			if !tc.ok && err == nil {
@@ -96,7 +144,7 @@ func TestProviderIndexGetOrCreateProviderVersion(t *testing.T) {
 			cached, err := pi.getOrCreateProviderVersion(context.Background(), tc.version, tc.platforms)
 
 			if tc.ok && err != nil {
-				t.Fatalf("failed to call createProviderVersion: err = %s", err)
+				t.Fatalf("failed to call getOrCreateProviderVersion: err = %s", err)
 			}
 
 			if !tc.ok && err == nil {
