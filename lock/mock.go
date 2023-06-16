@@ -78,3 +78,37 @@ func newMockShaSumsData(name string, version string, platforms []string) ([]byte
 	document := strings.Join(lines, "\n")
 	return []byte(document), nil
 }
+
+// newMockProviderDownloadResponse returns a new ProviderDownloadResponse for testing.
+// Note that some parameters are hard-coded to simplify the caller.
+func newMockProviderDownloadResponse(platform string) (*ProviderDownloadResponse, error) {
+	// create a zip file in memory.
+	zipData, err := newMockZipData("terraform-provider-dummy_v3.2.1_x5", "dummy_3.2.1_"+platform)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a zip file in memory: err = %s", err)
+	}
+	// create a valid dummy shaSumsData.
+	platforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64", "windows_amd64"}
+	shaSumsData, err := newMockShaSumsData("dummy", "3.2.1", platforms)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a shaSumsData: err = %s", err)
+	}
+	return &ProviderDownloadResponse{
+		zipData:     zipData,
+		shaSumsData: shaSumsData,
+	}, nil
+}
+
+// newMockProviderDownloadResponses returns a new list of ProviderDownloadResponse for testing.
+func newMockProviderDownloadResponses(platforms []string) ([]*ProviderDownloadResponse, error) {
+	responses := []*ProviderDownloadResponse{}
+	for _, platform := range platforms {
+		res, err := newMockProviderDownloadResponse(platform)
+		if err != nil {
+			return nil, err
+		}
+		responses = append(responses, res)
+	}
+
+	return responses, nil
+}

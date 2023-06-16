@@ -80,7 +80,8 @@ func (pi *providerIndex) getOrCreateProviderVersion(ctx context.Context, version
 	pv, ok := pi.versions[version]
 	if !ok {
 		// cache miss
-		pv, err := pi.createProviderVersion(ctx, version, platforms)
+		var err error
+		pv, err = pi.createProviderVersion(ctx, version, platforms)
 		if err != nil {
 			return nil, err
 		}
