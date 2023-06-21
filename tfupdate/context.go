@@ -1,0 +1,130 @@
+package tfupdate
+
+import (
+	"fmt"
+
+	version "github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-config-inspect/tfconfig"
+	"github.com/minamijoyo/tfupdate/lock"
+	"github.com/spf13/afero"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
+)
+
+// GlobalContext is information that is shared over the lifetime of the process.
+type GlobalContext struct {
+	// fs is an afero filesystem for testing.
+	fs afero.Fs
+
+	// lockIndex is a cached index for updating dependency lock files.
+	lockIndex lock.Index
+}
+
+// ModuleContext is information shared across files within a directory.
+type ModuleContext struct {
+	gc *GlobalContext
+
+	// dir is a relative path to the module from the current working directory.
+	dir string
+
+	// requiredProviders is version constraints of Terraform providers.
+	// This is the result of parsing terraform-config-inspect and may contain
+	// multiple constraints. The meaning depends on the use case and is therefore
+	// lazily evaluated.
+	requiredProviders map[string]*tfconfig.ProviderRequirement
+}
+
+// SelectedProvider is the source address and version of the provider, as
+// inferred from the version constraint.
+type SelectedProvider struct {
+	// source is a source address of the provider.
+	Source string
+
+	// version is a version of the provider.
+	Version string
+}
+
+// aferoToTfconfigFS converts afero.Fs to tfconfig.FS.
+// The filesystem has been replaced for testing purposes, but due to historical
+// reasons, we use afero.Fs instead of standard io/fs.Fs introduced in Go 1.16.
+// On the other hand, the tfconfig uses its own tfconfig.FS, which is also
+// incompatible the standard one. Fortunately, both have adaptors for
+// converting the interface to the standard one. Converting afero.Fs to
+// io/fs.FS and then to tfconfig.FS makes the types match.
+func aferoToTfconfigFS(afs afero.Fs) tfconfig.FS {
+	return tfconfig.WrapFS(afero.NewIOFS(afs))
+}
+
+// NewModuleContext parses a given module and returns a new ModuleContext.
+// The dir is a relative path to the module from the current working directory.
+func NewModuleContext(dir string, gc *GlobalContext) (*ModuleContext, error) {
+	m, diags := tfconfig.LoadModuleFromFilesystem(aferoToTfconfigFS(gc.fs), dir)
+	if diags.HasErrors() {
+		return nil, fmt.Errorf("failed to load module: dir = %s, err = %s", dir, diags)
+	}
+
+	c := &ModuleContext{
+		gc:                gc,
+		dir:               dir,
+		requiredProviders: m.RequiredProviders,
+	}
+
+	return c, nil
+}
+
+// SelectedProviders returns a list of providers inferred from version constraints.
+// The result is sorted alphabetically by source address.
+// Version constraints only support simple constants and not comparison
+// operators. Ignore what cannot be interpreted.
+func (mc *ModuleContext) SelecetedProviders() []SelectedProvider {
+	selected := make(map[string]string)
+	for _, p := range mc.requiredProviders {
+		if p.Source == "" {
+			// A source address with an empty string implies an unknown namespace prior to
+			// Terraform v0.13, but since this is already a deprecated usage, we don't
+			// implicitly complement the official hashicorp namespace and is not included
+			// in the results.
+			continue
+		}
+
+		v := selectVersion(p.VersionConstraints)
+
+		if v == "" {
+			// Ignore if no version is specified.
+			continue
+		}
+
+		// It is not possible to mix multiple provider versions in one module, so
+		// simply overwrite without taking duplicates into account
+		selected[p.Source] = v
+	}
+
+	// Sort to get stable results
+	keys := maps.Keys(selected)
+	slices.Sort(keys)
+
+	ret := []SelectedProvider{}
+	for _, k := range keys {
+		s := SelectedProvider{Source: k, Version: selected[k]}
+		ret = append(ret, s)
+	}
+	return ret
+}
+
+// selectVersion resolves version constraints and returns the version.
+// Note that it does not actually re-implement the resolution of version
+// constraints in terraform init. It is very simplified for the use we need.
+// Version constraints only support simple constants and not comparison
+// operators. Ignore what cannot be interpreted.
+func selectVersion(constraints []string) string {
+	for _, c := range constraints {
+		v, err := version.NewVersion(c)
+		if err != nil {
+			// Ignore parse error
+			continue
+		}
+		// return the first one found
+		return v.String()
+	}
+	return ""
+}
