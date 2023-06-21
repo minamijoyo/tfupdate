@@ -143,10 +143,10 @@ func newProviderDownloadRequest(address string, version string, platform string)
 	// provider address is qualified with namespaces at least. We won't support
 	// implicit legacy things.
 	if !pAddr.HasKnownNamespace() {
-		return nil, fmt.Errorf("failed to parse unknown provider aaddress: %s.", address)
+		return nil, fmt.Errorf("failed to parse unknown provider aaddress: %s", address)
 	}
 	if pAddr.IsLegacy() {
-		return nil, fmt.Errorf("failed to parse legacy provider aaddress: %s.", address)
+		return nil, fmt.Errorf("failed to parse legacy provider aaddress: %s", address)
 	}
 
 	pf := strings.Split(platform, "_")
