@@ -55,7 +55,13 @@ func (c *ModuleCommand) Run(args []string) int {
 		return 1
 	}
 
-	err = tfupdate.UpdateFileOrDir(c.Fs, c.path, option)
+	gc, err := tfupdate.NewGlobalContext(c.Fs, option)
+	if err != nil {
+		c.UI.Error(err.Error())
+		return 1
+	}
+
+	err = tfupdate.UpdateFileOrDir(gc, c.path)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

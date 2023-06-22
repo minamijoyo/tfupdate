@@ -16,7 +16,7 @@ import (
 type Updater interface {
 	// Update updates a version constraint.
 	// Note that this method will rewrite the AST passed as an argument.
-	Update(*hclwrite.File) error
+	Update(mc *ModuleContext, filename string, f *hclwrite.File) error
 }
 
 // NewUpdater is a factory method which returns an Updater implementation.
@@ -35,10 +35,9 @@ func NewUpdater(o Option) (Updater, error) {
 
 // UpdateHCL reads HCL from io.Reader, updates version constraints
 // and writes updated contents to io.Writer.
-// Note that a filename is used only for an error message.
 // If contents changed successfully, it returns true, or otherwise returns false.
 // If an error occurs, Nothing is written to the output stream.
-func UpdateHCL(r io.Reader, w io.Writer, filename string, o Option) (bool, error) {
+func UpdateHCL(mc *ModuleContext, r io.Reader, w io.Writer, filename string) (bool, error) {
 	input, err := io.ReadAll(r)
 	if err != nil {
 		return false, fmt.Errorf("failed to read input: %s", err)
@@ -49,12 +48,8 @@ func UpdateHCL(r io.Reader, w io.Writer, filename string, o Option) (bool, error
 		return false, err
 	}
 
-	u, err := NewUpdater(o)
-	if err != nil {
-		return false, err
-	}
-
-	if err = u.Update(f); err != nil {
+	u := mc.Updater()
+	if err = u.Update(mc, filename, f); err != nil {
 		return false, err
 	}
 

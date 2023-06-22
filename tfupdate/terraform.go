@@ -24,7 +24,7 @@ func NewTerraformUpdater(version string) (Updater, error) {
 
 // Update updates the terraform version constraint.
 // Note that this method will rewrite the AST passed as an argument.
-func (u *TerraformUpdater) Update(f *hclwrite.File) error {
+func (u *TerraformUpdater) Update(_ *ModuleContext, _ string, f *hclwrite.File) error {
 	for _, tf := range allMatchingBlocks(f.Body(), "terraform", []string{}) {
 		// set a version to attribute value only if the key exists
 		if tf.Body().GetAttribute("required_version") != nil {

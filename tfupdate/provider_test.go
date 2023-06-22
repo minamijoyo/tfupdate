@@ -390,7 +390,7 @@ terraform {
 			t.Fatalf("unexpected diagnostics: %s", diags)
 		}
 
-		err := u.Update(f)
+		err := u.Update(nil, "main.tf", f)
 		if tc.ok && err != nil {
 			t.Errorf("Update() with src = %s, name = %s, version = %s returns unexpected err: %+v", tc.src, tc.name, tc.version, err)
 		}

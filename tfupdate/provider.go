@@ -34,7 +34,7 @@ func NewProviderUpdater(name string, version string) (Updater, error) {
 
 // Update updates the provider version constraint.
 // Note that this method will rewrite the AST passed as an argument.
-func (u *ProviderUpdater) Update(f *hclwrite.File) error {
+func (u *ProviderUpdater) Update(_ *ModuleContext, _ string, f *hclwrite.File) error {
 	if err := u.updateTerraformBlock(f); err != nil {
 		return err
 	}

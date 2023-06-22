@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"reflect"
 	"testing"
+
+	"github.com/spf13/afero"
 )
 
 func TestNewUpdater(t *testing.T) {
@@ -172,26 +174,24 @@ provider "invalid" {
 			isUpdated: false,
 			ok:        true,
 		},
-		{
-			src: `
-provider "aws" {
-  version = "2.11.0"
-}
-`,
-			o: Option{
-				updateType: "hoge",
-				version:    "0.0.1",
-			},
-			want:      "",
-			isUpdated: false,
-			ok:        false,
-		},
 	}
 
 	for _, tc := range cases {
 		r := bytes.NewBufferString(tc.src)
 		w := &bytes.Buffer{}
-		isUpdated, err := UpdateHCL(r, w, "test", tc.o)
+
+		fs := afero.NewMemMapFs()
+		gc, err := NewGlobalContext(fs, tc.o)
+		if err != nil {
+			t.Fatalf("failed to new global context: %s", err)
+		}
+
+		mc, err := NewModuleContext(".", gc)
+		if err != nil {
+			t.Fatalf("failed to new module context: %s", err)
+		}
+
+		isUpdated, err := UpdateHCL(mc, r, w, "main.tf")
 		if tc.ok && err != nil {
 			t.Errorf("UpdateHCL() with src = %s, o = %#v returns unexpected err: %+v", tc.src, tc.o, err)
 		}

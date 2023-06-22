@@ -36,24 +36,6 @@ terraform {
 			ok: true,
 		},
 		{
-			filename: "invalid.tf",
-			src: `
-terraform {
-  required_version = "0.12.6"
-}
-`,
-			o: Option{
-				updateType: "hoge",
-				version:    "0.12.7",
-			},
-			want: `
-terraform {
-  required_version = "0.12.6"
-}
-`,
-			ok: false,
-		},
-		{
 			filename: "unformatted_match.tf",
 			src: `
 terraform {
@@ -98,7 +80,17 @@ required_version = "0.12.6"
 			t.Fatalf("failed to write file: %s", err)
 		}
 
-		err = UpdateFile(fs, tc.filename, tc.o)
+		gc, err := NewGlobalContext(fs, tc.o)
+		if err != nil {
+			t.Fatalf("failed to new global context: %s", err)
+		}
+
+		mc, err := NewModuleContext(".", gc)
+		if err != nil {
+			t.Fatalf("failed to new module context: %s", err)
+		}
+
+		err = UpdateFile(mc, tc.filename)
 		if tc.ok && err != nil {
 			t.Errorf("UpdateFile() with filename = %s, o = %#v returns unexpected err: %+v", tc.filename, tc.o, err)
 		}
@@ -121,9 +113,22 @@ required_version = "0.12.6"
 func TestUpdateFileNotFound(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	filename := "not_found.tf"
-	o := Option{}
+	o := Option{
+		updateType: "terraform",
+		version:    "0.12.7",
+	}
 
-	err := UpdateFile(fs, filename, o)
+	gc, err := NewGlobalContext(fs, o)
+	if err != nil {
+		t.Fatalf("failed to new global context: %s", err)
+	}
+
+	mc, err := NewModuleContext(".", gc)
+	if err != nil {
+		t.Fatalf("failed to new module context: %s", err)
+	}
+
+	err = UpdateFile(mc, filename)
 
 	if err == nil {
 		t.Errorf("UpdateFile() with filename = %s, o = %#v expects to return an error, but no error", filename, o)
@@ -388,7 +393,17 @@ terraform {
 			t.Fatalf("failed to write file: %s", err)
 		}
 
-		err = UpdateDir(fs, tc.checkdir, tc.o)
+		gc, err := NewGlobalContext(fs, tc.o)
+		if err != nil {
+			t.Fatalf("failed to new global context: %s", err)
+		}
+
+		mc, err := NewModuleContext(dirname, gc)
+		if err != nil {
+			t.Fatalf("failed to new module context: %s", err)
+		}
+
+		err = UpdateDir(mc, tc.checkdir)
 
 		if err != nil {
 			t.Errorf("UpdateDir() with dirname = %s, o = %#v returns an unexpected error: %+v", tc.checkdir, tc.o, err)
@@ -411,18 +426,6 @@ terraform {
 		if string(got2) != tc.want2 {
 			t.Errorf("UpdateDir() with dirname = %s, o = %#v returns %s, but want = %s", dirname, tc.o, string(got2), tc.want2)
 		}
-	}
-}
-
-func TestUpdateDirNotFound(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	dirname := "not_found"
-	o := Option{}
-
-	err := UpdateDir(fs, dirname, o)
-
-	if err == nil {
-		t.Errorf("UpdateDir() with dirname = %s, o = %#v expects to return an error, but no error", dirname, o)
 	}
 }
 
@@ -467,7 +470,12 @@ terraform {
 			t.Fatalf("failed to write file: %s", err)
 		}
 
-		err = UpdateFileOrDir(fs, tc.path, o)
+		gc, err := NewGlobalContext(fs, o)
+		if err != nil {
+			t.Fatalf("failed to new global context: %s", err)
+		}
+
+		err = UpdateFileOrDir(gc, tc.path)
 
 		if err != nil {
 			t.Errorf("UpdateFileOrDir() with path = %s, o = %#v returns an unexpected error: %+v", tc.path, o, err)

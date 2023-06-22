@@ -16,12 +16,41 @@ type GlobalContext struct {
 	// fs is an afero filesystem for testing.
 	fs afero.Fs
 
+	// updater is an interface to rewriting rule implementations.
+	updater Updater
+
+	// option is a set of global parameters.
+	option Option
+
 	// lockIndex is a cached index for updating dependency lock files.
 	lockIndex lock.Index
 }
 
+// NewGlobalContext returns a new instance of NewGlobalContext.
+func NewGlobalContext(fs afero.Fs, o Option) (*GlobalContext, error) {
+	updater, err := NewUpdater(o)
+	if err != nil {
+		return nil, err
+	}
+
+	lockIndex, err := lock.NewDefaultIndex()
+	if err != nil {
+		return nil, err
+	}
+
+	gc := &GlobalContext{
+		fs:        fs,
+		updater:   updater,
+		option:    o,
+		lockIndex: lockIndex,
+	}
+
+	return gc, nil
+}
+
 // ModuleContext is information shared across files within a directory.
 type ModuleContext struct {
+	// gc is a pointer to delegate some implementations to GlobalContext.
 	gc *GlobalContext
 
 	// dir is a relative path to the module from the current working directory.
@@ -70,6 +99,26 @@ func NewModuleContext(dir string, gc *GlobalContext) (*ModuleContext, error) {
 	}
 
 	return c, nil
+}
+
+// GlobalContext returns an instance of the global context.
+func (mc *ModuleContext) GlobalContext() *GlobalContext {
+	return mc.gc
+}
+
+// FS returns an instance of afero filesystem
+func (mc *ModuleContext) FS() afero.Fs {
+	return mc.gc.fs
+}
+
+// Updater returns an instance of Updater.
+func (mc *ModuleContext) Updater() Updater {
+	return mc.gc.updater
+}
+
+// Option returns an instance of Option.
+func (mc *ModuleContext) Option() Option {
+	return mc.gc.option
 }
 
 // SelectedProviders returns a list of providers inferred from version constraints.

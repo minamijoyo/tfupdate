@@ -40,7 +40,7 @@ func NewModuleUpdater(name string, version string) (Updater, error) {
 
 // Update updates the module version constraint.
 // Note that this method will rewrite the AST passed as an argument.
-func (u *ModuleUpdater) Update(f *hclwrite.File) error {
+func (u *ModuleUpdater) Update(_ *ModuleContext, _ string, f *hclwrite.File) error {
 	return u.updateModuleBlock(f)
 }
 
