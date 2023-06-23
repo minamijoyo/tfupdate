@@ -56,7 +56,7 @@ func (c *TerraformCommand) Run(args []string) int {
 	}
 
 	log.Printf("[INFO] Update terraform to %s", v)
-	option, err := tfupdate.NewOption("terraform", "", v, c.recursive, c.ignorePaths)
+	option, err := tfupdate.NewOption("terraform", "", v, []string{}, c.recursive, c.ignorePaths)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

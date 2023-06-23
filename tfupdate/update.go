@@ -28,6 +28,8 @@ func NewUpdater(o Option) (Updater, error) {
 		return NewProviderUpdater(o.name, o.version)
 	case "module":
 		return NewModuleUpdater(o.name, o.version)
+	case "lock":
+		return NewLockUpdater(o.platforms)
 	default:
 		return nil, errors.Errorf("failed to new updater. unknown type: %s", o.updateType)
 	}

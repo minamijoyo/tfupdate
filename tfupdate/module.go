@@ -1,6 +1,7 @@
 package tfupdate
 
 import (
+	"path/filepath"
 	"regexp"
 
 	"github.com/hashicorp/hcl/v2/hclsyntax"
@@ -40,7 +41,12 @@ func NewModuleUpdater(name string, version string) (Updater, error) {
 
 // Update updates the module version constraint.
 // Note that this method will rewrite the AST passed as an argument.
-func (u *ModuleUpdater) Update(_ *ModuleContext, _ string, f *hclwrite.File) error {
+func (u *ModuleUpdater) Update(_ *ModuleContext, filename string, f *hclwrite.File) error {
+	if filepath.Ext(filename) != ".tf" {
+		// skip a file without .tf extension.
+		return nil
+	}
+
 	return u.updateModuleBlock(f)
 }
 

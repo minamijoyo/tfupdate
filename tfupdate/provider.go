@@ -2,6 +2,7 @@ package tfupdate
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
@@ -34,7 +35,12 @@ func NewProviderUpdater(name string, version string) (Updater, error) {
 
 // Update updates the provider version constraint.
 // Note that this method will rewrite the AST passed as an argument.
-func (u *ProviderUpdater) Update(_ *ModuleContext, _ string, f *hclwrite.File) error {
+func (u *ProviderUpdater) Update(_ *ModuleContext, filename string, f *hclwrite.File) error {
+	if filepath.Ext(filename) != ".tf" {
+		// skip a file without .tf extension.
+		return nil
+	}
+
 	if err := u.updateTerraformBlock(f); err != nil {
 		return err
 	}

@@ -49,7 +49,7 @@ func (c *ModuleCommand) Run(args []string) int {
 	}
 
 	log.Printf("[INFO] Update module %s to %s", c.name, v)
-	option, err := tfupdate.NewOption("module", c.name, v, c.recursive, c.ignorePaths)
+	option, err := tfupdate.NewOption("module", c.name, v, []string{}, c.recursive, c.ignorePaths)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

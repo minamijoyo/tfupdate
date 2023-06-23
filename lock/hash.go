@@ -72,14 +72,16 @@ func shaSumsDataToZhHash(shaSumsData []byte) (map[string]string, error) {
 		hash := fields[0]
 		filename := fields[1]
 
+		// Default value is the filename as it contains manifest.json and cannot be parsed.
+		platform := filename
+
 		// parse a platform name
 		matches := reProviderZipfile.FindStringSubmatch(filename)
-		if len(matches) == 0 {
-			return nil, fmt.Errorf("failed to parse filename in shaSumsData: %s", filename)
+		if len(matches) != 0 {
+			os := matches[reProviderZipfile.SubexpIndex("OS")]
+			arch := matches[reProviderZipfile.SubexpIndex("Arch")]
+			platform = os + "_" + arch
 		}
-		os := matches[reProviderZipfile.SubexpIndex("OS")]
-		arch := matches[reProviderZipfile.SubexpIndex("Arch")]
-		platform := os + "_" + arch
 		// As the implementation of the h1 hash includes a prefix for the "h1:"
 		// scheme, zh also includes the "zh:" prefix for consistency.
 		zh[platform] = "zh:" + hash

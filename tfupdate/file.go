@@ -48,7 +48,7 @@ func UpdateFile(mc *ModuleContext, filename string) error {
 // UpdateDir updates version constraints for files in a given directory.
 // If a recursive flag is true, it checks and updates recursively.
 // skip hidden directories such as .terraform or .git.
-// It also skips a file without .tf extension.
+// It also skips unsupported file type.
 func UpdateDir(current *ModuleContext, dirname string) error {
 	log.Printf("[DEBUG] check dir: %s", dirname)
 	option := current.Option()
@@ -91,8 +91,8 @@ func UpdateDir(current *ModuleContext, dirname string) error {
 		}
 
 		// if an entry is a file
-		if filepath.Ext(entry.Name()) != ".tf" {
-			// skip a file without .tf extension.
+		if !(filepath.Ext(entry.Name()) == ".tf" || entry.Name() == ".terraform.lock.hcl") {
+			// skip unsupported file type
 			continue
 		}
 

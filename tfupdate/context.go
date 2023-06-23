@@ -121,6 +121,11 @@ func (mc *ModuleContext) Option() Option {
 	return mc.gc.option
 }
 
+// LockIndex returns an instance of lock index.
+func (mc *ModuleContext) LockIndex() lock.Index {
+	return mc.gc.lockIndex
+}
+
 // SelectedProviders returns a list of providers inferred from version constraints.
 // The result is sorted alphabetically by source address.
 // Version constraints only support simple constants and not comparison

@@ -3,6 +3,7 @@ package lock
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	tfaddr "github.com/hashicorp/terraform-registry-address"
@@ -114,6 +115,7 @@ func (pi *providerIndex) createProviderVersion(ctx context.Context, version stri
 		}
 
 		// Download a given provider from registry.
+		log.Printf("[DEBUG] lock.providerIndex.createProviderVersion: %s, %s, %s", pi.address, version, platform)
 		res, err := pi.papi.ProviderDownload(ctx, req)
 		if err != nil {
 			return nil, err

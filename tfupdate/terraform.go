@@ -1,6 +1,8 @@
 package tfupdate
 
 import (
+	"path/filepath"
+
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/pkg/errors"
 	"github.com/zclconf/go-cty/cty"
@@ -24,7 +26,12 @@ func NewTerraformUpdater(version string) (Updater, error) {
 
 // Update updates the terraform version constraint.
 // Note that this method will rewrite the AST passed as an argument.
-func (u *TerraformUpdater) Update(_ *ModuleContext, _ string, f *hclwrite.File) error {
+func (u *TerraformUpdater) Update(_ *ModuleContext, filename string, f *hclwrite.File) error {
+	if filepath.Ext(filename) != ".tf" {
+		// skip a file without .tf extension.
+		return nil
+	}
+
 	for _, tf := range allMatchingBlocks(f.Body(), "terraform", []string{}) {
 		// set a version to attribute value only if the key exists
 		if tf.Body().GetAttribute("required_version") != nil {

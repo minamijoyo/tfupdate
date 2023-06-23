@@ -50,6 +50,16 @@ func TestNewUpdater(t *testing.T) {
 		},
 		{
 			o: Option{
+				updateType: "lock",
+				platforms:  []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
+			},
+			want: &LockUpdater{
+				platforms: []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
+			},
+			ok: true,
+		},
+		{
+			o: Option{
 				updateType: "hoge",
 				version:    "0.0.1",
 			},

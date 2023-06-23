@@ -112,3 +112,34 @@ func newMockProviderDownloadResponses(platforms []string) ([]*ProviderDownloadRe
 
 	return responses, nil
 }
+
+// NewMockIndex does not call the real API but returns preset mock provider version metadata.
+func NewMockIndex(pvs []*ProviderVersion) Index {
+	i := &index{
+		providers: make(map[string]*providerIndex),
+		papi:      nil,
+	}
+	for _, pv := range pvs {
+		pi, ok := i.providers[pv.address]
+		if !ok {
+			pi = newProviderIndex(pv.address, i.papi)
+			i.providers[pv.address] = pi
+		}
+		pi.versions[pv.version] = pv
+	}
+
+	return i
+}
+
+// NewMockProviderVersion returns a mocked ProviderVersion for testing.
+// This is actually a setter to all private fields, but should not be used
+// except for generating test data from outside the package.
+func NewMockProviderVersion(address string, version string, platforms []string, h1Hashes map[string]string, zhHashes map[string]string) *ProviderVersion {
+	return &ProviderVersion{
+		address:   address,
+		version:   version,
+		platforms: platforms,
+		h1Hashes:  h1Hashes,
+		zhHashes:  zhHashes,
+	}
+}
