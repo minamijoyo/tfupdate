@@ -27,11 +27,11 @@ type ProviderVersion struct {
 	platforms []string
 
 	// h1Hashes is a dictionary of hash values calculated with the h1 scheme.
-	// The key is the platform name.
+	// The key is the filename.
 	h1Hashes map[string]string
 
 	// zhHashes is a dictionary of hash values calculated with the zh scheme.
-	// The key is the platform name.
+	// The key is the filename.
 	zhHashes map[string]string
 }
 
@@ -57,10 +57,8 @@ func (pv *ProviderVersion) Merge(rhs *ProviderVersion) error {
 		return fmt.Errorf("failed to merge ProviderVersion.version: %s != %s", pv.version, rhs.version)
 	}
 
-	for _, platform := range rhs.platforms {
-		pv.platforms = append(pv.platforms, platform)
-		pv.h1Hashes[platform] = rhs.h1Hashes[platform]
-	}
+	pv.platforms = append(pv.platforms, rhs.platforms...)
+	maps.Copy(pv.h1Hashes, rhs.h1Hashes)
 
 	if len(pv.zhHashes) != 0 {
 		if !reflect.DeepEqual(pv.zhHashes, rhs.zhHashes) {

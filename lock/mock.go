@@ -93,7 +93,9 @@ func newMockProviderDownloadResponse(platform string) (*ProviderDownloadResponse
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a shaSumsData: err = %s", err)
 	}
+	filename := fmt.Sprintf("terraform-provider-dummy_3.2.1_%s.zip", platform)
 	return &ProviderDownloadResponse{
+		filename:    filename,
 		zipData:     zipData,
 		shaSumsData: shaSumsData,
 	}, nil

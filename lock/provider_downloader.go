@@ -68,6 +68,9 @@ type ProviderDownloadRequest struct {
 
 // ProviderDownloadResponse is a response type for ProviderDownload.
 type ProviderDownloadResponse struct {
+	// filename is the filename for zipData.
+	filename string
+
 	// zipData is the raw byte sequence of the provider package.
 	zipData []byte
 
@@ -113,6 +116,7 @@ func (c *ProviderDownloaderClient) ProviderDownload(ctx context.Context, req *Pr
 	}
 
 	ret := &ProviderDownloadResponse{
+		filename:    metadataRes.Filename,
 		zipData:     zipData,
 		shaSumsData: shaSumsData,
 	}

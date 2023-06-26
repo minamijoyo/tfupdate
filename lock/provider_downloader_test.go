@@ -56,6 +56,7 @@ fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2  terraform-prov
 				err: nil,
 			},
 			want: &ProviderDownloadResponse{
+				filename:    "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
 				zipData:     zipData,
 				shaSumsData: shaSumsData,
 			},

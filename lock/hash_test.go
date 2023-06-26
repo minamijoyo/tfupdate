@@ -109,10 +109,10 @@ c5f0a44e3a3795cb3ee0abb0076097c738294c241f74c145dfb50f2b9fd71fd2  terraform-prov
 fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2  terraform-provider-dummy_3.2.1_darwin_amd64.zip
 `),
 			want: map[string]string{
-				"darwin_arm64":  "zh:5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086",
-				"darwin_amd64":  "zh:fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2",
-				"linux_amd64":   "zh:c5f0a44e3a3795cb3ee0abb0076097c738294c241f74c145dfb50f2b9fd71fd2",
-				"windows_amd64": "zh:8b75ff41191a7fe6c5d9129ed19a01eacde5a3797b48b738eefa21f5330c081e",
+				"terraform-provider-dummy_3.2.1_darwin_arm64.zip":  "zh:5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086",
+				"terraform-provider-dummy_3.2.1_darwin_amd64.zip":  "zh:fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2",
+				"terraform-provider-dummy_3.2.1_linux_amd64.zip":   "zh:c5f0a44e3a3795cb3ee0abb0076097c738294c241f74c145dfb50f2b9fd71fd2",
+				"terraform-provider-dummy_3.2.1_windows_amd64.zip": "zh:8b75ff41191a7fe6c5d9129ed19a01eacde5a3797b48b738eefa21f5330c081e",
 			},
 			ok: true,
 		},
@@ -120,10 +120,10 @@ fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2  terraform-prov
 			desc:        "dynamic",
 			shaSumsData: shaSumsData,
 			want: map[string]string{
-				"darwin_arm64":  "zh:5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086",
-				"darwin_amd64":  "zh:fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2",
-				"linux_amd64":   "zh:c5f0a44e3a3795cb3ee0abb0076097c738294c241f74c145dfb50f2b9fd71fd2",
-				"windows_amd64": "zh:8b75ff41191a7fe6c5d9129ed19a01eacde5a3797b48b738eefa21f5330c081e",
+				"terraform-provider-dummy_3.2.1_darwin_arm64.zip":  "zh:5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086",
+				"terraform-provider-dummy_3.2.1_darwin_amd64.zip":  "zh:fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2",
+				"terraform-provider-dummy_3.2.1_linux_amd64.zip":   "zh:c5f0a44e3a3795cb3ee0abb0076097c738294c241f74c145dfb50f2b9fd71fd2",
+				"terraform-provider-dummy_3.2.1_windows_amd64.zip": "zh:8b75ff41191a7fe6c5d9129ed19a01eacde5a3797b48b738eefa21f5330c081e",
 			},
 			ok: true,
 		},
@@ -136,12 +136,6 @@ fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2  terraform-prov
 		{
 			desc:        "parse hash error",
 			shaSumsData: []byte("aaa"),
-			want:        nil,
-			ok:          false,
-		},
-		{
-			desc:        "parse filename error",
-			shaSumsData: []byte("aaa  bbb\n"),
 			want:        nil,
 			ok:          false,
 		},

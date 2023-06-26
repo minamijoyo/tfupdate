@@ -190,7 +190,7 @@ func buildProviderVersion(address string, version string, platform string, res *
 	if err != nil {
 		return nil, err
 	}
-	h1Hashes[platform] = h1
+	h1Hashes[res.filename] = h1
 
 	zhHashes, err := shaSumsDataToZhHash(res.shaSumsData)
 	if err != nil {

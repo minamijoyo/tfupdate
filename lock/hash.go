@@ -3,7 +3,6 @@ package lock
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 
 	"golang.org/x/mod/sumdb/dirhash"
@@ -45,10 +44,6 @@ func writeTempFile(content []byte) (*os.File, error) {
 	return tmpfile, nil
 }
 
-// reProviderZipfile is a regular expression for parsing zip file names from shaSumsData.
-// terraform-provider-null_3.2.1_darwin_arm64.zip
-var reProviderZipfile = regexp.MustCompile(`terraform-provider-(?P<Type>[^_]+)+_(?P<Version>[^_]+)+_(?P<OS>[^_]+)_(?P<Arch>[^_]+)\.zip`)
-
 // shaSumsDataToZhHash is a helper function for parsing zh hash values from
 // bytes sequence of the shaSumsData document.
 func shaSumsDataToZhHash(shaSumsData []byte) (map[string]string, error) {
@@ -70,21 +65,15 @@ func shaSumsDataToZhHash(shaSumsData []byte) (map[string]string, error) {
 			return nil, fmt.Errorf("failed to parse hash in shaSumsData: %s", document)
 		}
 		hash := fields[0]
+
+		// Initially, we thought of using the key of the zh hash as the platform,
+		// but we found out that it also includes metadata such as manifest.json,
+		// so we decided to use the filename as it is.
 		filename := fields[1]
 
-		// Default value is the filename as it contains manifest.json and cannot be parsed.
-		platform := filename
-
-		// parse a platform name
-		matches := reProviderZipfile.FindStringSubmatch(filename)
-		if len(matches) != 0 {
-			os := matches[reProviderZipfile.SubexpIndex("OS")]
-			arch := matches[reProviderZipfile.SubexpIndex("Arch")]
-			platform = os + "_" + arch
-		}
 		// As the implementation of the h1 hash includes a prefix for the "h1:"
 		// scheme, zh also includes the "zh:" prefix for consistency.
-		zh[platform] = "zh:" + hash
+		zh[filename] = "zh:" + hash
 	}
 
 	return zh, nil
