@@ -15,22 +15,26 @@ import (
 )
 
 func TestNewLockUpdater(t *testing.T) {
+	index := lock.NewMockIndex([]*lock.ProviderVersion{})
 	cases := []struct {
 		platforms []string
+		index     lock.Index
 		want      Updater
 		ok        bool
 	}{
 		{
 			platforms: []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
+			index:     index,
 			want: &LockUpdater{
 				platforms: []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
+				index:     index,
 			},
 			ok: true,
 		},
 	}
 
 	for _, tc := range cases {
-		got, err := NewLockUpdater(tc.platforms)
+		got, err := NewLockUpdater(tc.platforms, tc.index)
 		if tc.ok && err != nil {
 			t.Errorf("NewLockUpdater() with platforms = %#v returns unexpected err: %+v", tc.platforms, err)
 		}
@@ -141,19 +145,21 @@ terraform {
 			if err != nil {
 				t.Fatalf("failed to new global context: %s", err)
 			}
-			gc.lockIndex = lock.NewMockIndex(tc.pvs)
+
+			index := lock.NewMockIndex(tc.pvs)
+			u, err := NewLockUpdater(tc.platforms, index)
+			if err != nil {
+				t.Fatalf("failed to new LockUpdater: %s", err)
+			}
+
+			f, diags := hclwrite.ParseConfig([]byte(tc.lockfile), ".terraform.lock.hcl", hcl.Pos{Line: 1, Column: 1})
+			if diags.HasErrors() {
+				t.Fatalf("unexpected diagnostics: %s", diags)
+			}
 
 			mc, err := NewModuleContext(dirname, gc)
 			if err != nil {
 				t.Fatalf("failed to new module context: %s", err)
-			}
-
-			u := &LockUpdater{
-				platforms: tc.platforms,
-			}
-			f, diags := hclwrite.ParseConfig([]byte(tc.lockfile), ".terraform.lock.hcl", hcl.Pos{Line: 1, Column: 1})
-			if diags.HasErrors() {
-				t.Fatalf("unexpected diagnostics: %s", diags)
 			}
 
 			err = u.Update(context.Background(), mc, ".terraform.lock.hcl", f)

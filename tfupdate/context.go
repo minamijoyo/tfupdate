@@ -6,7 +6,6 @@ import (
 
 	version "github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
-	"github.com/minamijoyo/tfupdate/lock"
 	"github.com/spf13/afero"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -22,9 +21,6 @@ type GlobalContext struct {
 
 	// option is a set of global parameters.
 	option Option
-
-	// lockIndex is a cached index for updating dependency lock files.
-	lockIndex lock.Index
 }
 
 // NewGlobalContext returns a new instance of NewGlobalContext.
@@ -34,16 +30,10 @@ func NewGlobalContext(fs afero.Fs, o Option) (*GlobalContext, error) {
 		return nil, err
 	}
 
-	lockIndex, err := lock.NewDefaultIndex()
-	if err != nil {
-		return nil, err
-	}
-
 	gc := &GlobalContext{
-		fs:        fs,
-		updater:   updater,
-		option:    o,
-		lockIndex: lockIndex,
+		fs:      fs,
+		updater: updater,
+		option:  o,
 	}
 
 	return gc, nil
@@ -120,11 +110,6 @@ func (mc *ModuleContext) Updater() Updater {
 // Option returns an instance of Option.
 func (mc *ModuleContext) Option() Option {
 	return mc.gc.option
-}
-
-// LockIndex returns an instance of lock index.
-func (mc *ModuleContext) LockIndex() lock.Index {
-	return mc.gc.lockIndex
 }
 
 // SelectedProviders returns a list of providers inferred from version constraints.

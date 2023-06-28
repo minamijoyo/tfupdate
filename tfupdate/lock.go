@@ -8,18 +8,23 @@ import (
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	tfaddr "github.com/hashicorp/terraform-registry-address"
+	"github.com/minamijoyo/tfupdate/lock"
 	"github.com/zclconf/go-cty/cty"
 )
 
 // LockUpdater is a updater implementation which updates the dependency lock fle.
 type LockUpdater struct {
 	platforms []string
+
+	// index is a cached index for updating dependency lock files.
+	index lock.Index
 }
 
 // NewLockUpdater is a factory method which returns an LockUpdater instance.
-func NewLockUpdater(platforms []string) (Updater, error) {
+func NewLockUpdater(platforms []string, index lock.Index) (Updater, error) {
 	return &LockUpdater{
 		platforms: platforms,
+		index:     index,
 	}, nil
 }
 
@@ -49,7 +54,7 @@ func (u *LockUpdater) updateLockfile(ctx context.Context, mc *ModuleContext, f *
 		pBlock := f.Body().FirstMatchingBlock("provider", []string{pAddr})
 		if pBlock != nil {
 			// update the existing provider block
-			err := u.updateProviderBlock(ctx, mc, pBlock, p)
+			err := u.updateProviderBlock(ctx, pBlock, p)
 			if err != nil {
 				return err
 			}
@@ -58,7 +63,7 @@ func (u *LockUpdater) updateLockfile(ctx context.Context, mc *ModuleContext, f *
 			pBlock = f.Body().AppendNewBlock("provider", []string{pAddr})
 			f.Body().AppendNewline()
 
-			err := u.updateProviderBlock(ctx, mc, pBlock, p)
+			err := u.updateProviderBlock(ctx, pBlock, p)
 			if err != nil {
 				return err
 			}
@@ -69,7 +74,7 @@ func (u *LockUpdater) updateLockfile(ctx context.Context, mc *ModuleContext, f *
 }
 
 // updateProviderBlock updates the provider block in the dependency lock file.
-func (u *LockUpdater) updateProviderBlock(ctx context.Context, mc *ModuleContext, pBlock *hclwrite.Block, p SelectedProvider) error {
+func (u *LockUpdater) updateProviderBlock(ctx context.Context, pBlock *hclwrite.Block, p SelectedProvider) error {
 	// a provider block found
 	vAttr := pBlock.Body().GetAttribute("version")
 	if vAttr != nil {
@@ -93,8 +98,7 @@ func (u *LockUpdater) updateProviderBlock(ctx context.Context, mc *ModuleContext
 
 	// Calculate the hash value of the provider.
 	// Note that the provider will be downloaded if cache miss.
-	index := mc.LockIndex()
-	pv, err := index.GetOrCreateProviderVersion(ctx, p.Source, p.Version, u.platforms)
+	pv, err := u.index.GetOrCreateProviderVersion(ctx, p.Source, p.Version, u.platforms)
 	if err != nil {
 		return err
 	}

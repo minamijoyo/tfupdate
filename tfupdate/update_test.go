@@ -3,9 +3,12 @@ package tfupdate
 import (
 	"bytes"
 	"context"
-	"reflect"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/minamijoyo/tfupdate/lock"
 	"github.com/spf13/afero"
 )
 
@@ -79,8 +82,15 @@ func TestNewUpdater(t *testing.T) {
 			t.Errorf("NewUpdater() with o = %#v expects to return an error, but no error", tc.o)
 		}
 
-		if !reflect.DeepEqual(got, tc.want) {
-			t.Errorf("NewUpdater() with o = %#v returns %#v, but want = %#v", tc.o, got, tc.want)
+		opts := []cmp.Option{
+			cmp.AllowUnexported(TerraformUpdater{}),
+			cmp.AllowUnexported(ProviderUpdater{}),
+			cmp.AllowUnexported(ModuleUpdater{}),
+			cmp.AllowUnexported(LockUpdater{}),
+			cmpopts.IgnoreInterfaces(struct{ lock.Index }{}),
+		}
+		if diff := cmp.Diff(got, tc.want, opts...); diff != "" {
+			t.Errorf("got: %s, want = %s, diff = %s", spew.Sdump(got), spew.Sdump(tc.want), diff)
 		}
 	}
 }
