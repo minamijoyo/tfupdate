@@ -2,6 +2,7 @@ package tfupdate
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -14,7 +15,7 @@ import (
 
 // UpdateFile updates version constraints in a single file.
 // We use an afero filesystem here for testing.
-func UpdateFile(mc *ModuleContext, filename string) error {
+func UpdateFile(ctx context.Context, mc *ModuleContext, filename string) error {
 	log.Printf("[DEBUG] check file: %s", filename)
 	r, err := mc.FS().Open(filename)
 	if err != nil {
@@ -23,7 +24,7 @@ func UpdateFile(mc *ModuleContext, filename string) error {
 	defer r.Close()
 
 	w := &bytes.Buffer{}
-	isUpdated, err := UpdateHCL(mc, r, w, filename)
+	isUpdated, err := UpdateHCL(ctx, mc, r, w, filename)
 	if err != nil {
 		return err
 	}
@@ -49,7 +50,7 @@ func UpdateFile(mc *ModuleContext, filename string) error {
 // If a recursive flag is true, it checks and updates recursively.
 // skip hidden directories such as .terraform or .git.
 // It also skips unsupported file type.
-func UpdateDir(current *ModuleContext, dirname string) error {
+func UpdateDir(ctx context.Context, current *ModuleContext, dirname string) error {
 	log.Printf("[DEBUG] check dir: %s", dirname)
 	option := current.Option()
 	dir, err := afero.ReadDir(current.FS(), dirname)
@@ -82,7 +83,7 @@ func UpdateDir(current *ModuleContext, dirname string) error {
 				return err
 			}
 
-			err = UpdateDir(child, path)
+			err = UpdateDir(ctx, child, path)
 			if err != nil {
 				return err
 			}
@@ -96,7 +97,7 @@ func UpdateDir(current *ModuleContext, dirname string) error {
 			continue
 		}
 
-		err := UpdateFile(current, path)
+		err := UpdateFile(ctx, current, path)
 		if err != nil {
 			return err
 		}
@@ -105,7 +106,7 @@ func UpdateDir(current *ModuleContext, dirname string) error {
 }
 
 // UpdateFileOrDir updates version constraints in a given file or directory.
-func UpdateFileOrDir(gc *GlobalContext, path string) error {
+func UpdateFileOrDir(ctx context.Context, gc *GlobalContext, path string) error {
 	isDir, err := afero.IsDir(gc.fs, path)
 	if err != nil {
 		return fmt.Errorf("failed to open path: %s", err)
@@ -117,7 +118,7 @@ func UpdateFileOrDir(gc *GlobalContext, path string) error {
 		if err != nil {
 			return err
 		}
-		return UpdateDir(mc, path)
+		return UpdateDir(ctx, mc, path)
 	}
 
 	// if an entry is a file
@@ -128,5 +129,5 @@ func UpdateFileOrDir(gc *GlobalContext, path string) error {
 	if err != nil {
 		return err
 	}
-	return UpdateFile(mc, path)
+	return UpdateFile(ctx, mc, path)
 }

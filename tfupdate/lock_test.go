@@ -1,6 +1,7 @@
 package tfupdate
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -155,7 +156,7 @@ terraform {
 				t.Fatalf("unexpected diagnostics: %s", diags)
 			}
 
-			err = u.Update(mc, ".terraform.lock.hcl", f)
+			err = u.Update(context.Background(), mc, ".terraform.lock.hcl", f)
 			if tc.ok && err != nil {
 				t.Errorf("faild to call Update: err = %s", err)
 			}

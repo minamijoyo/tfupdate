@@ -1,6 +1,7 @@
 package tfupdate
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 
@@ -35,7 +36,7 @@ func NewProviderUpdater(name string, version string) (Updater, error) {
 
 // Update updates the provider version constraint.
 // Note that this method will rewrite the AST passed as an argument.
-func (u *ProviderUpdater) Update(_ *ModuleContext, filename string, f *hclwrite.File) error {
+func (u *ProviderUpdater) Update(_ context.Context, _ *ModuleContext, filename string, f *hclwrite.File) error {
 	if filepath.Ext(filename) != ".tf" {
 		// skip a file without .tf extension.
 		return nil

@@ -1,6 +1,7 @@
 package tfupdate
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -174,7 +175,7 @@ provider "registry.terraform.io/hashicorp/null" {
 			t.Fatalf("unexpected diagnostics: %s", diags)
 		}
 
-		err := u.Update(nil, tc.filename, f)
+		err := u.Update(context.Background(), nil, tc.filename, f)
 		if tc.ok && err != nil {
 			t.Errorf("Update() with src = %s, version = %s returns unexpected err: %+v", tc.src, tc.version, err)
 		}

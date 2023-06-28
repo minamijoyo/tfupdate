@@ -2,6 +2,7 @@ package tfupdate
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -16,7 +17,7 @@ import (
 type Updater interface {
 	// Update updates a version constraint.
 	// Note that this method will rewrite the AST passed as an argument.
-	Update(mc *ModuleContext, filename string, f *hclwrite.File) error
+	Update(ctx context.Context, mc *ModuleContext, filename string, f *hclwrite.File) error
 }
 
 // NewUpdater is a factory method which returns an Updater implementation.
@@ -39,7 +40,7 @@ func NewUpdater(o Option) (Updater, error) {
 // and writes updated contents to io.Writer.
 // If contents changed successfully, it returns true, or otherwise returns false.
 // If an error occurs, Nothing is written to the output stream.
-func UpdateHCL(mc *ModuleContext, r io.Reader, w io.Writer, filename string) (bool, error) {
+func UpdateHCL(ctx context.Context, mc *ModuleContext, r io.Reader, w io.Writer, filename string) (bool, error) {
 	input, err := io.ReadAll(r)
 	if err != nil {
 		return false, fmt.Errorf("failed to read input: %s", err)
@@ -51,7 +52,7 @@ func UpdateHCL(mc *ModuleContext, r io.Reader, w io.Writer, filename string) (bo
 	}
 
 	u := mc.Updater()
-	if err = u.Update(mc, filename, f); err != nil {
+	if err = u.Update(ctx, mc, filename, f); err != nil {
 		return false, err
 	}
 

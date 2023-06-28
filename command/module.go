@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -61,7 +62,7 @@ func (c *ModuleCommand) Run(args []string) int {
 		return 1
 	}
 
-	err = tfupdate.UpdateFileOrDir(gc, c.path)
+	err = tfupdate.UpdateFileOrDir(context.Background(), gc, c.path)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

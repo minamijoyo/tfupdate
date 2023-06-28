@@ -25,17 +25,17 @@ func NewLockUpdater(platforms []string) (Updater, error) {
 
 // Update updates the dependency lock file.
 // Note that this method will rewrite the AST passed as an argument.
-func (u *LockUpdater) Update(mc *ModuleContext, filename string, f *hclwrite.File) error {
+func (u *LockUpdater) Update(ctx context.Context, mc *ModuleContext, filename string, f *hclwrite.File) error {
 	if filepath.Base(filename) != ".terraform.lock.hcl" {
 		// Skip other than the lock file.
 		return nil
 	}
 
-	return u.updateLockfile(mc, f)
+	return u.updateLockfile(ctx, mc, f)
 }
 
 // updateLockfile updates the dependency lock file.
-func (u *LockUpdater) updateLockfile(mc *ModuleContext, f *hclwrite.File) error {
+func (u *LockUpdater) updateLockfile(ctx context.Context, mc *ModuleContext, f *hclwrite.File) error {
 	for _, p := range mc.SelecetedProviders() {
 		pAddr, err := fullyQualifiedProviderAddress(p.Source)
 		if err != nil {
@@ -48,7 +48,7 @@ func (u *LockUpdater) updateLockfile(mc *ModuleContext, f *hclwrite.File) error 
 		pBlock := f.Body().FirstMatchingBlock("provider", []string{pAddr})
 		if pBlock != nil {
 			// update the existing provider block
-			err := u.updateProviderBlock(mc, pBlock, p)
+			err := u.updateProviderBlock(ctx, mc, pBlock, p)
 			if err != nil {
 				return err
 			}
@@ -57,7 +57,7 @@ func (u *LockUpdater) updateLockfile(mc *ModuleContext, f *hclwrite.File) error 
 			pBlock = f.Body().AppendNewBlock("provider", []string{pAddr})
 			f.Body().AppendNewline()
 
-			err := u.updateProviderBlock(mc, pBlock, p)
+			err := u.updateProviderBlock(ctx, mc, pBlock, p)
 			if err != nil {
 				return err
 			}
@@ -68,7 +68,7 @@ func (u *LockUpdater) updateLockfile(mc *ModuleContext, f *hclwrite.File) error 
 }
 
 // updateProviderBlock updates the provider block in the dependency lock file.
-func (u *LockUpdater) updateProviderBlock(mc *ModuleContext, pBlock *hclwrite.Block, p SelectedProvider) error {
+func (u *LockUpdater) updateProviderBlock(ctx context.Context, mc *ModuleContext, pBlock *hclwrite.Block, p SelectedProvider) error {
 	// a provider block found
 	vAttr := pBlock.Body().GetAttribute("version")
 	if vAttr != nil {
@@ -92,8 +92,6 @@ func (u *LockUpdater) updateProviderBlock(mc *ModuleContext, pBlock *hclwrite.Bl
 
 	// Calculate the hash value of the provider.
 	// Note that the provider will be downloaded if cache miss.
-	// We should inject a context from more outside, but we initialize it here for now.
-	ctx := context.Background()
 	index := mc.LockIndex()
 	pv, err := index.GetOrCreateProviderVersion(ctx, p.Source, p.Version, u.platforms)
 	if err != nil {

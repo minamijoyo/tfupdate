@@ -1,6 +1,7 @@
 package tfupdate
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -90,7 +91,7 @@ required_version = "0.12.6"
 			t.Fatalf("failed to new module context: %s", err)
 		}
 
-		err = UpdateFile(mc, tc.filename)
+		err = UpdateFile(context.Background(), mc, tc.filename)
 		if tc.ok && err != nil {
 			t.Errorf("UpdateFile() with filename = %s, o = %#v returns unexpected err: %+v", tc.filename, tc.o, err)
 		}
@@ -128,7 +129,7 @@ func TestUpdateFileNotFound(t *testing.T) {
 		t.Fatalf("failed to new module context: %s", err)
 	}
 
-	err = UpdateFile(mc, filename)
+	err = UpdateFile(context.Background(), mc, filename)
 
 	if err == nil {
 		t.Errorf("UpdateFile() with filename = %s, o = %#v expects to return an error, but no error", filename, o)
@@ -403,7 +404,7 @@ terraform {
 			t.Fatalf("failed to new module context: %s", err)
 		}
 
-		err = UpdateDir(mc, tc.checkdir)
+		err = UpdateDir(context.Background(), mc, tc.checkdir)
 
 		if err != nil {
 			t.Errorf("UpdateDir() with dirname = %s, o = %#v returns an unexpected error: %+v", tc.checkdir, tc.o, err)
@@ -475,7 +476,7 @@ terraform {
 			t.Fatalf("failed to new global context: %s", err)
 		}
 
-		err = UpdateFileOrDir(gc, tc.path)
+		err = UpdateFileOrDir(context.Background(), gc, tc.path)
 
 		if err != nil {
 			t.Errorf("UpdateFileOrDir() with path = %s, o = %#v returns an unexpected error: %+v", tc.path, o, err)

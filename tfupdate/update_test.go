@@ -2,6 +2,7 @@ package tfupdate
 
 import (
 	"bytes"
+	"context"
 	"reflect"
 	"testing"
 
@@ -201,7 +202,7 @@ provider "invalid" {
 			t.Fatalf("failed to new module context: %s", err)
 		}
 
-		isUpdated, err := UpdateHCL(mc, r, w, "main.tf")
+		isUpdated, err := UpdateHCL(context.Background(), mc, r, w, "main.tf")
 		if tc.ok && err != nil {
 			t.Errorf("UpdateHCL() with src = %s, o = %#v returns unexpected err: %+v", tc.src, tc.o, err)
 		}

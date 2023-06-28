@@ -1,6 +1,7 @@
 package tfupdate
 
 import (
+	"context"
 	"path/filepath"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -26,7 +27,7 @@ func NewTerraformUpdater(version string) (Updater, error) {
 
 // Update updates the terraform version constraint.
 // Note that this method will rewrite the AST passed as an argument.
-func (u *TerraformUpdater) Update(_ *ModuleContext, filename string, f *hclwrite.File) error {
+func (u *TerraformUpdater) Update(_ context.Context, _ *ModuleContext, filename string, f *hclwrite.File) error {
 	if filepath.Ext(filename) != ".tf" {
 		// skip a file without .tf extension.
 		return nil
