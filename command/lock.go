@@ -22,7 +22,7 @@ type LockCommand struct {
 // Run runs the procedure of this command.
 func (c *LockCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("lock", flag.ContinueOnError)
-	cmdFlags.StringArrayVarP(&c.platforms, "platform", "p", []string{}, "A target platform for dependecy lock file")
+	cmdFlags.StringArrayVar(&c.platforms, "platform", []string{}, "A target platform for dependecy lock file")
 	cmdFlags.BoolVarP(&c.recursive, "recursive", "r", false, "Check a directory recursively")
 	cmdFlags.StringArrayVarP(&c.ignorePaths, "ignore-path", "i", []string{}, "A regular expression for path to ignore")
 
@@ -43,16 +43,6 @@ func (c *LockCommand) Run(args []string) int {
 		c.UI.Error("The --platform flag is required")
 		c.UI.Error(c.Help())
 		return 1
-	}
-
-	// Since the official terraform providers lock command uses short flags,
-	// we early detect and reject common mistakes.
-	for _, platform := range c.platforms {
-		if strings.HasPrefix(platform, "latform") {
-			c.UI.Error("Use the --platform flag instead -platform")
-			c.UI.Error(c.Help())
-			return 1
-		}
 	}
 
 	log.Println("[INFO] Update dependency lock files")
@@ -86,7 +76,7 @@ Arguments
   PATH               A path of directory to update
 
 Options:
-  -p  --platform     Specify a platform to update dependency lock files.
+      --platform     Specify a platform to update dependency lock files.
                      At least one or more --platform flags must be specified.
                      Use this option multiple times to include checksums for multiple target systems.
                      Target platform names consist of an operating system and a CPU architecture.
