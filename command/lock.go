@@ -39,7 +39,7 @@ func (c *LockCommand) Run(args []string) int {
 	c.path = cmdFlags.Arg(0)
 
 	if len(c.platforms) == 0 {
-		c.UI.Error(fmt.Sprint("The --platform flag is required"))
+		c.UI.Error("The --platform flag is required")
 		c.UI.Error(c.Help())
 		return 1
 	}
@@ -48,7 +48,7 @@ func (c *LockCommand) Run(args []string) int {
 	// we early detect and reject common mistakes.
 	for _, platform := range c.platforms {
 		if strings.HasPrefix(platform, "latform") {
-			c.UI.Error(fmt.Sprint("Use the --platform flag instead -platform"))
+			c.UI.Error("Use the --platform flag instead -platform")
 			c.UI.Error(c.Help())
 			return 1
 		}
