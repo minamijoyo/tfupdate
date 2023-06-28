@@ -131,7 +131,7 @@ func (c *ProviderDownloaderClient) download(ctx context.Context, url string) ([]
 		return nil, fmt.Errorf("failed to build http request: err = %s, url = %s", err, url)
 	}
 
-	log.Printf("[DEBUG] lock.ProviderDownloaderClient.download: GET %s", url)
+	log.Printf("[DEBUG] ProviderDownloaderClient.download: GET %s", url)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to request: err = %s, url = %s", err, url)

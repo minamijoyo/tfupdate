@@ -42,6 +42,7 @@ func (u *LockUpdater) updateLockfile(ctx context.Context, mc *ModuleContext, f *
 			// Unsupported formats, such as legacy abbreviated notation, will result
 			// in parse errors, but should be ignored without returning an error if
 			// possible.
+			log.Printf("[DEBUG] LockUpdater.updateLockfile: ignore legacy provider address notation: %s", p.Source)
 			continue
 		}
 

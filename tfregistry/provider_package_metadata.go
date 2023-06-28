@@ -60,7 +60,7 @@ func (c *Client) ProviderPackageMetadata(ctx context.Context, req *ProviderPacka
 		return nil, err
 	}
 
-	log.Printf("[DEBUG] tfregistry.Client.ProviderPackageMetadata: GET %s", httpRequest.URL)
+	log.Printf("[DEBUG] Client.ProviderPackageMetadata: GET %s", httpRequest.URL)
 	httpResponse, err := c.httpClient.Do(httpRequest)
 	if err != nil {
 		return nil, fmt.Errorf("failed to HTTP Request: err = %s, req = %#v", err, httpRequest)

@@ -2,6 +2,7 @@ package tfupdate
 
 import (
 	"fmt"
+	"log"
 
 	version "github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-config-inspect/tfconfig"
@@ -138,6 +139,7 @@ func (mc *ModuleContext) SelecetedProviders() []SelectedProvider {
 			// Terraform v0.13, but since this is already a deprecated usage, we don't
 			// implicitly complement the official hashicorp namespace and is not included
 			// in the results.
+			log.Printf("[DEBUG] ModuleContext.SelecetedProviders: ignore legacy provider address notation: %s", p.Source)
 			continue
 		}
 
@@ -145,6 +147,7 @@ func (mc *ModuleContext) SelecetedProviders() []SelectedProvider {
 
 		if v == "" {
 			// Ignore if no version is specified.
+			log.Printf("[DEBUG] ModuleContext.SelecetedProviders: ignore no version selected: %s", p.Source)
 			continue
 		}
 
@@ -175,6 +178,7 @@ func selectVersion(constraints []string) string {
 		v, err := version.NewVersion(c)
 		if err != nil {
 			// Ignore parse error
+			log.Printf("[DEBUG] selectVersion: ignore version parse error: constaraints = %#v, err = %s", constraints, err)
 			continue
 		}
 		// return the first one found
