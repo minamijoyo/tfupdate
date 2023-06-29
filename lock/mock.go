@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 
+	tfaddr "github.com/hashicorp/terraform-registry-address"
 	"golang.org/x/exp/slices"
 )
 
@@ -80,20 +81,25 @@ func newMockShaSumsData(name string, version string, platforms []string) ([]byte
 }
 
 // newMockProviderDownloadResponse returns a new ProviderDownloadResponse for testing.
-// Note that some parameters are hard-coded to simplify the caller.
-func newMockProviderDownloadResponse(platform string) (*ProviderDownloadResponse, error) {
+func newMockProviderDownloadResponse(address string, version string, targetPlatform string, allPlatforms []string) (*ProviderDownloadResponse, error) {
+	pAddr, err := tfaddr.ParseProviderSource(address)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse provider aaddress: %s", address)
+	}
+	name := pAddr.Type
 	// create a zip file in memory.
-	zipData, err := newMockZipData("terraform-provider-dummy_v3.2.1_x5", "dummy_3.2.1_"+platform)
+	zipDataFilename := fmt.Sprintf("terraform-provider-%s_v%s_x5", name, version)
+	zipDataContents := fmt.Sprintf("%s_%s_%s", name, version, targetPlatform)
+	zipData, err := newMockZipData(zipDataFilename, zipDataContents)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a zip file in memory: err = %s", err)
 	}
 	// create a valid dummy shaSumsData.
-	platforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64", "windows_amd64"}
-	shaSumsData, err := newMockShaSumsData("dummy", "3.2.1", platforms)
+	shaSumsData, err := newMockShaSumsData(name, version, allPlatforms)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a shaSumsData: err = %s", err)
 	}
-	filename := fmt.Sprintf("terraform-provider-dummy_3.2.1_%s.zip", platform)
+	filename := fmt.Sprintf("terraform-provider-%s_%s_%s.zip", name, version, targetPlatform)
 	return &ProviderDownloadResponse{
 		filename:    filename,
 		zipData:     zipData,
@@ -102,10 +108,10 @@ func newMockProviderDownloadResponse(platform string) (*ProviderDownloadResponse
 }
 
 // newMockProviderDownloadResponses returns a new list of ProviderDownloadResponse for testing.
-func newMockProviderDownloadResponses(platforms []string) ([]*ProviderDownloadResponse, error) {
+func newMockProviderDownloadResponses(address string, version string, targetPlatforms []string, allPlatforms []string) ([]*ProviderDownloadResponse, error) {
 	responses := []*ProviderDownloadResponse{}
-	for _, platform := range platforms {
-		res, err := newMockProviderDownloadResponse(platform)
+	for _, targetPlatform := range targetPlatforms {
+		res, err := newMockProviderDownloadResponse(address, version, targetPlatform, allPlatforms)
 		if err != nil {
 			return nil, err
 		}
