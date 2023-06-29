@@ -60,8 +60,8 @@ func (u *LockUpdater) updateLockfile(ctx context.Context, mc *ModuleContext, f *
 			}
 		} else {
 			// create a new provider block
-			pBlock = f.Body().AppendNewBlock("provider", []string{pAddr})
 			f.Body().AppendNewline()
+			pBlock = f.Body().AppendNewBlock("provider", []string{pAddr})
 
 			err := u.updateProviderBlock(ctx, pBlock, p)
 			if err != nil {
