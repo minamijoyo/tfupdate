@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -242,6 +243,72 @@ foo = "123"
 				if reflect.TypeOf(got.Expr) != reflect.TypeOf(tc.wantExprType) {
 					t.Errorf("got = %#v, but want = %#v", got.Expr, tc.wantExprType)
 				}
+			}
+		})
+	}
+}
+
+func TestGetAttributeValueAsUnquotedString(t *testing.T) {
+	cases := []struct {
+		desc string
+		src  string
+		want string
+	}{
+		{
+			desc: "simple",
+			src: `
+foo = "123"
+`,
+			want: "123",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			f, diags := hclwrite.ParseConfig([]byte(tc.src), "", hcl.Pos{Line: 1, Column: 1})
+			if len(diags) != 0 {
+				for _, diag := range diags {
+					t.Logf("- %s", diag.Error())
+				}
+				t.Fatalf("unexpected diagnostics")
+			}
+
+			attr := f.Body().GetAttribute("foo")
+			got := getAttributeValueAsUnquotedString(attr)
+
+			if got != tc.want {
+				t.Errorf("got = %s, but want = %s", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestTokensForListPerLine(t *testing.T) {
+	cases := []struct {
+		desc string
+		list []string
+		want string
+	}{
+		{
+			desc: "simple",
+			list: []string{"aaa", "bbb"},
+			want: `foo = [
+  "aaa",
+  "bbb",
+]
+`,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			f := hclwrite.NewEmptyFile()
+			f.Body().SetAttributeRaw("foo", tokensForListPerLine(tc.list))
+
+			got := string(hclwrite.Format(f.BuildTokens(nil).Bytes()))
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("got: %s, want = %s, diff = %s", got, tc.want, diff)
 			}
 		})
 	}
