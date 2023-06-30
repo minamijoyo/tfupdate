@@ -6,6 +6,13 @@ FROM hashicorp/terraform:$TERRAFORM_VERSION AS terraform
 FROM golang:1.20-alpine3.18 AS tfupdate
 RUN apk --no-cache add make git
 
+# A workaround for a permission issue of git.
+# Since UIDs are different between host and container,
+# the .git directory is untrusted by default.
+# We need to allow it explicitly.
+# https://github.com/actions/checkout/issues/760
+RUN git config --global --add safe.directory /work
+
 # for testing
 RUN apk add --no-cache bash
 COPY --from=terraform /bin/terraform /usr/local/bin/
