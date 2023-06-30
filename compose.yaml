@@ -1,0 +1,11 @@
+services:
+  tfupdate:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.dev
+      args:
+        TERRAFORM_VERSION: ${TERRAFORM_VERSION:-latest}
+    volumes:
+      - ".:/work"
+    environment:
+      CGO_ENABLED: 0 # disable cgo for go test
