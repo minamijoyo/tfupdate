@@ -52,7 +52,7 @@ func TestIndexGetOrCreateProviderVersion(t *testing.T) {
 				t.Fatalf("%s@%s: failed to call GetOrCreateProviderVersion: err = %s", address, version, err)
 			}
 			// expect cache miss
-			if client.called != 1 {
+			if client.called != len(targetPlatforms) {
 				t.Fatalf("%s@%s: api was called %d times, but expected to be called %d times", address, version, client.called, 1)
 			}
 
@@ -62,7 +62,7 @@ func TestIndexGetOrCreateProviderVersion(t *testing.T) {
 				t.Fatalf("%s@%s: failed to call GetOrCreateProviderVersion: err = %s", address, version, err)
 			}
 			// expect cache hit
-			if client.called != 1 {
+			if client.called != len(targetPlatforms) {
 				t.Fatalf("%s@%s: api was called %d times, but expected to be called %d times", address, version, client.called, 1)
 			}
 		}
@@ -153,7 +153,7 @@ func TestProviderIndexGetOrCreateProviderVersion(t *testing.T) {
 				t.Fatalf("expected to fail, but success: got = %s", spew.Sdump(cached))
 			}
 
-			if diff := cmp.Diff(got, tc.want, cmp.AllowUnexported(ProviderVersion{})); diff != "" {
+			if diff := cmp.Diff(cached, tc.want, cmp.AllowUnexported(ProviderVersion{})); diff != "" {
 				t.Errorf("got: %s, want = %s, diff = %s", spew.Sdump(cached), spew.Sdump(tc.want), diff)
 			}
 
