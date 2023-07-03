@@ -63,7 +63,7 @@ func (pv *ProviderVersion) Merge(rhs *ProviderVersion) error {
 	if len(pv.zhHashes) != 0 {
 		if !reflect.DeepEqual(pv.zhHashes, rhs.zhHashes) {
 			// should not happen
-			return fmt.Errorf("failed to merge ProviderVersion.zhHashes: %#v != %s", pv.zhHashes, rhs.zhHashes)
+			return fmt.Errorf("failed to merge ProviderVersion.zhHashes: %#v != %#v", pv.zhHashes, rhs.zhHashes)
 		}
 	} else {
 		pv.zhHashes = rhs.zhHashes
@@ -74,7 +74,7 @@ func (pv *ProviderVersion) Merge(rhs *ProviderVersion) error {
 
 // AllHashes returns an array of strings containing all hash values. It is
 // intended to be used as the value of hashes in a dependency lock file.
-// The result is sorted alphabetically
+// The result is sorted alphabetically.
 func (pv *ProviderVersion) AllHashes() []string {
 	h1 := maps.Values(pv.h1Hashes)
 	zh := maps.Values(pv.zhHashes)
