@@ -8,7 +8,7 @@ usage()
   Usage: $(basename "$0") <command> <fixture>
 
   Arguments:
-    command: A name of step tu run. Valid values are:
+    command: A name of step to run. Valid values are:
              run | setup | provider | lock | cleanup
     fixture: A name of fixture in test-fixtures/lock/
 EOF
