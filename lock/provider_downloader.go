@@ -15,7 +15,8 @@ import (
 
 // PackageDownloaderAPI is an interface for downloading provider package.
 // Provider packages are downloaded from the HashiCorp release server,
-// therefore we distinct this API from the Terraform Registry API.
+// GitHub release page or somewhere else.
+// Therefore we distinct this API from the Terraform Registry API.
 // The API specification is not documented.
 type ProviderDownloaderAPI interface {
 	// ProviderDownload downloads a provider package.
