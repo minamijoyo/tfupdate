@@ -12,7 +12,7 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-// LockUpdater is a updater implementation which updates the dependency lock fle.
+// LockUpdater is a updater implementation which updates the dependency lock file.
 type LockUpdater struct {
 	platforms []string
 
@@ -75,9 +75,9 @@ func (u *LockUpdater) updateLockfile(ctx context.Context, mc *ModuleContext, f *
 
 // updateProviderBlock updates the provider block in the dependency lock file.
 func (u *LockUpdater) updateProviderBlock(ctx context.Context, pBlock *hclwrite.Block, p SelectedProvider) error {
-	// a provider block found
 	vAttr := pBlock.Body().GetAttribute("version")
 	if vAttr != nil {
+		// a version attribute found
 		vVal := getAttributeValueAsUnquotedString(vAttr)
 		log.Printf("[DEBUG] check provider version in lock file: address = %s, lock = %s, config = %s", p.Source, vVal, p.Version)
 		if vVal == p.Version {
