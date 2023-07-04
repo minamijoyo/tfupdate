@@ -1,5 +1,10 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Set docker build timeout to 20m ([#91](https://github.com/minamijoyo/tfupdate/pull/91))
+* Update docker related actions to latest ([#92](https://github.com/minamijoyo/tfupdate/pull/92))
+
 ## 0.7.0 (2023/07/04)
 
 NEW FEATURES:
