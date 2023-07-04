@@ -12,7 +12,7 @@ on:
 
 jobs:
   docker:
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
       - name: Set up Docker Buildx
