@@ -6,7 +6,8 @@
 ## Features
 
 - Update version constraints of Terraform core, providers, and modules
-- Update all your Terraform configurations recursively under a given directory
+- Update dependency lock files (.terraform.lock.hcl) without Terraform CLI
+- Update all your Terraform configurations and lock files recursively under a given directory
 - Get the latest release version from the GitHub, GitLab, or Terraform Registry
 - Terraform v0.12+ support
 
@@ -64,10 +65,11 @@ $ docker run -it --rm minamijoyo/tfupdate --version
 ## Usage
 
 ```
-tfupdate --help
+$ tfupdate --help
 Usage: tfupdate [--version] [--help] <command> [<args>]
 
 Available commands are:
+    lock         Update dependency lock files
     module       Update version constraints for module
     provider     Update version constraints for provider
     release      Get release version information
@@ -202,6 +204,8 @@ terraform {
   }
 }
 ```
+
+For updating the dependency lock file (.terraform.lock.hcl), use the `tfupdate lock` command.
 
 ### module
 
@@ -357,6 +361,136 @@ $ tfupdate release list -n 5 hashicorp/terraform
 0.12.20
 0.12.21
 ```
+
+### lock
+
+The tfupdate lock command updates the dependency lock file (.terraform.lock.hcl).
+For more information on the dependency lock file, see the official Terraform documentation:
+https://developer.hashicorp.com/terraform/language/files/dependency-lock
+
+```
+$ tfupdate lock --help
+Usage: tfupdate lock [options] <PATH>
+
+Arguments
+  PATH               A path of directory to update
+
+Options:
+      --platform     Specify a platform to update dependency lock files.
+                     At least one or more --platform flags must be specified.
+                     Use this option multiple times to include checksums for multiple target systems.
+                     Target platform names consist of an operating system and a CPU architecture.
+                     (e.g. linux_amd64, darwin_amd64, darwin_arm64)
+  -r  --recursive    Check a directory recursively (default: false)
+  -i  --ignore-path  A regular expression for path to ignore
+                     If you want to ignore multiple directories, set the flag multiple times.
+```
+
+Given the following configuration:
+
+```
+$ cat test-fixtures/lock/simple/main.tf
+terraform {
+  required_providers {
+    null = {
+      source  = "hashicorp/null"
+      version = "3.1.1"
+    }
+  }
+}
+```
+
+As you know, you can generate the dependency lock file by the terraform providers lock command:
+
+```
+$ terraform -chdir=test-fixtures/lock/simple providers lock -platform=linux_amd64 -platform=darwin_amd64 -platform=darwin_arm64
+```
+
+```
+$ cat test-fixtures/lock/simple/.terraform.lock.hcl
+# This file is maintained automatically by "terraform init".
+# Manual edits may be lost in future updates.
+
+provider "registry.terraform.io/hashicorp/null" {
+  version     = "3.1.1"
+  constraints = "3.1.1"
+  hashes = [
+    "h1:71sNUDvmiJcijsvfXpiLCz0lXIBSsEJjMxljt7hxMhw=",
+    "h1:Pctug/s/2Hg5FJqjYcTM0kPyx3AoYK1MpRWO0T9V2ns=",
+    "h1:YvH6gTaQzGdNv+SKTZujU1O0bO+Pw6vJHOPhqgN8XNs=",
+    "zh:063466f41f1d9fd0dd93722840c1314f046d8760b1812fa67c34de0afcba5597",
+    "zh:08c058e367de6debdad35fc24d97131c7cf75103baec8279aba3506a08b53faf",
+    "zh:73ce6dff935150d6ddc6ac4a10071e02647d10175c173cfe5dca81f3d13d8afe",
+    "zh:78d5eefdd9e494defcb3c68d282b8f96630502cac21d1ea161f53cfe9bb483b3",
+    "zh:8fdd792a626413502e68c195f2097352bdc6a0df694f7df350ed784741eb587e",
+    "zh:976bbaf268cb497400fd5b3c774d218f3933271864345f18deebe4dcbfcd6afa",
+    "zh:b21b78ca581f98f4cdb7a366b03ae9db23a73dfa7df12c533d7c19b68e9e72e5",
+    "zh:b7fc0c1615dbdb1d6fd4abb9c7dc7da286631f7ca2299fb9cd4664258ccfbff4",
+    "zh:d1efc942b2c44345e0c29bc976594cb7278c38cfb8897b344669eafbc3cddf46",
+    "zh:e356c245b3cd9d4789bab010893566acace682d7db877e52d40fc4ca34a50924",
+    "zh:ea98802ba92fcfa8cf12cbce2e9e7ebe999afbf8ed47fa45fc847a098d89468b",
+    "zh:eff8872458806499889f6927b5d954560f3d74bf20b6043409edf94d26cd906f",
+  ]
+}
+```
+
+When updating provider version, the lock file must also be updated:
+
+```
+$ tfupdate provider null -v 3.2.1 ./test-fixtures/lock/simple/
+```
+
+```
+$ cat test-fixtures/lock/simple/main.tf
+terraform {
+  required_providers {
+    null = {
+      source  = "hashicorp/null"
+      version = "3.2.1"
+    }
+  }
+}
+```
+
+You can update the lock file by the tfupdate lock command without Terraform CLI:
+
+```
+$ tfupdate lock --platform=linux_amd64 --platform=darwin_amd64 --platform=darwin_arm64 ./test-fixtures/lock/simple/
+```
+
+Note that unlike the terraform providers lock command, the `--platform` flag requires two hyphens.
+
+```
+$ cat test-fixtures/lock/simple/.terraform.lock.hcl
+# This file is maintained automatically by "terraform init".
+# Manual edits may be lost in future updates.
+
+provider "registry.terraform.io/hashicorp/null" {
+  version     = "3.2.1"
+  constraints = "3.2.1"
+  hashes = [
+    "h1:FbGfc+muBsC17Ohy5g806iuI1hQc4SIexpYCrQHQd8w=",
+    "h1:tSj1mL6OQ8ILGqR2mDu7OYYYWf+hoir0pf9KAQ8IzO8=",
+    "h1:ydA0/SNRVB1o95btfshvYsmxA+jZFRZcvKzZSB+4S1M=",
+    "zh:58ed64389620cc7b82f01332e27723856422820cfd302e304b5f6c3436fb9840",
+    "zh:62a5cc82c3b2ddef7ef3a6f2fedb7b9b3deff4ab7b414938b08e51d6e8be87cb",
+    "zh:63cff4de03af983175a7e37e52d4bd89d990be256b16b5c7f919aff5ad485aa5",
+    "zh:74cb22c6700e48486b7cabefa10b33b801dfcab56f1a6ac9b6624531f3d36ea3",
+    "zh:78d5eefdd9e494defcb3c68d282b8f96630502cac21d1ea161f53cfe9bb483b3",
+    "zh:79e553aff77f1cfa9012a2218b8238dd672ea5e1b2924775ac9ac24d2a75c238",
+    "zh:a1e06ddda0b5ac48f7e7c7d59e1ab5a4073bbcf876c73c0299e4610ed53859dc",
+    "zh:c37a97090f1a82222925d45d84483b2aa702ef7ab66532af6cbcfb567818b970",
+    "zh:e4453fbebf90c53ca3323a92e7ca0f9961427d2f0ce0d2b65523cc04d5d999c2",
+    "zh:e80a746921946d8b6761e77305b752ad188da60688cfd2059322875d363be5f5",
+    "zh:fbdb892d9822ed0e4cb60f2fedbdbb556e4da0d88d3b942ae963ed6ff091e48f",
+    "zh:fca01a623d90d0cad0843102f9b8b9fe0d3ff8244593bd817f126582b52dd694",
+  ]
+}
+```
+
+The tfupdate lock command parses the `required_providers` block in your configuration, downloads provider packages and calculates hash values under the hood. The most important point is that it caches calculated hash values in memory, which gives us a huge performance advantage when updating multiple directories at once using the `-r (--recursive)` option.
+
+To skip terraform init, we assume that all dependencies are pinned to a specific version in the required_providers block of the root module. Note that version constraint expressions or indirect dependencies via modules are not supported and ignored.
 
 ## Keep your dependencies up-to-date
 

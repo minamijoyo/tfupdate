@@ -24,3 +24,21 @@ jobs:
         go-version-file: '.go-version'
     - name: test
       run: make test
+  testacc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        terraform:
+        - 1.5.2
+        - 0.14.11
+    env:
+      TERRAFORM_VERSION: ${{ matrix.terraform }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: docker build
+      run: docker-compose build
+    - name: terraform --version
+      run: docker compose run --rm tfupdate terraform --version
+    - name: testacc
+      run: docker compose run --rm tfupdate make testacc

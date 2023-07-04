@@ -1,6 +1,7 @@
 package tfupdate
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -56,13 +57,15 @@ func TestNewModuleUpdater(t *testing.T) {
 
 func TestUpdateModule(t *testing.T) {
 	cases := []struct {
-		src     string
-		name    string
-		version string
-		want    string
-		ok      bool
+		filename string
+		src      string
+		name     string
+		version  string
+		want     string
+		ok       bool
 	}{
 		{
+			filename: "main.tf",
 			src: `
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -80,6 +83,7 @@ module "vpc" {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 module "vpc1" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -105,6 +109,7 @@ module "vpc2" {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -122,6 +127,7 @@ module "vpc" {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
@@ -137,6 +143,7 @@ module "vpc" {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 module "vpc" {
   source = "git::https://example.com/vpc.git?ref=v1.2.0"
@@ -151,6 +158,40 @@ module "vpc" {
 `,
 			ok: true,
 		},
+		{
+			filename: ".terraform.lock.hcl",
+			src: `
+# This file is maintained automatically by "terraform init".
+# Manual edits may be lost in future updates.
+
+provider "registry.terraform.io/hashicorp/null" {
+  version     = "3.1.1"
+  constraints = "3.1.1"
+  hashes = [
+    "h1:YvH6gTaQzGdNv+SKTZujU1O0bO+Pw6vJHOPhqgN8XNs=",
+    "zh:063466f41f1d9fd0dd93722840c1314f046d8760b1812fa67c34de0afcba5597",
+  ]
+}
+
+`,
+			name:    "git::https://example.com/vpc.git",
+			version: "1.3.0",
+			want: `
+# This file is maintained automatically by "terraform init".
+# Manual edits may be lost in future updates.
+
+provider "registry.terraform.io/hashicorp/null" {
+  version     = "3.1.1"
+  constraints = "3.1.1"
+  hashes = [
+    "h1:YvH6gTaQzGdNv+SKTZujU1O0bO+Pw6vJHOPhqgN8XNs=",
+    "zh:063466f41f1d9fd0dd93722840c1314f046d8760b1812fa67c34de0afcba5597",
+  ]
+}
+
+`,
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {
@@ -158,12 +199,12 @@ module "vpc" {
 			name:    tc.name,
 			version: tc.version,
 		}
-		f, diags := hclwrite.ParseConfig([]byte(tc.src), "", hcl.Pos{Line: 1, Column: 1})
+		f, diags := hclwrite.ParseConfig([]byte(tc.src), tc.filename, hcl.Pos{Line: 1, Column: 1})
 		if diags.HasErrors() {
 			t.Fatalf("unexpected diagnostics: %s", diags)
 		}
 
-		err := u.Update(f)
+		err := u.Update(context.Background(), nil, tc.filename, f)
 		if tc.ok && err != nil {
 			t.Errorf("Update() with src = %s, name = %s, version = %s returns unexpected err: %+v", tc.src, tc.name, tc.version, err)
 		}

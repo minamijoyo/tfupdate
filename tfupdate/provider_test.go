@@ -1,6 +1,7 @@
 package tfupdate
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -56,13 +57,15 @@ func TestNewProviderUpdater(t *testing.T) {
 
 func TestUpdateProvider(t *testing.T) {
 	cases := []struct {
-		src     string
-		name    string
-		version string
-		want    string
-		ok      bool
+		filename string
+		src      string
+		name     string
+		version  string
+		want     string
+		ok       bool
 	}{
 		{
+			filename: "main.tf",
 			src: `
 terraform {
   required_version = "0.12.4"
@@ -84,6 +87,7 @@ terraform {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 provider "aws" {
   version = "2.11.0"
@@ -101,6 +105,7 @@ provider "aws" {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 terraform {
   required_version = "0.12.4"
@@ -122,6 +127,7 @@ terraform {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 provider "aws" {
   region = "ap-northeast-1"
@@ -137,6 +143,7 @@ provider "aws" {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 terraform {
   required_providers {
@@ -186,6 +193,7 @@ provider "aws" {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 terraform {
   required_providers {
@@ -211,6 +219,7 @@ terraform {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 terraform {
   required_providers {
@@ -234,6 +243,7 @@ terraform {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 terraform {
   required_providers {
@@ -269,6 +279,7 @@ terraform {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 terraform {
   required_providers {
@@ -290,6 +301,7 @@ terraform {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 terraform {
   required_providers {
@@ -319,6 +331,7 @@ terraform {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 terraform {
   required_providers {
@@ -344,6 +357,7 @@ terraform {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
 			src: `
 terraform {
   required_providers {
@@ -378,6 +392,40 @@ terraform {
 `,
 			ok: true,
 		},
+		{
+			filename: ".terraform.lock.hcl",
+			src: `
+# This file is maintained automatically by "terraform init".
+# Manual edits may be lost in future updates.
+
+provider "registry.terraform.io/hashicorp/null" {
+  version     = "3.1.1"
+  constraints = "3.1.1"
+  hashes = [
+    "h1:YvH6gTaQzGdNv+SKTZujU1O0bO+Pw6vJHOPhqgN8XNs=",
+    "zh:063466f41f1d9fd0dd93722840c1314f046d8760b1812fa67c34de0afcba5597",
+  ]
+}
+
+`,
+			name:    "null",
+			version: "3.2.1",
+			want: `
+# This file is maintained automatically by "terraform init".
+# Manual edits may be lost in future updates.
+
+provider "registry.terraform.io/hashicorp/null" {
+  version     = "3.1.1"
+  constraints = "3.1.1"
+  hashes = [
+    "h1:YvH6gTaQzGdNv+SKTZujU1O0bO+Pw6vJHOPhqgN8XNs=",
+    "zh:063466f41f1d9fd0dd93722840c1314f046d8760b1812fa67c34de0afcba5597",
+  ]
+}
+
+`,
+			ok: true,
+		},
 	}
 
 	for _, tc := range cases {
@@ -385,12 +433,12 @@ terraform {
 			name:    tc.name,
 			version: tc.version,
 		}
-		f, diags := hclwrite.ParseConfig([]byte(tc.src), "", hcl.Pos{Line: 1, Column: 1})
+		f, diags := hclwrite.ParseConfig([]byte(tc.src), tc.filename, hcl.Pos{Line: 1, Column: 1})
 		if diags.HasErrors() {
 			t.Fatalf("unexpected diagnostics: %s", diags)
 		}
 
-		err := u.Update(f)
+		err := u.Update(context.Background(), nil, tc.filename, f)
 		if tc.ok && err != nil {
 			t.Errorf("Update() with src = %s, name = %s, version = %s returns unexpected err: %+v", tc.src, tc.name, tc.version, err)
 		}

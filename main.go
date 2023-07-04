@@ -93,6 +93,11 @@ func initCommands() map[string]cli.CommandFactory {
 				Meta: meta,
 			}, nil
 		},
+		"lock": func() (cli.Command, error) {
+			return &command.LockCommand{
+				Meta: meta,
+			}, nil
+		},
 		"release": func() (cli.Command, error) {
 			return &command.ReleaseCommand{
 				Meta: meta,

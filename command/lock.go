@@ -6,24 +6,23 @@ import (
 	"log"
 	"strings"
 
-	"github.com/minamijoyo/tfupdate/release"
 	"github.com/minamijoyo/tfupdate/tfupdate"
 	flag "github.com/spf13/pflag"
 )
 
-// TerraformCommand is a command which update version constraints for terraform.
-type TerraformCommand struct {
+// LockCommand is a command which update dependency lock files.
+type LockCommand struct {
 	Meta
-	version     string
+	platforms   []string
 	path        string
 	recursive   bool
 	ignorePaths []string
 }
 
 // Run runs the procedure of this command.
-func (c *TerraformCommand) Run(args []string) int {
-	cmdFlags := flag.NewFlagSet("terraform", flag.ContinueOnError)
-	cmdFlags.StringVarP(&c.version, "version", "v", "latest", "A new version constraint")
+func (c *LockCommand) Run(args []string) int {
+	cmdFlags := flag.NewFlagSet("lock", flag.ContinueOnError)
+	cmdFlags.StringArrayVar(&c.platforms, "platform", []string{}, "A target platform for dependecy lock file")
 	cmdFlags.BoolVarP(&c.recursive, "recursive", "r", false, "Check a directory recursively")
 	cmdFlags.StringArrayVarP(&c.ignorePaths, "ignore-path", "i", []string{}, "A regular expression for path to ignore")
 
@@ -33,30 +32,21 @@ func (c *TerraformCommand) Run(args []string) int {
 	}
 
 	if len(cmdFlags.Args()) != 1 {
-		c.UI.Error(fmt.Sprintf("The command expects 1 argument, but got %d", len(cmdFlags.Args())))
+		c.UI.Error(fmt.Sprintf("The command expects 1 arguments, but got %d", len(cmdFlags.Args())))
 		c.UI.Error(c.Help())
 		return 1
 	}
 
 	c.path = cmdFlags.Arg(0)
 
-	v := c.version
-	if v == "latest" {
-		r, err := newRelease("github", "hashicorp/terraform")
-		if err != nil {
-			c.UI.Error(err.Error())
-			return 1
-		}
-
-		v, err = release.Latest(context.Background(), r)
-		if err != nil {
-			c.UI.Error(err.Error())
-			return 1
-		}
+	if len(c.platforms) == 0 {
+		c.UI.Error("The --platform flag is required")
+		c.UI.Error(c.Help())
+		return 1
 	}
 
-	log.Printf("[INFO] Update terraform to %s", v)
-	option, err := tfupdate.NewOption("terraform", "", v, []string{}, c.recursive, c.ignorePaths)
+	log.Println("[INFO] Update dependency lock files")
+	option, err := tfupdate.NewOption("lock", "", "", c.platforms, c.recursive, c.ignorePaths)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
@@ -78,16 +68,19 @@ func (c *TerraformCommand) Run(args []string) int {
 }
 
 // Help returns long-form help text.
-func (c *TerraformCommand) Help() string {
+func (c *LockCommand) Help() string {
 	helpText := `
-Usage: tfupdate terraform [options] <PATH>
+Usage: tfupdate lock [options] <PATH>
 
 Arguments
-  PATH               A path of file or directory to update
+  PATH               A path of directory to update
 
 Options:
-  -v  --version      A new version constraint (default: latest)
-                     If the version is omitted, the latest version is automatically checked and set.
+      --platform     Specify a platform to update dependency lock files.
+                     At least one or more --platform flags must be specified.
+                     Use this option multiple times to include checksums for multiple target systems.
+                     Target platform names consist of an operating system and a CPU architecture.
+                     (e.g. linux_amd64, darwin_amd64, darwin_arm64)
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.
@@ -96,6 +89,6 @@ Options:
 }
 
 // Synopsis returns one-line help text.
-func (c *TerraformCommand) Synopsis() string {
-	return "Update version constraints for terraform"
+func (c *LockCommand) Synopsis() string {
+	return "Update dependency lock files"
 }

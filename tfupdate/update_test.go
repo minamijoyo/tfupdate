@@ -2,8 +2,14 @@ package tfupdate
 
 import (
 	"bytes"
-	"reflect"
+	"context"
 	"testing"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/minamijoyo/tfupdate/lock"
+	"github.com/spf13/afero"
 )
 
 func TestNewUpdater(t *testing.T) {
@@ -48,6 +54,16 @@ func TestNewUpdater(t *testing.T) {
 		},
 		{
 			o: Option{
+				updateType: "lock",
+				platforms:  []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
+			},
+			want: &LockUpdater{
+				platforms: []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
+			},
+			ok: true,
+		},
+		{
+			o: Option{
 				updateType: "hoge",
 				version:    "0.0.1",
 			},
@@ -66,8 +82,15 @@ func TestNewUpdater(t *testing.T) {
 			t.Errorf("NewUpdater() with o = %#v expects to return an error, but no error", tc.o)
 		}
 
-		if !reflect.DeepEqual(got, tc.want) {
-			t.Errorf("NewUpdater() with o = %#v returns %#v, but want = %#v", tc.o, got, tc.want)
+		opts := []cmp.Option{
+			cmp.AllowUnexported(TerraformUpdater{}),
+			cmp.AllowUnexported(ProviderUpdater{}),
+			cmp.AllowUnexported(ModuleUpdater{}),
+			cmp.AllowUnexported(LockUpdater{}),
+			cmpopts.IgnoreInterfaces(struct{ lock.Index }{}),
+		}
+		if diff := cmp.Diff(got, tc.want, opts...); diff != "" {
+			t.Errorf("got: %s, want = %s, diff = %s", spew.Sdump(got), spew.Sdump(tc.want), diff)
 		}
 	}
 }
@@ -172,26 +195,24 @@ provider "invalid" {
 			isUpdated: false,
 			ok:        true,
 		},
-		{
-			src: `
-provider "aws" {
-  version = "2.11.0"
-}
-`,
-			o: Option{
-				updateType: "hoge",
-				version:    "0.0.1",
-			},
-			want:      "",
-			isUpdated: false,
-			ok:        false,
-		},
 	}
 
 	for _, tc := range cases {
 		r := bytes.NewBufferString(tc.src)
 		w := &bytes.Buffer{}
-		isUpdated, err := UpdateHCL(r, w, "test", tc.o)
+
+		fs := afero.NewMemMapFs()
+		gc, err := NewGlobalContext(fs, tc.o)
+		if err != nil {
+			t.Fatalf("failed to new global context: %s", err)
+		}
+
+		mc, err := NewModuleContext(".", gc)
+		if err != nil {
+			t.Fatalf("failed to new module context: %s", err)
+		}
+
+		isUpdated, err := UpdateHCL(context.Background(), mc, r, w, "main.tf")
 		if tc.ok && err != nil {
 			t.Errorf("UpdateHCL() with src = %s, o = %#v returns unexpected err: %+v", tc.src, tc.o, err)
 		}
