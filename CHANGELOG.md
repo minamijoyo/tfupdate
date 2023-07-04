@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.7.0 (2023/07/04)
+
 NEW FEATURES:
 
 * Add native support for updating .terraform.lock.hcl ([#90](https://github.com/minamijoyo/tfupdate/pull/90))
