@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"path/filepath"
 	"strings"
 
 	"github.com/minamijoyo/tfupdate/tfupdate"
@@ -39,6 +40,12 @@ func (c *LockCommand) Run(args []string) int {
 
 	c.path = cmdFlags.Arg(0)
 
+	if filepath.IsAbs(c.path) {
+		c.UI.Error("The PATH argument should be a relative path, not an absolute path")
+		c.UI.Error(c.Help())
+		return 1
+	}
+
 	if len(c.platforms) == 0 {
 		c.UI.Error("The --platform flag is required")
 		c.UI.Error(c.Help())
@@ -73,7 +80,7 @@ func (c *LockCommand) Help() string {
 Usage: tfupdate lock [options] <PATH>
 
 Arguments
-  PATH               A path of directory to update
+  PATH               A relative path of directory to update
 
 Options:
       --platform     Specify a platform to update dependency lock files.
