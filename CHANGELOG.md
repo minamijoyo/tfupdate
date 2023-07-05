@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.7.1 (2023/07/05)
+
 BUG FIXES:
 
 * Fix a regression issue for using absolute path ([#94](https://github.com/minamijoyo/tfupdate/pull/94))
