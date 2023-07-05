@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+BUG FIXES:
+
+* Fix a regression issue for using absolute path ([#94](https://github.com/minamijoyo/tfupdate/pull/94))
+
 ENHANCEMENTS:
 
 * Set docker build timeout to 20m ([#91](https://github.com/minamijoyo/tfupdate/pull/91))
