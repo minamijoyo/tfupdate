@@ -373,7 +373,7 @@ $ tfupdate lock --help
 Usage: tfupdate lock [options] <PATH>
 
 Arguments
-  PATH               A path of directory to update
+  PATH               A relative path of directory to update
 
 Options:
       --platform     Specify a platform to update dependency lock files.

@@ -1,7 +1,6 @@
 package tfupdate
 
 import (
-	"fmt"
 	"log"
 
 	version "github.com/hashicorp/go-version"
@@ -66,11 +65,15 @@ type SelectedProvider struct {
 
 // aferoToTfconfigFS converts afero.Fs to tfconfig.FS.
 // The filesystem has been replaced for testing purposes, but due to historical
-// reasons, we use afero.Fs instead of standard io/fs.Fs introduced in Go 1.16.
+// reasons, we use afero.Fs instead of standard io/fs.FS introduced in Go 1.16.
 // On the other hand, the tfconfig uses its own tfconfig.FS, which is also
 // incompatible the standard one. Fortunately, both have adaptors for
 // converting the interface to the standard one. Converting afero.Fs to
 // io/fs.FS and then to tfconfig.FS makes the types match.
+// Note that the standard io/fs.FS doesn't support any write operations and
+// afero.IOFS doesn't support absolute paths at the time of writing.
+// It might be better to use the native OS filesystem for testing without
+// relying on afero.
 func aferoToTfconfigFS(afs afero.Fs) tfconfig.FS {
 	return tfconfig.WrapFS(afero.NewIOFS(afs))
 }
@@ -78,15 +81,22 @@ func aferoToTfconfigFS(afs afero.Fs) tfconfig.FS {
 // NewModuleContext parses a given module and returns a new ModuleContext.
 // The dir is a relative path to the module from the current working directory.
 func NewModuleContext(dir string, gc *GlobalContext) (*ModuleContext, error) {
+	requiredProviders := make(map[string]*tfconfig.ProviderRequirement)
 	m, diags := tfconfig.LoadModuleFromFilesystem(aferoToTfconfigFS(gc.fs), dir)
 	if diags.HasErrors() {
-		return nil, fmt.Errorf("failed to load module: dir = %s, err = %s", dir, diags)
+		// There is a known issue passing absolute paths to afero.IOFS results in
+		// an error, but as the result of module inspection is not essential for
+		// all use cases now, we intentionally ignore the error here.
+		// https://github.com/minamijoyo/tfupdate/issues/93
+		log.Printf("[DEBUG] failed to load module: dir = %s, err = %s", dir, diags)
+	} else {
+		requiredProviders = m.RequiredProviders
 	}
 
 	c := &ModuleContext{
 		gc:                gc,
 		dir:               dir,
-		requiredProviders: m.RequiredProviders,
+		requiredProviders: requiredProviders,
 	}
 
 	return c, nil
