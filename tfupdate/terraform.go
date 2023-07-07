@@ -28,8 +28,8 @@ func NewTerraformUpdater(version string) (Updater, error) {
 // Update updates the terraform version constraint.
 // Note that this method will rewrite the AST passed as an argument.
 func (u *TerraformUpdater) Update(_ context.Context, _ *ModuleContext, filename string, f *hclwrite.File) error {
-	if filepath.Ext(filename) != ".tf" {
-		// skip a file without .tf extension.
+	if filepath.Base(filename) == ".terraform.lock.hcl" {
+		// skip a lock file.
 		return nil
 	}
 

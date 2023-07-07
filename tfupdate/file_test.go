@@ -73,6 +73,24 @@ required_version = "0.12.6"
 `,
 			ok: true,
 		},
+		{
+			filename: "valid.hcl",
+			src: `
+terraform {
+  required_version = "0.12.6"
+}
+`,
+			o: Option{
+				updateType: "terraform",
+				version:    "0.12.7",
+			},
+			want: `
+terraform {
+  required_version = "0.12.7"
+}
+`,
+			ok: true,
+		},
 	}
 	for _, tc := range cases {
 		fs := afero.NewMemMapFs()
@@ -431,7 +449,6 @@ terraform {
 }
 
 func TestUpdateFileOrDirFile(t *testing.T) {
-	filename := "terraform.tf"
 	src := `
 terraform {
   required_version = "0.12.6"
@@ -441,54 +458,88 @@ terraform {
 		updateType: "terraform",
 		version:    "0.12.7",
 	}
-	want := `
+
+	cases := []struct {
+		desc     string
+		filename string
+		path     string
+		want     string
+	}{
+		{
+			desc:     "simple dir with tf file",
+			filename: "terraform.tf",
+			path:     "a",
+			want: `
 terraform {
   required_version = "0.12.7"
 }
-`
-
-	cases := []struct {
-		path string
-	}{
-		{
-			path: "a",
+`,
 		},
 		{
-			path: "a/terraform.tf",
+			desc:     "simple tf file",
+			filename: "terraform.tf",
+			path:     "a/terraform.tf",
+			want: `
+terraform {
+  required_version = "0.12.7"
+}
+`,
+		},
+		{
+			desc:     "should not update .hcl file if the target path is dir",
+			filename: "terraform.hcl",
+			path:     "a",
+			want: `
+terraform {
+  required_version = "0.12.6"
+}
+`,
+		},
+		{
+			desc:     "should update .hcl file if the target path is file",
+			filename: "terraform.hcl",
+			path:     "a/terraform.hcl",
+			want: `
+terraform {
+  required_version = "0.12.7"
+}
+`,
 		},
 	}
 
 	for _, tc := range cases {
-		fs := afero.NewMemMapFs()
-		dirname := "a"
-		err := fs.MkdirAll(dirname, os.ModePerm)
-		if err != nil {
-			t.Fatalf("failed to create dir: %s", err)
-		}
+		t.Run(tc.desc, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			dirname := "a"
+			err := fs.MkdirAll(dirname, os.ModePerm)
+			if err != nil {
+				t.Fatalf("failed to create dir: %s", err)
+			}
 
-		err = afero.WriteFile(fs, filepath.Join(dirname, filename), []byte(src), 0644)
-		if err != nil {
-			t.Fatalf("failed to write file: %s", err)
-		}
+			err = afero.WriteFile(fs, filepath.Join(dirname, tc.filename), []byte(src), 0644)
+			if err != nil {
+				t.Fatalf("failed to write file: %s", err)
+			}
 
-		gc, err := NewGlobalContext(fs, o)
-		if err != nil {
-			t.Fatalf("failed to new global context: %s", err)
-		}
+			gc, err := NewGlobalContext(fs, o)
+			if err != nil {
+				t.Fatalf("failed to new global context: %s", err)
+			}
 
-		err = UpdateFileOrDir(context.Background(), gc, tc.path)
+			err = UpdateFileOrDir(context.Background(), gc, tc.path)
 
-		if err != nil {
-			t.Errorf("UpdateFileOrDir() with path = %s, o = %#v returns an unexpected error: %+v", tc.path, o, err)
-		}
+			if err != nil {
+				t.Errorf("UpdateFileOrDir() with path = %s, o = %#v returns an unexpected error: %+v", tc.path, o, err)
+			}
 
-		got, err := afero.ReadFile(fs, filepath.Join(dirname, filename))
-		if err != nil {
-			t.Fatalf("failed to read file: %s", err)
-		}
+			got, err := afero.ReadFile(fs, filepath.Join(dirname, tc.filename))
+			if err != nil {
+				t.Fatalf("failed to read file: %s", err)
+			}
 
-		if string(got) != want {
-			t.Errorf("UpdateFileOrDir() with path = %s, o = %#v returns %s, but want = %s", tc.path, o, string(got), want)
-		}
+			if string(got) != tc.want {
+				t.Errorf("UpdateFileOrDir() with path = %s, o = %#v returns %s, but want = %s", tc.path, o, string(got), tc.want)
+			}
+		})
 	}
 }

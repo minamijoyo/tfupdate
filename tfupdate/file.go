@@ -129,5 +129,7 @@ func UpdateFileOrDir(ctx context.Context, gc *GlobalContext, path string) error 
 	if err != nil {
 		return err
 	}
+	// When the filename is intentionally specified,
+	// we should not ignore it by its extension as much as possible.
 	return UpdateFile(ctx, mc, path)
 }
