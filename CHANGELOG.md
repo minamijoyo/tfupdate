@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.7.2 (2023/07/07)
+
 BUG FIXES:
 
 * Fix a regression issue for updating .hcl file ([#97](https://github.com/minamijoyo/tfupdate/pull/97))
