@@ -1,6 +1,6 @@
 module github.com/minamijoyo/tfupdate
 
-go 1.20
+go 1.21
 
 require (
 	github.com/davecgh/go-spew v1.1.1
