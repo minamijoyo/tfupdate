@@ -2,11 +2,14 @@ package tfupdate
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/spf13/afero"
 )
 
 func TestNewProviderUpdater(t *testing.T) {
@@ -332,6 +335,7 @@ terraform {
 		},
 		{
 			filename: "main.tf",
+			// a TokenQuotedLit is also valid token for version
 			src: `
 terraform {
   required_providers {
@@ -393,6 +397,68 @@ terraform {
 			ok: true,
 		},
 		{
+			filename: "main.tf",
+			src: `
+terraform {
+  required_providers {
+    github = {
+      source  = "integrations/github"
+      version = "5.38.0"
+    }
+  }
+}
+`,
+			name:    "integrations/github",
+			version: "5.39.0",
+			want: `
+terraform {
+  required_providers {
+    github = {
+      source  = "integrations/github"
+      version = "5.39.0"
+    }
+  }
+}
+`,
+			ok: true,
+		},
+		{
+			filename: "main.tf",
+			src: `
+terraform {
+  required_providers {
+    petoju = {
+      source  = "petoju/mysql"
+      version = "3.0.41"
+    }
+
+    winebarrel = {
+      source  = "winebarrel/mysql"
+      version = "1.10.5"
+    }
+  }
+}
+`,
+			name:    "winebarrel/mysql",
+			version: "1.10.6",
+			want: `
+terraform {
+  required_providers {
+    petoju = {
+      source  = "petoju/mysql"
+      version = "3.0.41"
+    }
+
+    winebarrel = {
+      source  = "winebarrel/mysql"
+      version = "1.10.6"
+    }
+  }
+}
+`,
+			ok: true,
+		},
+		{
 			filename: ".terraform.lock.hcl",
 			src: `
 # This file is maintained automatically by "terraform init".
@@ -429,16 +495,40 @@ provider "registry.terraform.io/hashicorp/null" {
 	}
 
 	for _, tc := range cases {
-		u := &ProviderUpdater{
-			name:    tc.name,
-			version: tc.version,
+		fs := afero.NewMemMapFs()
+		dirname := "test"
+		err := fs.MkdirAll(dirname, os.ModePerm)
+		if err != nil {
+			t.Fatalf("failed to create dir: %s", err)
 		}
+
+		err = afero.WriteFile(fs, filepath.Join(dirname, "main.tf"), []byte(tc.src), 0644)
+		if err != nil {
+			t.Fatalf("failed to write file: %s", err)
+		}
+
+		o := Option{
+			updateType: "provider",
+			name:       tc.name,
+			version:    tc.version,
+		}
+		gc, err := NewGlobalContext(fs, o)
+		if err != nil {
+			t.Fatalf("failed to new global context: %s", err)
+		}
+
+		mc, err := NewModuleContext(dirname, gc)
+		if err != nil {
+			t.Fatalf("failed to new module context: %s", err)
+		}
+
+		u := gc.updater
 		f, diags := hclwrite.ParseConfig([]byte(tc.src), tc.filename, hcl.Pos{Line: 1, Column: 1})
 		if diags.HasErrors() {
 			t.Fatalf("unexpected diagnostics: %s", diags)
 		}
 
-		err := u.Update(context.Background(), nil, tc.filename, f)
+		err = u.Update(context.Background(), mc, tc.filename, f)
 		if tc.ok && err != nil {
 			t.Errorf("Update() with src = %s, name = %s, version = %s returns unexpected err: %+v", tc.src, tc.name, tc.version, err)
 		}

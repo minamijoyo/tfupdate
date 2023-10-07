@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
@@ -36,29 +37,38 @@ func NewProviderUpdater(name string, version string) (Updater, error) {
 
 // Update updates the provider version constraint.
 // Note that this method will rewrite the AST passed as an argument.
-func (u *ProviderUpdater) Update(_ context.Context, _ *ModuleContext, filename string, f *hclwrite.File) error {
+func (u *ProviderUpdater) Update(_ context.Context, mc *ModuleContext, filename string, f *hclwrite.File) error {
 	if filepath.Base(filename) == ".terraform.lock.hcl" {
 		// skip a lock file.
 		return nil
 	}
 
-	if err := u.updateTerraformBlock(f); err != nil {
+	if err := u.updateTerraformBlock(mc, f); err != nil {
 		return err
 	}
 
 	return u.updateProviderBlock(f)
 }
 
-func (u *ProviderUpdater) updateTerraformBlock(f *hclwrite.File) error {
+func (u *ProviderUpdater) updateTerraformBlock(mc *ModuleContext, f *hclwrite.File) error {
 	for _, tf := range allMatchingBlocks(f.Body(), "terraform", []string{}) {
 		p := tf.Body().FirstMatchingBlock("required_providers", []string{})
 		if p == nil {
 			continue
 		}
 
+		name := u.name
+		// If the name contains /, assume that a namespace is intended and check the source.
+		if strings.Contains(u.name, "/") {
+			name = mc.ResolveProviderShortNameFromSource(u.name)
+			if name == "" {
+				continue
+			}
+		}
+
 		// The hclwrite.Attribute doesn't have enough AST for object type to check.
 		// Get the attribute as a native hcl.Attribute as a compromise.
-		hclAttr, err := getHCLNativeAttribute(p.Body(), u.name)
+		hclAttr, err := getHCLNativeAttribute(p.Body(), name)
 		if err != nil {
 			return err
 		}
@@ -72,7 +82,7 @@ func (u *ProviderUpdater) updateTerraformBlock(f *hclwrite.File) error {
 				u.updateTerraformRequiredProvidersBlockAsString(p)
 			} else {
 				// Otherwise, it's an object syntax.
-				if err := u.updateTerraformRequiredProvidersBlockAsObject(p, hclAttr); err != nil {
+				if err := u.updateTerraformRequiredProvidersBlockAsObject(p, name, hclAttr); err != nil {
 					return err
 				}
 			}
@@ -82,7 +92,7 @@ func (u *ProviderUpdater) updateTerraformBlock(f *hclwrite.File) error {
 	return nil
 }
 
-func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwrite.Block, hclAttr *hcl.Attribute) error {
+func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwrite.Block, name string, hclAttr *hcl.Attribute) error {
 	// terraform {
 	//   required_providers {
 	//     aws = {
@@ -115,7 +125,7 @@ func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwr
 	// tokens in order, updating the bytes directly.
 	// It's apparently a fragile dirty hack, but I didn't come up with the better
 	// way to do this.
-	attr := p.Body().GetAttribute(u.name)
+	attr := p.Body().GetAttribute(name)
 	tokens := attr.Expr().BuildTokens(nil)
 
 	i := 0

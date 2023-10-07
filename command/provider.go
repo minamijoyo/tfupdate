@@ -44,7 +44,13 @@ func (c *ProviderCommand) Run(args []string) int {
 
 	v := c.version
 	if v == "latest" {
-		source := fmt.Sprintf("terraform-providers/terraform-provider-%s", c.name)
+		source := ""
+		if strings.Contains(c.name, "/") {
+			namespace, name, _ := strings.Cut(c.name, "/")
+			source = fmt.Sprintf("%s/terraform-provider-%s", namespace, name)
+		} else {
+			source = fmt.Sprintf("hashicorp/terraform-provider-%s", c.name)
+		}
 		r, err := newRelease("github", source)
 		if err != nil {
 			c.UI.Error(err.Error())
@@ -86,14 +92,12 @@ func (c *ProviderCommand) Help() string {
 Usage: tfupdate provider [options] <PROVIDER_NAME> <PATH>
 
 Arguments
-  PROVIDER_NAME      A name of provider (e.g. aws, google, azurerm)
+  PROVIDER_NAME      A name of provider (e.g. aws or integrations/github)
   PATH               A path of file or directory to update
 
 Options:
   -v  --version      A new version constraint (default: latest)
                      If the version is omitted, the latest version is automatically checked and set.
-                     Getting the latest version automatically is supported only for official providers.
-                     If you have an unofficial provider, use release latest command.
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.
