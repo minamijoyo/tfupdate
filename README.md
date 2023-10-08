@@ -152,14 +152,12 @@ $ tfupdate provider --help
 Usage: tfupdate provider [options] <PROVIDER_NAME> <PATH>
 
 Arguments
-  PROVIDER_NAME      A name of provider (e.g. aws, google, azurerm)
+  PROVIDER_NAME      A name of provider (e.g. aws or integrations/github)
   PATH               A path of file or directory to update
 
 Options:
   -v  --version      A new version constraint (default: latest)
                      If the version is omitted, the latest version is automatically checked and set.
-                     Getting the latest version automatically is supported only for official providers.
-                     If you have an unofficial provider, use release latest command.
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.

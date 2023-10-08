@@ -181,3 +181,16 @@ func selectVersion(constraints []string) string {
 	}
 	return ""
 }
+
+// ResolveProviderShortNameFromSource is a helper function to resolve provider
+// short names from the source address.
+// If not found, return an empty string.
+func (mc *ModuleContext) ResolveProviderShortNameFromSource(source string) string {
+	for k, v := range mc.requiredProviders {
+		if v.Source == source {
+			return k
+		}
+	}
+
+	return ""
+}

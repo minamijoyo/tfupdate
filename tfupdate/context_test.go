@@ -216,3 +216,97 @@ func TestSelectVersion(t *testing.T) {
 		})
 	}
 }
+
+func TestModuleContextResolveProviderShortNameFromSource(t *testing.T) {
+	cases := []struct {
+		desc   string
+		src    string
+		source string
+		want   string
+	}{
+		{
+			desc: "simple",
+			src: `
+terraform {
+  required_providers {
+    github = {
+      source  = "integrations/github"
+      version = "5.38.0"
+    }
+  }
+}
+`,
+			source: "integrations/github",
+			want:   "github",
+		},
+		{
+			desc: "multiple forks",
+			src: `
+terraform {
+  required_providers {
+    petoju = {
+      source  = "petoju/mysql"
+      version = "3.0.41"
+    }
+
+    winebarrel = {
+      source  = "winebarrel/mysql"
+      version = "1.10.5"
+    }
+  }
+}
+`,
+			source: "winebarrel/mysql",
+			want:   "winebarrel",
+		},
+		{
+			desc: "not found",
+			src: `
+terraform {
+  required_providers {
+    petoju = {
+      source  = "petoju/mysql"
+      version = "3.0.41"
+    }
+
+    winebarrel = {
+      source  = "winebarrel/mysql"
+      version = "1.10.5"
+    }
+  }
+}
+`,
+			source: "foo/mysql",
+			want:   "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			dirname := "test"
+			err := fs.MkdirAll(dirname, os.ModePerm)
+			if err != nil {
+				t.Fatalf("failed to create dir: %s", err)
+			}
+			err = afero.WriteFile(fs, filepath.Join(dirname, "main.tf"), []byte(tc.src), 0644)
+			if err != nil {
+				t.Fatalf("failed to write file: %s", err)
+			}
+
+			gc := &GlobalContext{
+				fs: fs,
+			}
+			mc, err := NewModuleContext(dirname, gc)
+			if err != nil {
+				t.Fatalf("failed to new ModuleContext: %s", err)
+			}
+
+			got := mc.ResolveProviderShortNameFromSource(tc.source)
+
+			if got != tc.want {
+				t.Errorf("got: %s, want = %s", got, tc.want)
+			}
+		})
+	}
+}
