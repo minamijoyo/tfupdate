@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.8.0 (2023/10/09)
+
 NOTE:
 
 Starting from v0.8.0, the tfupdate provider command now supports namespaces. To maintain backward compatibility, the left-hand key in the required_providers block is still evaluated as the short name if the namespace is omitted. Still, if the provider name contains /, we assume that users intend to use namespaces and check the source address.
