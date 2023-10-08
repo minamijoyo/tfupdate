@@ -30,7 +30,7 @@ func TestSortVersions(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			got := sortVersions(tc.versionsRaw)
+			got := fromVersions(sortVersions(toVersions(tc.versionsRaw)))
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("got = %#v, but want = %#v", got, tc.want)
 			}
@@ -68,7 +68,7 @@ func TestExcludePreReleases(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			got := excludePreReleases(tc.versionsRaw)
+			got := fromVersions(excludePreReleases(toVersions(tc.versionsRaw)))
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("got = %#v, but want = %#v", got, tc.want)
 			}

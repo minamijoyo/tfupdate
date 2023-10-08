@@ -61,6 +61,15 @@ func TestLatest(t *testing.T) {
 			want: "",
 			ok:   false,
 		},
+		{
+			desc: "parse error",
+			r: &mockRelease{
+				versions: []string{"foo", "0.3.0", "0.2.0", "0.1.0", "0.1.1"},
+				err:      nil,
+			},
+			want: "0.3.0",
+			ok:   true,
+		},
 	}
 
 	for _, tc := range cases {
