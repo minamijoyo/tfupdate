@@ -33,18 +33,20 @@ func Latest(ctx context.Context, r Release) (string, error) {
 // List returns a list of releases in semver order.
 // If preRelease is set to false, the result doesn't contain pre-releases.
 func List(ctx context.Context, r Release, maxLength int, preRelease bool) ([]string, error) {
-	versions, err := r.ListReleases(ctx)
+	res, err := r.ListReleases(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	versions := toVersions(res)
 	sorted := sortVersions(versions)
-	releases := sorted
+	rels := sorted
 
 	if !preRelease {
-		releases = excludePreReleases(sorted)
+		rels = excludePreReleases(sorted)
 	}
 
+	releases := fromVersions(rels)
 	start := len(releases) - minInt(maxLength, len(releases))
 	return releases[start:], nil
 }
