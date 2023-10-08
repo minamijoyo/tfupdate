@@ -1,5 +1,34 @@
 ## master (Unreleased)
 
+NOTE:
+
+Starting from v0.8.0, the tfupdate provider command now supports namespaces. To maintain backward compatibility, the left-hand key in the required_providers block is still evaluated as the short name if the namespace is omitted. Still, if the provider name contains /, we assume that users intend to use namespaces and check the source address.
+
+BREAKING CHANGES:
+
+While backward compatibility is maintained for most use cases, some partner providers that relied on the legacy terraform-providers/ org redirects must explicitly specify their namespace. Specifically, namespaces must be explicit if all the following conditions are met:
+
+- The tfupdate provider command does not explicitly specify the namespace.
+- The tfupdate provider command does not explicitly specify the version.
+- Redirected from legacy terraform-providers/ org to partner org on GitHub.
+- Not hosted under hashicorp/ org on GitHub.
+- Not redirected from hashicorp/ org to partner org on GitHub.
+
+NEW FEATURES:
+
+* Add support for provider namespace ([#102](https://github.com/minamijoyo/tfupdate/pull/102))
+
+BUG FIXES:
+
+* Fixed a crash when parsing invalid release versions as SemVer ([#103](https://github.com/minamijoyo/tfupdate/pull/103))
+
+ENHANCEMENTS:
+
+* deps: update to use go1.21 ([#98](https://github.com/minamijoyo/tfupdate/pull/98))
+* Update actions/checkout to v4 ([#100](https://github.com/minamijoyo/tfupdate/pull/100))
+* Update hcl to v2.18.1 ([#101](https://github.com/minamijoyo/tfupdate/pull/101))
+* Add support for Terraform v1.6 ([#104](https://github.com/minamijoyo/tfupdate/pull/104))
+
 ## 0.7.2 (2023/07/07)
 
 BUG FIXES:
