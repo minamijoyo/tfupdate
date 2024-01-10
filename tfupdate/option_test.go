@@ -8,59 +8,66 @@ import (
 
 func TestNewOption(t *testing.T) {
 	cases := []struct {
-		updateType  string
-		name        string
-		version     string
-		platforms   []string
-		recursive   bool
-		ignorePaths []string
-		want        Option
-		ok          bool
+		updateType      string
+		name            string
+		version         string
+		platforms       []string
+		recursive       bool
+		ignorePaths     []string
+		sourceMatchType string
+		want            Option
+		ok              bool
 	}{
 		{
-			updateType:  "terraform",
-			version:     "0.12.7",
-			platforms:   []string{},
-			recursive:   true,
-			ignorePaths: []string{},
+			updateType:      "terraform",
+			version:         "0.12.7",
+			platforms:       []string{},
+			recursive:       true,
+			ignorePaths:     []string{},
+			sourceMatchType: "",
 			want: Option{
-				updateType:  "terraform",
-				version:     "0.12.7",
-				platforms:   []string{},
-				recursive:   true,
-				ignorePaths: []*regexp.Regexp{},
+				updateType:      "terraform",
+				version:         "0.12.7",
+				platforms:       []string{},
+				recursive:       true,
+				ignorePaths:     []*regexp.Regexp{},
+				sourceMatchType: "full",
 			},
 			ok: true,
 		},
 		{
-			updateType:  "provider",
-			name:        "aws",
-			version:     "2.23.0",
-			platforms:   []string{},
-			recursive:   true,
-			ignorePaths: []string{},
+			updateType:      "provider",
+			name:            "aws",
+			version:         "2.23.0",
+			platforms:       []string{},
+			recursive:       true,
+			ignorePaths:     []string{},
+			sourceMatchType: "full",
 			want: Option{
-				updateType:  "provider",
-				name:        "aws",
-				version:     "2.23.0",
-				platforms:   []string{},
-				recursive:   true,
-				ignorePaths: []*regexp.Regexp{},
+				updateType:      "provider",
+				name:            "aws",
+				version:         "2.23.0",
+				platforms:       []string{},
+				recursive:       true,
+				ignorePaths:     []*regexp.Regexp{},
+				sourceMatchType: "full",
 			},
 			ok: true,
 		},
 		{
-			updateType:  "terraform",
-			version:     "0.12.7",
-			platforms:   []string{},
-			recursive:   true,
-			ignorePaths: []string{"hoge", "fuga"},
+			updateType:      "terraform",
+			version:         "0.12.7",
+			platforms:       []string{},
+			recursive:       true,
+			ignorePaths:     []string{"hoge", "fuga"},
+			sourceMatchType: "regex",
 			want: Option{
-				updateType:  "terraform",
-				version:     "0.12.7",
-				platforms:   []string{},
-				recursive:   true,
-				ignorePaths: []*regexp.Regexp{regexp.MustCompile("hoge"), regexp.MustCompile("fuga")},
+				updateType:      "terraform",
+				version:         "0.12.7",
+				platforms:       []string{},
+				recursive:       true,
+				ignorePaths:     []*regexp.Regexp{regexp.MustCompile("hoge"), regexp.MustCompile("fuga")},
+				sourceMatchType: "regex",
 			},
 			ok: true,
 		},
@@ -70,12 +77,14 @@ func TestNewOption(t *testing.T) {
 			platforms:   []string{},
 			recursive:   true,
 			ignorePaths: []string{""},
+			sourceMatchType: "invalid",
 			want: Option{
 				updateType:  "terraform",
 				version:     "0.12.7",
 				platforms:   []string{},
 				recursive:   true,
 				ignorePaths: []*regexp.Regexp{},
+				sourceMatchType: "invalid",
 			},
 			ok: true,
 		},
@@ -85,6 +94,7 @@ func TestNewOption(t *testing.T) {
 			platforms:   []string{},
 			recursive:   true,
 			ignorePaths: []string{`\`},
+			sourceMatchType: "",
 			want:        Option{},
 			ok:          false,
 		},
@@ -94,19 +104,21 @@ func TestNewOption(t *testing.T) {
 			platforms:   []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
 			recursive:   true,
 			ignorePaths: []string{},
+			sourceMatchType: "invalid",
 			want: Option{
 				updateType:  "lock",
 				version:     "",
 				platforms:   []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
 				recursive:   true,
 				ignorePaths: []*regexp.Regexp{},
+				sourceMatchType: "invalid",
 			},
 			ok: true,
 		},
 	}
 
 	for _, tc := range cases {
-		got, err := NewOption(tc.updateType, tc.name, tc.version, tc.platforms, tc.recursive, tc.ignorePaths)
+		got, err := NewOption(tc.updateType, tc.name, tc.version, tc.platforms, tc.recursive, tc.ignorePaths, tc.sourceMatchType)
 		if tc.ok && err != nil {
 			t.Errorf("NewOption() with updateType = %s, name = %s, version = %s, platforms = %#v, recursive = %t, ignorePath = %#v returns unexpected err: %+v", tc.updateType, tc.name, tc.version, tc.platforms, tc.recursive, tc.ignorePaths, err)
 		}

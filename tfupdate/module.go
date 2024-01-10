@@ -20,12 +20,13 @@ var moduleSourceRegexp = regexp.MustCompile(`(.+)\?ref=v([0-9]+(\.[0-9]+)*(-.*)*
 
 // ModuleUpdater is a updater implementation which updates the module version constraint.
 type ModuleUpdater struct {
-	name    string
-	version string
+	name            string
+	sourceMatchType string
+	version         string
 }
 
 // NewModuleUpdater is a factory method which returns an ModuleUpdater instance.
-func NewModuleUpdater(name string, version string) (Updater, error) {
+func NewModuleUpdater(name string, version string, sourceMatchType string) (Updater, error) {
 	if len(name) == 0 {
 		return nil, errors.Errorf("failed to new module updater. name is required")
 	}
@@ -35,8 +36,9 @@ func NewModuleUpdater(name string, version string) (Updater, error) {
 	}
 
 	return &ModuleUpdater{
-		name:    name,
-		version: version,
+		name:            name,
+		sourceMatchType: sourceMatchType,
+		version:         version,
 	}, nil
 }
 
@@ -51,12 +53,24 @@ func (u *ModuleUpdater) Update(_ context.Context, _ *ModuleContext, filename str
 	return u.updateModuleBlock(f)
 }
 
+func match(match, matchType, name string) bool {
+	switch matchType {
+	case "regex":
+		var re = regexp.MustCompile(match)
+		return len(re.FindAllString(name, 1)) > 0
+	case "full":
+		fallthrough
+	default:
+		return match == name
+	}
+}
+
 func (u *ModuleUpdater) updateModuleBlock(f *hclwrite.File) error {
 	for _, m := range allMatchingBlocksByType(f.Body(), "module") {
 		if s := m.Body().GetAttribute("source"); s != nil {
 			name, version := parseModuleSource(s)
 			// If this module is a target module
-			if name == u.name {
+			if match(u.name, u.sourceMatchType, name) {
 				if len(version) == 0 {
 					// The source attribute doesn't have a version number.
 					// Set a version to attribute value only if the version key exists.

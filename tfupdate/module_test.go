@@ -11,36 +11,41 @@ import (
 
 func TestNewModuleUpdater(t *testing.T) {
 	cases := []struct {
-		name    string
-		version string
-		want    Updater
-		ok      bool
+		name            string
+		sourceMatchType string
+		version         string
+		want            Updater
+		ok              bool
 	}{
 		{
-			name:    "terraform-aws-modules/vpc/aws",
-			version: "2.17.0",
+			name:            "terraform-aws-modules/vpc/aws",
+			sourceMatchType: "full",
+			version:         "2.17.0",
 			want: &ModuleUpdater{
-				name:    "terraform-aws-modules/vpc/aws",
-				version: "2.17.0",
+				name:            "terraform-aws-modules/vpc/aws",
+				sourceMatchType: "full",
+				version:         "2.17.0",
 			},
 			ok: true,
 		},
 		{
-			name:    "",
-			version: "2.17.0",
-			want:    nil,
-			ok:      false,
+			name:            "",
+			sourceMatchType: "full",
+			version:         "2.17.0",
+			want:            nil,
+			ok:              false,
 		},
 		{
-			name:    "terraform-aws-modules/vpc/aws",
-			version: "",
-			want:    nil,
-			ok:      false,
+			name:            "terraform-aws-modules/vpc/aws",
+			sourceMatchType: "full",
+			version:         "",
+			want:            nil,
+			ok:              false,
 		},
 	}
 
 	for _, tc := range cases {
-		got, err := NewModuleUpdater(tc.name, tc.version)
+		got, err := NewModuleUpdater(tc.name, tc.version, tc.sourceMatchType)
 		if tc.ok && err != nil {
 			t.Errorf("NewModuleUpdater() with name = %s, version = %s returns unexpected err: %+v", tc.name, tc.version, err)
 		}
@@ -57,12 +62,13 @@ func TestNewModuleUpdater(t *testing.T) {
 
 func TestUpdateModule(t *testing.T) {
 	cases := []struct {
-		filename string
-		src      string
-		name     string
-		version  string
-		want     string
-		ok       bool
+		filename        string
+		src             string
+		name            string
+		sourceMatchType string
+		version         string
+		want            string
+		ok              bool
 	}{
 		{
 			filename: "main.tf",
@@ -72,8 +78,9 @@ module "vpc" {
   version = "2.17.0"
 }
 `,
-			name:    "terraform-aws-modules/vpc/aws",
-			version: "2.18.0",
+			name:            "terraform-aws-modules/vpc/aws",
+			version:         "2.18.0",
+			sourceMatchType: "full",
 			want: `
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -94,8 +101,9 @@ module "vpc2" {
   version = "2.17.0"
 }
 `,
-			name:    "terraform-aws-modules/vpc/aws",
-			version: "2.18.0",
+			name:            "terraform-aws-modules/vpc/aws",
+			version:         "2.18.0",
+			sourceMatchType: "full",
 			want: `
 module "vpc1" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -116,8 +124,9 @@ module "vpc" {
   version = "2.17.0"
 }
 `,
-			name:    "terraform-aws-modules/hoge/aws",
-			version: "2.18.0",
+			name:            "terraform-aws-modules/hoge/aws",
+			sourceMatchType: "full",
+			version:         "2.18.0",
 			want: `
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -133,8 +142,9 @@ module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 }
 `,
-			name:    "terraform-aws-modules/vpc/aws",
-			version: "2.18.0",
+			name:            "terraform-aws-modules/vpc/aws",
+			sourceMatchType: "full",
+			version:         "2.18.0",
 			want: `
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
@@ -149,11 +159,66 @@ module "vpc" {
   source = "git::https://example.com/vpc.git?ref=v1.2.0"
 }
 `,
-			name:    "git::https://example.com/vpc.git",
-			version: "1.3.0",
+			name:            "git::https://example.com/vpc.git",
+			sourceMatchType: "full",
+			version:         "1.3.0",
 			want: `
 module "vpc" {
   source = "git::https://example.com/vpc.git?ref=v1.3.0"
+}
+`,
+			ok: true,
+		},
+		{
+			filename: "main.tf",
+			src: `
+module "vpc1" {
+  source  = "terraform-aws-modules.git/vpc/aws1"
+  version = "2.17.0"
+}
+module "vpc2" {
+  source  = "terraform-aws-modules.git/vpc/aws2"
+  version = "2.17.0"
+}
+`,
+			name:            "terraform-aws-modules.git/",
+			version:         "2.18.0",
+			sourceMatchType: "regex",
+			want: `
+module "vpc1" {
+  source  = "terraform-aws-modules.git/vpc/aws1"
+  version = "2.18.0"
+}
+module "vpc2" {
+  source  = "terraform-aws-modules.git/vpc/aws2"
+  version = "2.18.0"
+}
+`,
+			ok: true,
+		},
+		{
+			filename: "main.tf",
+			src: `
+module "vpc1" {
+  source  = "terraform-aws-modules.git/vpc/aws1"
+  version = "2.17.0"
+}
+module "vpc2" {
+  source  = "terraform-aws-modules.git/vpc/aws2"
+  version = "2.17.0"
+}
+`,
+			name:            "terraform-aws-modules\\.git/.+",
+			version:         "2.18.0",
+			sourceMatchType: "regex",
+			want: `
+module "vpc1" {
+  source  = "terraform-aws-modules.git/vpc/aws1"
+  version = "2.18.0"
+}
+module "vpc2" {
+  source  = "terraform-aws-modules.git/vpc/aws2"
+  version = "2.18.0"
 }
 `,
 			ok: true,
@@ -162,8 +227,9 @@ module "vpc" {
 
 	for _, tc := range cases {
 		u := &ModuleUpdater{
-			name:    tc.name,
-			version: tc.version,
+			name:            tc.name,
+			sourceMatchType: tc.sourceMatchType,
+			version:         tc.version,
 		}
 		f, diags := hclwrite.ParseConfig([]byte(tc.src), tc.filename, hcl.Pos{Line: 1, Column: 1})
 		if diags.HasErrors() {

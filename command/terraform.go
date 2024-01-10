@@ -14,10 +14,10 @@ import (
 // TerraformCommand is a command which update version constraints for terraform.
 type TerraformCommand struct {
 	Meta
-	version     string
-	path        string
-	recursive   bool
-	ignorePaths []string
+	version         string
+	path            string
+	recursive       bool
+	ignorePaths     []string
 }
 
 // Run runs the procedure of this command.
@@ -56,7 +56,7 @@ func (c *TerraformCommand) Run(args []string) int {
 	}
 
 	log.Printf("[INFO] Update terraform to %s", v)
-	option, err := tfupdate.NewOption("terraform", "", v, []string{}, c.recursive, c.ignorePaths)
+	option, err := tfupdate.NewOption("terraform", "", v, []string{}, c.recursive, c.ignorePaths, "")
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

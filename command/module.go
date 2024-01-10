@@ -13,11 +13,12 @@ import (
 // ModuleCommand is a command which update version constraints for module.
 type ModuleCommand struct {
 	Meta
-	name        string
-	version     string
-	path        string
-	recursive   bool
-	ignorePaths []string
+	name            string
+	version         string
+	path            string
+	recursive       bool
+	ignorePaths     []string
+	sourceMatchType string
 }
 
 // Run runs the procedure of this command.
@@ -26,6 +27,7 @@ func (c *ModuleCommand) Run(args []string) int {
 	cmdFlags.StringVarP(&c.version, "version", "v", "", "A new version constraint")
 	cmdFlags.BoolVarP(&c.recursive, "recursive", "r", false, "Check a directory recursively")
 	cmdFlags.StringArrayVarP(&c.ignorePaths, "ignore-path", "i", []string{}, "A regular expression for path to ignore")
+	cmdFlags.StringVar(&c.sourceMatchType, "source-match-type", "full", "Define how to match module source URLs. Valid values are \"full\" or \"regex\".")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		c.UI.Error(fmt.Sprintf("failed to parse arguments: %s", err))
@@ -50,7 +52,7 @@ func (c *ModuleCommand) Run(args []string) int {
 	}
 
 	log.Printf("[INFO] Update module %s to %s", c.name, v)
-	option, err := tfupdate.NewOption("module", c.name, v, []string{}, c.recursive, c.ignorePaths)
+	option, err := tfupdate.NewOption("module", c.name, v, []string{}, c.recursive, c.ignorePaths, c.sourceMatchType)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
@@ -77,18 +79,20 @@ func (c *ModuleCommand) Help() string {
 Usage: tfupdate module [options] <MODULE_NAME> <PATH>
 
 Arguments
-  MODULE_NAME        A name of module
+  MODULE_NAME        A name of module or a regular expression in RE2 syntax
                      e.g.
                        terraform-aws-modules/vpc/aws
                        git::https://example.com/vpc.git
+                       git::https://example.com/.+
   PATH               A path of file or directory to update
 
 Options:
-  -v  --version      A new version constraint (required)
-                     Automatic latest version resolution is not currently supported for modules.
-  -r  --recursive    Check a directory recursively (default: false)
-  -i  --ignore-path  A regular expression for path to ignore
-                     If you want to ignore multiple directories, set the flag multiple times.
+  -v  --version       A new version constraint (required)
+                      Automatic latest version resolution is not currently supported for modules.
+  -r  --recursive     Check a directory recursively (default: false)
+  -i  --ignore-path   A regular expression for path to ignore
+                      If you want to ignore multiple directories, set the flag multiple times.
+  --source-match-type Define how to match MODULE_NAME to the module source URLs. Valid values are "full" or "regex". (default: full)
 `
 	return strings.TrimSpace(helpText)
 }

@@ -31,10 +31,13 @@ type Option struct {
 
 	// An array of regular expression for paths to ignore.
 	ignorePaths []*regexp.Regexp
+
+	// Define how to match module source URLs. Valid values are "full" or "regex".
+	sourceMatchType string
 }
 
 // NewOption returns an option.
-func NewOption(updateType string, name string, version string, platforms []string, recursive bool, ignorePaths []string) (Option, error) {
+func NewOption(updateType string, name string, version string, platforms []string, recursive bool, ignorePaths []string, sourceMatchType string) (Option, error) {
 	regexps := make([]*regexp.Regexp, 0, len(ignorePaths))
 	for _, ignorePath := range ignorePaths {
 		if len(ignorePath) == 0 {
@@ -48,13 +51,18 @@ func NewOption(updateType string, name string, version string, platforms []strin
 		regexps = append(regexps, r)
 	}
 
+	if sourceMatchType == "" {
+		sourceMatchType = "full"
+	}
+
 	return Option{
-		updateType:  updateType,
-		name:        name,
-		version:     version,
-		platforms:   platforms,
-		recursive:   recursive,
-		ignorePaths: regexps,
+		updateType:      updateType,
+		name:            name,
+		version:         version,
+		platforms:       platforms,
+		recursive:       recursive,
+		ignorePaths:     regexps,
+		sourceMatchType: sourceMatchType,
 	}, nil
 }
 
