@@ -14,10 +14,10 @@ import (
 // TerraformCommand is a command which update version constraints for terraform.
 type TerraformCommand struct {
 	Meta
-	version         string
-	path            string
-	recursive       bool
-	ignorePaths     []string
+	version     string
+	path        string
+	recursive   bool
+	ignorePaths []string
 }
 
 // Run runs the procedure of this command.
