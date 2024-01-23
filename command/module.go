@@ -83,7 +83,7 @@ Arguments
                      e.g.
                        terraform-aws-modules/vpc/aws
                        git::https://example.com/vpc.git
-                       git::https://example.com/.+
+                       git::https://example\.com/.+
   PATH               A path of file or directory to update
 
 Options:
