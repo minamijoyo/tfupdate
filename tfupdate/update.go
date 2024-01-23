@@ -34,7 +34,7 @@ func NewUpdater(o Option) (Updater, error) {
 	case "provider":
 		return NewProviderUpdater(o.name, o.version)
 	case "module":
-		return NewModuleUpdater(o.name, o.version, o.sourceMatchType)
+		return NewModuleUpdater(o.name, o.version, o.nameRegex)
 	case "lock":
 		return NewLockUpdater(o.platforms, lockIndex)
 	default:

@@ -3,6 +3,9 @@ package tfupdate
 import (
 	"fmt"
 	"regexp"
+	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 // Option is a set of parameters to update.
@@ -32,8 +35,10 @@ type Option struct {
 	// An array of regular expression for paths to ignore.
 	ignorePaths []*regexp.Regexp
 
-	// Define how to match module source URLs. Valid values are "full" or "regex".
-	sourceMatchType string
+	// This field stores the compiled RE2 regex from the provide name parameter.
+	// In case the sourceMatchType is set to regex this field is used to match the name.
+	// In case the provided sourceMatchType is full this field is nil.
+	nameRegex *regexp.Regexp
 }
 
 // NewOption returns an option.
@@ -46,23 +51,35 @@ func NewOption(updateType string, name string, version string, platforms []strin
 
 		r, err := regexp.Compile(ignorePath)
 		if err != nil {
-			return Option{}, fmt.Errorf("faild to compile regexp for ignorePath: %s", err)
+			return Option{}, fmt.Errorf("failed to compile regexp for ignorePath: %s", err)
 		}
 		regexps = append(regexps, r)
 	}
 
-	if sourceMatchType == "" {
-		sourceMatchType = "full"
+	var nameRegex *regexp.Regexp
+	validSourceMatchTypes := []string{"full", "regex"}
+	if !slices.Contains[string](validSourceMatchTypes, sourceMatchType) {
+		return Option{}, fmt.Errorf("invalid sourceMatchType: %s valid options [%s]", sourceMatchType, strings.Join(validSourceMatchTypes, ","))
+	} else if sourceMatchType == "regex" {
+		if len(name) == 0 {
+			return Option{}, fmt.Errorf("name is required when sourceMatchType is regex")
+		}
+
+		r, err := regexp.Compile(name)
+		if err != nil {
+			return Option{}, fmt.Errorf("failed to compile regexp for name: %s with error: %s", name, err)
+		}
+		nameRegex = r
 	}
 
 	return Option{
-		updateType:      updateType,
-		name:            name,
-		version:         version,
-		platforms:       platforms,
-		recursive:       recursive,
-		ignorePaths:     regexps,
-		sourceMatchType: sourceMatchType,
+		updateType:  updateType,
+		name:        name,
+		version:     version,
+		platforms:   platforms,
+		recursive:   recursive,
+		ignorePaths: regexps,
+		nameRegex:   nameRegex,
 	}, nil
 }
 

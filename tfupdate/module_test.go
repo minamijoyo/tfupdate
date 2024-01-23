@@ -3,6 +3,7 @@ package tfupdate
 import (
 	"context"
 	"reflect"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/hcl/v2"
@@ -22,9 +23,9 @@ func TestNewModuleUpdater(t *testing.T) {
 			sourceMatchType: "full",
 			version:         "2.17.0",
 			want: &ModuleUpdater{
-				name:            "terraform-aws-modules/vpc/aws",
-				sourceMatchType: "full",
-				version:         "2.17.0",
+				name:      "terraform-aws-modules/vpc/aws",
+				nameRegex: nil,
+				version:   "2.17.0",
 			},
 			ok: true,
 		},
@@ -45,7 +46,7 @@ func TestNewModuleUpdater(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		got, err := NewModuleUpdater(tc.name, tc.version, tc.sourceMatchType)
+		got, err := NewModuleUpdater(tc.name, tc.version, nil)
 		if tc.ok && err != nil {
 			t.Errorf("NewModuleUpdater() with name = %s, version = %s returns unexpected err: %+v", tc.name, tc.version, err)
 		}
@@ -227,9 +228,14 @@ module "vpc2" {
 
 	for _, tc := range cases {
 		u := &ModuleUpdater{
-			name:            tc.name,
-			sourceMatchType: tc.sourceMatchType,
-			version:         tc.version,
+			name: tc.name,
+			nameRegex: func() *regexp.Regexp {
+				if tc.sourceMatchType == "regex" {
+					return regexp.MustCompile(tc.name)
+				}
+				return nil
+			}(),
+			version: tc.version,
 		}
 		f, diags := hclwrite.ParseConfig([]byte(tc.src), tc.filename, hcl.Pos{Line: 1, Column: 1})
 		if diags.HasErrors() {
