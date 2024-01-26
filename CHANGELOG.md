@@ -1,5 +1,14 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* tfupdate module command support regex matches ([#108](https://github.com/minamijoyo/tfupdate/pull/108))
+
+ENHANCEMENTS:
+
+* Update hcl to v2.19.1 ([#109](https://github.com/minamijoyo/tfupdate/pull/109))
+* Add support for Terraform 1.7 ([#110](https://github.com/minamijoyo/tfupdate/pull/110))
+
 ## 0.8.0 (2023/10/09)
 
 NOTE:
