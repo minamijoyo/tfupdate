@@ -53,7 +53,7 @@ func (c *LockCommand) Run(args []string) int {
 	}
 
 	log.Println("[INFO] Update dependency lock files")
-	option, err := tfupdate.NewOption("lock", "", "", c.platforms, c.recursive, c.ignorePaths)
+	option, err := tfupdate.NewOption("lock", "", "", c.platforms, c.recursive, c.ignorePaths, "")
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
