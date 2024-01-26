@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.8.1 (2024/01/26)
+
 NEW FEATURES:
 
 * tfupdate module command support regex matches ([#108](https://github.com/minamijoyo/tfupdate/pull/108))
