@@ -56,20 +56,9 @@ func NewOption(updateType string, name string, version string, platforms []strin
 		regexps = append(regexps, r)
 	}
 
-	var nameRegex *regexp.Regexp
-	validSourceMatchTypes := []string{"full", "regex"}
-	if !slices.Contains[string](validSourceMatchTypes, sourceMatchType) {
-		return Option{}, fmt.Errorf("invalid sourceMatchType: %s valid options [%s]", sourceMatchType, strings.Join(validSourceMatchTypes, ","))
-	} else if sourceMatchType == "regex" {
-		if len(name) == 0 {
-			return Option{}, fmt.Errorf("name is required when sourceMatchType is regex")
-		}
-
-		r, err := regexp.Compile(name)
-		if err != nil {
-			return Option{}, fmt.Errorf("failed to compile regexp for name: %s with error: %s", name, err)
-		}
-		nameRegex = r
+	nameRegex, err := nameRegex(updateType, name, sourceMatchType)
+	if err != nil {
+		return Option{}, err
 	}
 
 	return Option{
@@ -81,6 +70,27 @@ func NewOption(updateType string, name string, version string, platforms []strin
 		ignorePaths: regexps,
 		nameRegex:   nameRegex,
 	}, nil
+}
+
+func nameRegex(updateType string, name string, sourceMatchType string) (*regexp.Regexp, error) {
+	if updateType == "module" {
+		validSourceMatchTypes := []string{"full", "regex"}
+
+		if !slices.Contains[string](validSourceMatchTypes, sourceMatchType) {
+			return nil, fmt.Errorf("invalid sourceMatchType: %s valid options [%s]", sourceMatchType, strings.Join(validSourceMatchTypes, ","))
+		} else if sourceMatchType == "regex" {
+			if len(name) == 0 {
+				return nil, fmt.Errorf("name is required when sourceMatchType is regex")
+			}
+
+			r, err := regexp.Compile(name)
+			if err != nil {
+				return nil, fmt.Errorf("failed to compile regexp for name: %s with error: %s", name, err)
+			}
+			return r, nil
+		}
+	}
+	return nil, nil
 }
 
 // MatchIgnorePaths returns whether any of the ignore conditions are met.
