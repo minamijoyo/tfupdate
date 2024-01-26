@@ -212,18 +212,20 @@ $ tfupdate module --help
 Usage: tfupdate module [options] <MODULE_NAME> <PATH>
 
 Arguments
-  MODULE_NAME        A name of module
+  MODULE_NAME        A name of module or a regular expression in RE2 syntax
                      e.g.
                        terraform-aws-modules/vpc/aws
                        git::https://example.com/vpc.git
+                       git::https://example\.com/.+
   PATH               A path of file or directory to update
 
 Options:
-  -v  --version      A new version constraint (required)
-                     Automatic latest version resolution is not currently supported for modules.
-  -r  --recursive    Check a directory recursively (default: false)
-  -i  --ignore-path  A regular expression for path to ignore
-                     If you want to ignore multiple directories, set the flag multiple times.
+  -v  --version       A new version constraint (required)
+                      Automatic latest version resolution is not currently supported for modules.
+  -r  --recursive     Check a directory recursively (default: false)
+  -i  --ignore-path   A regular expression for path to ignore
+                      If you want to ignore multiple directories, set the flag multiple times.
+  --source-match-type Define how to match MODULE_NAME to the module source URLs. Valid values are "full" or "regex". (default: full)
 ```
 
 ```
