@@ -47,7 +47,7 @@ https://github.com/minamijoyo/tfupdate/releases
 
 ### Source
 
-If you have Go 1.21+ development environment:
+If you have Go 1.22+ development environment:
 
 ```
 $ go install github.com/minamijoyo/tfupdate@latest
