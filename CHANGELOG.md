@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* feat: update to use go 1.22 ([#111](https://github.com/minamijoyo/tfupdate/pull/111))
+* Add support for provider-defined functions ([#112](https://github.com/minamijoyo/tfupdate/pull/112))
+* Add support for Terraform 1.8 ([#113](https://github.com/minamijoyo/tfupdate/pull/113))
+
 ## 0.8.1 (2024/01/26)
 
 NEW FEATURES:
