@@ -4,10 +4,10 @@ go 1.22
 
 require (
 	github.com/davecgh/go-spew v1.1.1
-	github.com/google/go-cmp v0.5.9
+	github.com/google/go-cmp v0.6.0
 	github.com/google/go-github/v28 v28.1.1
 	github.com/hashicorp/go-version v1.6.0
-	github.com/hashicorp/hcl/v2 v2.19.1
+	github.com/hashicorp/hcl/v2 v2.20.1
 	github.com/hashicorp/logutils v1.0.0
 	github.com/hashicorp/terraform-config-inspect v0.0.0-20230614215431-f32df32a01cd
 	github.com/hashicorp/terraform-registry-address v0.2.0
@@ -41,9 +41,10 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/posener/complete v1.1.1 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/net v0.5.0 // indirect
+	golang.org/x/net v0.6.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 )
