@@ -127,7 +127,7 @@ func TestProviderPackageMetadata(t *testing.T) {
 			mux, mockServerURL := newMockServer()
 			client := newTestClient(mockServerURL)
 			subPath := fmt.Sprintf("%s%s/%s/%s/download/%s/%s", providerV1Service, tc.req.Namespace, tc.req.Type, tc.req.Version, tc.req.OS, tc.req.Arch)
-			mux.HandleFunc(subPath, func(w http.ResponseWriter, r *http.Request) {
+			mux.HandleFunc(subPath, func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(tc.code)
 				fmt.Fprint(w, tc.res)
 			})

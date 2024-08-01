@@ -29,11 +29,11 @@ fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2  terraform-prov
 `)
 
 	mux, mockServerURL := newMockServer()
-	mux.HandleFunc(downloadPath, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(downloadPath, func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(200)
 		_, _ = w.Write(zipData)
 	})
-	mux.HandleFunc(shaSumsPath, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(shaSumsPath, func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(200)
 		_, _ = w.Write(shaSumsData)
 	})
@@ -157,7 +157,7 @@ func TestProviderDownloaderClientDownload(t *testing.T) {
 				api: &mockTFRegistryClient{},
 			}
 			client := newTestClient(mockServerURL, config)
-			mux.HandleFunc(tc.subPath, func(w http.ResponseWriter, r *http.Request) {
+			mux.HandleFunc(tc.subPath, func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(tc.code)
 				_, _ = w.Write(tc.res)
 			})
