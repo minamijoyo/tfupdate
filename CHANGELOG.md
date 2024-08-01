@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Pin goreleaser to v1 ([#119](https://github.com/minamijoyo/tfupdate/pull/119))
+
 ## 0.8.3 (2024/08/01)
 
 ENHANCEMENTS:
