@@ -1,5 +1,13 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Update hcl to v2.21.0 ([#114](https://github.com/minamijoyo/tfupdate/pull/114))
+* Use docker compose command instead of docker-compose ([#115](https://github.com/minamijoyo/tfupdate/pull/115))
+* Add support for Terraform 1.9 ([#116](https://github.com/minamijoyo/tfupdate/pull/116))
+* Update alpine to v3.20 ([#117](https://github.com/minamijoyo/tfupdate/pull/117))
+* Update golangci lint to v1.59.1 ([#118](https://github.com/minamijoyo/tfupdate/pull/118))
+
 ## 0.8.2 (2024/04/15)
 
 ENHANCEMENTS:
