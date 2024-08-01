@@ -87,7 +87,7 @@ func TestModuleLatestForProvider(t *testing.T) {
 			mux, mockServerURL := newMockServer()
 			client := newTestClient(mockServerURL)
 			subPath := fmt.Sprintf("%s%s/%s/%s", moduleV1Service, tc.req.Namespace, tc.req.Name, tc.req.Provider)
-			mux.HandleFunc(subPath, func(w http.ResponseWriter, r *http.Request) {
+			mux.HandleFunc(subPath, func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(tc.code)
 				fmt.Fprint(w, tc.res)
 			})
