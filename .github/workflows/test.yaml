@@ -39,7 +39,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: docker build
-      run: docker-compose build
+      run: docker compose build
     - name: terraform --version
       run: docker compose run --rm tfupdate terraform --version
     - name: testacc
