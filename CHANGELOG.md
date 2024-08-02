@@ -1,5 +1,10 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Update goreleaser to v2 ([#121](https://github.com/minamijoyo/tfupdate/pull/121))
+* Switch to the official action for creating GitHub App token ([#122](https://github.com/minamijoyo/tfupdate/pull/122))
+
 ## 0.8.4 (2024/08/01)
 
 ENHANCEMENTS:
