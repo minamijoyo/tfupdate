@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.8.5 (2024/08/02)
+
 ENHANCEMENTS:
 
 * Update goreleaser to v2 ([#121](https://github.com/minamijoyo/tfupdate/pull/121))
