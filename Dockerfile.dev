@@ -3,7 +3,7 @@ ARG TERRAFORM_VERSION=latest
 FROM hashicorp/terraform:$TERRAFORM_VERSION AS terraform
 
 # tfupdate
-FROM golang:1.22-alpine3.20 AS tfupdate
+FROM golang:1.24-alpine3.20 AS tfupdate
 RUN apk --no-cache add make git
 
 # A workaround for a permission issue of git.

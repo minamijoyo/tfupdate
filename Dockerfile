@@ -1,5 +1,5 @@
 # tfupdate
-FROM golang:1.22-alpine3.20 AS tfupdate
+FROM golang:1.24-alpine3.20 AS tfupdate
 RUN apk --no-cache add make git
 WORKDIR /work
 
@@ -13,7 +13,7 @@ RUN make build
 # The linux binary for hub can not run on alpine.
 # So we need to build it from source.
 # https://github.com/github/hub/issues/1818
-FROM golang:1.22-alpine3.20 AS hub
+FROM golang:1.24-alpine3.20 AS hub
 RUN apk add --no-cache bash git
 RUN git clone https://github.com/github/hub /work
 WORKDIR /work
