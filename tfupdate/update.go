@@ -31,6 +31,8 @@ func NewUpdater(o Option) (Updater, error) {
 	switch o.updateType {
 	case "terraform":
 		return NewTerraformUpdater(o.version)
+	case "opentofu":
+		return NewOpenTofuUpdater(o.version)
 	case "provider":
 		return NewProviderUpdater(o.name, o.version)
 	case "module":

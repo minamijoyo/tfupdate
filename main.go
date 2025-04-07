@@ -83,6 +83,11 @@ func initCommands() map[string]cli.CommandFactory {
 				Meta: meta,
 			}, nil
 		},
+		"opentofu": func() (cli.Command, error) {
+			return &command.OpenTofuCommand{
+				Meta: meta,
+			}, nil
+		},
 		"provider": func() (cli.Command, error) {
 			return &command.ProviderCommand{
 				Meta: meta,
