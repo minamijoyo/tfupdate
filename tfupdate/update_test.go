@@ -30,6 +30,16 @@ func TestNewUpdater(t *testing.T) {
 		},
 		{
 			o: Option{
+				updateType: "opentofu",
+				version:    "1.9.0",
+			},
+			want: &OpenTofuUpdater{
+				version: "1.9.0",
+			},
+			ok: true,
+		},
+		{
+			o: Option{
 				updateType: "provider",
 				name:       "aws",
 				version:    "2.23.0",
@@ -84,6 +94,7 @@ func TestNewUpdater(t *testing.T) {
 
 		opts := []cmp.Option{
 			cmp.AllowUnexported(TerraformUpdater{}),
+			cmp.AllowUnexported(OpenTofuUpdater{}),
 			cmp.AllowUnexported(ProviderUpdater{}),
 			cmp.AllowUnexported(ModuleUpdater{}),
 			cmp.AllowUnexported(LockUpdater{}),
@@ -121,6 +132,24 @@ terraform {
 			want: `
 terraform {
   required_version ="0.12.7"
+}
+`,
+			isUpdated: true,
+			ok:        true,
+		},
+		{
+			src: `
+terraform {
+  required_version = "1.8.0"
+}
+`,
+			o: Option{
+				updateType: "opentofu",
+				version:    "1.9.0",
+			},
+			want: `
+terraform {
+  required_version ="1.9.0"
 }
 `,
 			isUpdated: true,

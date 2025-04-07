@@ -5,7 +5,7 @@
 
 ## Features
 
-- Update version constraints of Terraform core, providers, and modules
+- Update version constraints of Terraform core, OpenTofu core, providers, and modules
 - Update dependency lock files (.terraform.lock.hcl) without Terraform CLI
 - Update all your Terraform configurations and lock files recursively under a given directory
 - Get the latest release version from the GitHub, GitLab, or Terraform Registry
@@ -71,6 +71,7 @@ Usage: tfupdate [--version] [--help] <command> [<args>]
 Available commands are:
     lock         Update dependency lock files
     module       Update version constraints for module
+    opentofu     Update version constraints for opentofu
     provider     Update version constraints for provider
     release      Get release version information
     terraform    Update version constraints for terraform
@@ -143,6 +144,45 @@ If the version is omitted, the latest version is automatically checked and set.
 
 ```
 $ tfupdate terraform -r ./
+```
+
+### opentofu
+
+```
+$ tfupdate opentofu --help
+Usage: tfupdate opentofu [options] <PATH>
+
+Arguments
+  PATH               A path of file or directory to update
+
+Options:
+  -v  --version      A new version constraint (default: latest)
+                     If the version is omitted, the latest version is automatically checked and set.
+  -r  --recursive    Check a directory recursively (default: false)
+  -i  --ignore-path  A regular expression for path to ignore
+                     If you want to ignore multiple directories, set the flag multiple times.
+```
+
+If you have `main.tf` like the following:
+
+```
+$ cat main.tf
+terraform {
+  required_version = "1.8.0"
+}
+```
+
+Execute the following command:
+
+```
+$ tfupdate opentofu -v 1.9.0 main.tf
+```
+
+```
+$ cat main.tf
+terraform {
+  required_version = "1.9.0"
+}
 ```
 
 ### provider
