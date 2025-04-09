@@ -17,7 +17,7 @@ require (
 	github.com/spf13/afero v1.9.5
 	github.com/spf13/pflag v1.0.5
 	github.com/xanzy/go-gitlab v0.20.1
-	github.com/zclconf/go-cty v1.13.0
+	github.com/zclconf/go-cty v1.14.4
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
 	golang.org/x/mod v0.8.0
 	golang.org/x/oauth2 v0.4.0
@@ -25,7 +25,6 @@ require (
 
 require (
 	github.com/agext/levenshtein v1.2.2 // indirect
-	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
@@ -48,3 +47,5 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 )
+
+replace github.com/hashicorp/terraform-config-inspect => github.com/minamijoyo/terraform-config-inspect v0.0.0-20250409132015-3abe93bba59a

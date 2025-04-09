@@ -310,3 +310,80 @@ terraform {
 		})
 	}
 }
+
+func TestModuleContextWithTofuExtension(t *testing.T) {
+	cases := []struct {
+		desc     string
+		src      string
+		filename string
+		want     []SelectedProvider
+	}{
+		{
+			desc: "tf extension",
+			src: `
+terraform {
+  required_version = "1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.4.0"
+    }
+  }
+}
+`,
+			filename: "main.tf",
+			want: []SelectedProvider{
+				{Source: "hashicorp/aws", Version: "5.4.0"},
+			},
+		},
+		{
+			desc: "tofu extension",
+			src: `
+terraform {
+  required_version = "1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.4.0"
+    }
+  }
+}
+`,
+			filename: "main.tofu",
+			want: []SelectedProvider{
+				{Source: "hashicorp/aws", Version: "5.4.0"},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			dirname := "test"
+			err := fs.MkdirAll(dirname, os.ModePerm)
+			if err != nil {
+				t.Fatalf("failed to create dir: %s", err)
+			}
+			err = afero.WriteFile(fs, filepath.Join(dirname, tc.filename), []byte(tc.src), 0644)
+			if err != nil {
+				t.Fatalf("failed to write file: %s", err)
+			}
+
+			gc := &GlobalContext{
+				fs: fs,
+			}
+			mc, err := NewModuleContext(dirname, gc)
+			if err != nil {
+				t.Fatalf("failed to new ModuleContext: %s", err)
+			}
+
+			got := mc.SelecetedProviders()
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("got: %s, want = %s, diff = %s", spew.Sdump(got), spew.Sdump(tc.want), diff)
+			}
+		})
+	}
+}
