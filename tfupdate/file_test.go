@@ -392,6 +392,38 @@ terraform {
 }
 `,
 		},
+		{
+			rootdir:   "a",
+			subdir:    "b",
+			filename1: "terraform.tofu",
+			src1: `
+terraform {
+  required_version = "1.8.0"
+}
+`,
+			filename2: "provider.tf",
+			src2: `
+provider "aws" {
+  version = "2.11.0"
+}
+`,
+			checkdir: "a/b",
+			o: Option{
+				updateType: "opentofu",
+				version:    "1.9.0",
+				recursive:  false,
+			},
+			want1: `
+terraform {
+  required_version = "1.9.0"
+}
+`,
+			want2: `
+provider "aws" {
+  version = "2.11.0"
+}
+`,
+		},
 	}
 
 	for _, tc := range cases {
