@@ -92,7 +92,7 @@ func UpdateDir(ctx context.Context, current *ModuleContext, dirname string) erro
 		}
 
 		// if an entry is a file
-		if !(filepath.Ext(entry.Name()) == ".tf" || entry.Name() == ".terraform.lock.hcl") {
+		if !(filepath.Ext(entry.Name()) == ".tf" || filepath.Ext(entry.Name()) == ".tofu" || entry.Name() == ".terraform.lock.hcl") {
 			// skip unsupported file type
 			continue
 		}
