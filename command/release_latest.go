@@ -61,10 +61,16 @@ Arguments
                        - github or gitlab:
                          owner/repo
                          e.g. terraform-providers/terraform-provider-aws
-                      - tfregistryModule
+                       - tfregistryModule:
                          namespace/name/provider
                          e.g. terraform-aws-modules/vpc/aws
-                      - tfregistryProvider (experimental)
+                       - tfregistryProvider (experimental):
+                         namespace/type
+                         e.g. hashicorp/aws
+                       - opentofuRegistryModule:
+                         namespace/name/provider
+                         e.g. terraform-aws-modules/vpc/aws
+                       - opentofuRegistryProvider (experimental):
                          namespace/type
                          e.g. hashicorp/aws
 
@@ -75,6 +81,8 @@ Options:
                        - gitlab
                        - tfregistryModule
                        - tfregistryProvider (experimental)
+                       - opentofuRegistryModule
+                       - opentofuRegistryProvider (experimental)
 `
 	return strings.TrimSpace(helpText)
 }
