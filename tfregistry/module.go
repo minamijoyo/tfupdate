@@ -17,7 +17,9 @@ const (
 
 // ModuleV1API is an interface for the module v1 service.
 type ModuleV1API interface {
-	// ModuleLatestForProvider returns the latest version of a module for a single provider.
-	// https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
-	ModuleLatestForProvider(ctx context.Context, req *ModuleLatestForProviderRequest) (*ModuleLatestForProviderResponse, error)
+	// ListModuleVersions returns all versions of a module for a single provider.
+	// This works for both Terraform and OpenTofu registries.
+	// https://developer.hashicorp.com/terraform/registry/api-docs#list-available-versions-for-a-specific-module
+	// https://opentofu.org/docs/internals/module-registry-protocol/#list-available-versions-for-a-specific-module
+	ListModuleVersions(ctx context.Context, req *ListModuleVersionsRequest) (*ListModuleVersionsResponse, error)
 }
