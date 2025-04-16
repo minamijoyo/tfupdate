@@ -17,10 +17,11 @@ const (
 
 // ProviderV1API is an interface for the provider v1 service.
 type ProviderV1API interface {
-	// ProviderLatest returns the latest version of a provider.
-	// This relies on a currently undocumented providers API endpoint which behaves exactly like the equivalent documented modules API endpoint.
-	// https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
-	ProviderLatest(ctx context.Context, req *ProviderLatestRequest) (*ProviderLatestResponse, error)
+	// ListProviderVersions returns all versions of a provider.
+	// This works for both Terraform and OpenTofu registries.
+	// https://developer.hashicorp.com/terraform/internals/provider-registry-protocol#list-available-versions
+	// https://opentofu.org/docs/internals/provider-registry-protocol/#list-available-versions
+	ListProviderVersions(ctx context.Context, req *ListProviderVersionsRequest) (*ListProviderVersionsResponse, error)
 
 	// ProviderPackageMetadata returns a package metadata of a provider.
 	// https://developer.hashicorp.com/terraform/internals/provider-registry-protocol#find-a-provider-package

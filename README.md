@@ -8,7 +8,7 @@
 - Update version constraints of Terraform core, OpenTofu core, providers, and modules
 - Update dependency lock files (.terraform.lock.hcl) without Terraform CLI
 - Update all your Terraform configurations and lock files recursively under a given directory
-- Get the latest release version from the GitHub, GitLab, or Terraform Registry
+- Get the latest release version from the GitHub, GitLab, Terraform Registry, or OpenTofu Registry
 - Terraform v0.12+ support
 
 If you integrate tfupdate with your favorite CI or job scheduler, you can check the latest release daily and create a Pull Request automatically.
@@ -340,10 +340,16 @@ Arguments
                        - github or gitlab:
                          owner/repo
                          e.g. terraform-providers/terraform-provider-aws
-                      - tfregistryModule
+                       - tfregistryModule:
                          namespace/name/provider
                          e.g. terraform-aws-modules/vpc/aws
-                      - tfregistryProvider (experimental)
+                       - tfregistryProvider:
+                         namespace/type
+                         e.g. hashicorp/aws
+                       - opentofuRegistryModule:
+                         namespace/name/provider
+                         e.g. terraform-aws-modules/vpc/aws
+                       - opentofuRegistryProvider:
                          namespace/type
                          e.g. hashicorp/aws
 
@@ -353,7 +359,9 @@ Options:
                        - github (default)
                        - gitlab
                        - tfregistryModule
-                       - tfregistryProvider (experimental)
+                       - tfregistryProvider
+                       - opentofuRegistryModule
+                       - opentofuRegistryProvider
 ```
 
 ```
@@ -375,10 +383,16 @@ Arguments
                        - github or gitlab:
                          owner/repo
                          e.g. terraform-providers/terraform-provider-aws
-                      - tfregistryModule
+                       - tfregistryModule:
                          namespace/name/provider
                          e.g. terraform-aws-modules/vpc/aws
-                      - tfregistryProvider (experimental)
+                       - tfregistryProvider:
+                         namespace/type
+                         e.g. hashicorp/aws
+                       - opentofuRegistryModule:
+                         namespace/name/provider
+                         e.g. terraform-aws-modules/vpc/aws
+                       - opentofuRegistryProvider:
                          namespace/type
                          e.g. hashicorp/aws
 
@@ -388,8 +402,9 @@ Options:
                        - github (default)
                        - gitlab
                        - tfregistryModule
-                       - tfregistryProvider (experimental)
-
+                       - tfregistryProvider
+                       - opentofuRegistryModule
+                       - opentofuRegistryProvider
   -n  --max-length   The maximum length of list.
 ```
 

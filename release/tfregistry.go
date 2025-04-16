@@ -10,16 +10,14 @@ import (
 )
 
 // TFRegistryAPI is an interface which calls Terraform Registry API.
+// This works for both Terraform and OpenTofu registries.
 // This abstraction layer is needed for testing with mock.
 type TFRegistryAPI interface {
-	// ModuleLatestForProvider returns the latest version of a module for a single provider.
-	// https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
-	ModuleLatestForProvider(ctx context.Context, req *tfregistry.ModuleLatestForProviderRequest) (*tfregistry.ModuleLatestForProviderResponse, error)
+	// ListModuleVersions returns all versions of a module for a single provider.
+	ListModuleVersions(ctx context.Context, req *tfregistry.ListModuleVersionsRequest) (*tfregistry.ListModuleVersionsResponse, error)
 
-	// ProviderLatest returns the latest version of a provider.
-	// This relies on a currently undocumented providers API endpoint which behaves exactly like the equivalent documented modules API endpoint.
-	// https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
-	ProviderLatest(ctx context.Context, req *tfregistry.ProviderLatestRequest) (*tfregistry.ProviderLatestResponse, error)
+	// ListProviderVersions returns all versions of a provider.
+	ListProviderVersions(ctx context.Context, req *tfregistry.ListProviderVersionsRequest) (*tfregistry.ListProviderVersionsResponse, error)
 }
 
 // TFRegistryConfig is a set of configurations for TFRegistryModuleRelease and TFRegistryProviderRelease.
@@ -34,6 +32,22 @@ type TFRegistryConfig struct {
 	// The Terraform Cloud is not supported yet.
 	// BaseURL should always be specified with a trailing slash.
 	BaseURL string
+}
+
+// NewDefaultTerraformRegistryConfig returns a TFRegistryConfig with the default
+// BaseURL for the public Terraform Registry.
+func NewDefaultTerraformRegistryConfig() TFRegistryConfig {
+	return TFRegistryConfig{
+		BaseURL: "https://registry.terraform.io/",
+	}
+}
+
+// NewDefaultOpenTofuRegistryConfig returns a TFRegistryConfig with the default
+// BaseURL for the public OpenTofu Registry.
+func NewDefaultOpenTofuRegistryConfig() TFRegistryConfig {
+	return TFRegistryConfig{
+		BaseURL: "https://registry.opentofu.org/",
+	}
 }
 
 // TFRegistryClient is a real TFRegistryAPI implementation.
@@ -60,10 +74,9 @@ func NewTFRegistryClient(config TFRegistryConfig) (*TFRegistryClient, error) {
 	}, nil
 }
 
-// ModuleLatestForProvider returns the latest version of a module for a single provider.
-// https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
-func (c *TFRegistryClient) ModuleLatestForProvider(ctx context.Context, req *tfregistry.ModuleLatestForProviderRequest) (*tfregistry.ModuleLatestForProviderResponse, error) {
-	return c.client.ModuleLatestForProvider(ctx, req)
+// ListModuleVersions returns all versions of a module for a single provider.
+func (c *TFRegistryClient) ListModuleVersions(ctx context.Context, req *tfregistry.ListModuleVersionsRequest) (*tfregistry.ListModuleVersionsResponse, error) {
+	return c.client.ListModuleVersions(ctx, req)
 }
 
 // TFRegistryModuleRelease is a release implementation which provides version information with TFRegistryModule Release.
@@ -113,27 +126,33 @@ func NewTFRegistryModuleRelease(source string, config TFRegistryConfig) (Release
 
 // ListReleases returns a list of unsorted all releases including pre-release.
 func (r *TFRegistryModuleRelease) ListReleases(ctx context.Context) ([]string, error) {
-	req := &tfregistry.ModuleLatestForProviderRequest{
+	req := &tfregistry.ListModuleVersionsRequest{
 		Namespace: r.namespace,
 		Name:      r.name,
 		Provider:  r.provider,
 	}
-	// Hard to guess from the name, the response of ModuleLatestForProvider API contains
-	// not only the latest version, but also a list of available versions.
-	release, err := r.api.ModuleLatestForProvider(ctx, req)
 
+	response, err := r.api.ListModuleVersions(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get a list of versions for %s/%s/%s: %s", r.namespace, r.name, r.provider, err)
 	}
 
-	return release.Versions, nil
+	// Extract versions from the response
+	if len(response.Modules) == 0 {
+		return []string{}, nil
+	}
+
+	versions := []string{}
+	for _, version := range response.Modules[0].Versions {
+		versions = append(versions, version.Version)
+	}
+
+	return versions, nil
 }
 
-// ProviderLatest returns the latest version of a provider.
-// This relies on a currently undocumented providers API endpoint which behaves exactly like the equivalent documented modules API endpoint.
-// https://www.terraform.io/docs/registry/api.html#latest-version-for-a-specific-module-provider
-func (c *TFRegistryClient) ProviderLatest(ctx context.Context, req *tfregistry.ProviderLatestRequest) (*tfregistry.ProviderLatestResponse, error) {
-	return c.client.ProviderLatest(ctx, req)
+// ListProviderVersions returns all versions of a provider.
+func (c *TFRegistryClient) ListProviderVersions(ctx context.Context, req *tfregistry.ListProviderVersionsRequest) (*tfregistry.ListProviderVersionsResponse, error) {
+	return c.client.ListProviderVersions(ctx, req)
 }
 
 // TFRegistryProviderRelease is a release implementation which provides version information with TFRegistryProvider Release.
@@ -142,10 +161,10 @@ type TFRegistryProviderRelease struct {
 	// It can be replaced for testing.
 	api TFRegistryAPI
 
-	// namespace is the name of a namespace, unique on a particular hostname, that can contain one or more providers that are somehow related. On the public Terraform Registry the "namespace" represents the organization that is packaging and distributing the provider.
+	// The user or organization the provider is owned by.
 	namespace string
 
-	// providerType is the provider type, like "azurerm", "aws", "google", "dns", etc. A provider type is unique within a particular hostname and namespace.
+	// The type name of the provider.
 	providerType string
 }
 
@@ -179,17 +198,21 @@ func NewTFRegistryProviderRelease(source string, config TFRegistryConfig) (Relea
 
 // ListReleases returns a list of unsorted all releases including pre-release.
 func (r *TFRegistryProviderRelease) ListReleases(ctx context.Context) ([]string, error) {
-	req := &tfregistry.ProviderLatestRequest{
+	req := &tfregistry.ListProviderVersionsRequest{
 		Namespace: r.namespace,
 		Type:      r.providerType,
 	}
-	// Hard to guess from the name, the response of ProviderLatest API contains
-	// not only the latest version, but also a list of available versions.
-	release, err := r.api.ProviderLatest(ctx, req)
 
+	response, err := r.api.ListProviderVersions(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get a list of versions for %s/%s: %s", r.namespace, r.providerType, err)
 	}
 
-	return release.Versions, nil
+	// Extract versions from the response
+	versions := []string{}
+	for _, version := range response.Versions {
+		versions = append(versions, version.Version)
+	}
+
+	return versions, nil
 }

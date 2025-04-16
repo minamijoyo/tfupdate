@@ -12,18 +12,18 @@ import (
 
 // mockTFRegistryClient is a mock TFRegistryAPI implementation.
 type mockTFRegistryClient struct {
-	moduleRes   *tfregistry.ModuleLatestForProviderResponse
-	providerRes *tfregistry.ProviderLatestResponse
+	moduleRes   *tfregistry.ListModuleVersionsResponse
+	providerRes *tfregistry.ListProviderVersionsResponse
 	err         error
 }
 
 var _ TFRegistryAPI = (*mockTFRegistryClient)(nil)
 
-func (c *mockTFRegistryClient) ModuleLatestForProvider(ctx context.Context, req *tfregistry.ModuleLatestForProviderRequest) (*tfregistry.ModuleLatestForProviderResponse, error) { // nolint revive unused-parameter
+func (c *mockTFRegistryClient) ListModuleVersions(ctx context.Context, req *tfregistry.ListModuleVersionsRequest) (*tfregistry.ListModuleVersionsResponse, error) { // nolint revive unused-parameter
 	return c.moduleRes, c.err
 }
 
-func (c *mockTFRegistryClient) ProviderLatest(ctx context.Context, req *tfregistry.ProviderLatestRequest) (*tfregistry.ProviderLatestResponse, error) { // nolint revive unused-parameter
+func (c *mockTFRegistryClient) ListProviderVersions(ctx context.Context, req *tfregistry.ListProviderVersionsRequest) (*tfregistry.ListProviderVersionsResponse, error) { // nolint revive unused-parameter
 	return c.providerRes, c.err
 }
 
@@ -192,8 +192,16 @@ func TestTFRegistryModuleReleaseListReleases(t *testing.T) {
 	}{
 		{
 			client: &mockTFRegistryClient{
-				moduleRes: &tfregistry.ModuleLatestForProviderResponse{
-					Versions: []string{"0.3.0", "0.2.0", "0.1.0"},
+				moduleRes: &tfregistry.ListModuleVersionsResponse{
+					Modules: []tfregistry.ModuleVersions{
+						{
+							Versions: []tfregistry.ModuleVersion{
+								{Version: "0.3.0"},
+								{Version: "0.2.0"},
+								{Version: "0.1.0"},
+							},
+						},
+					},
 				},
 				err: nil,
 			},
@@ -245,8 +253,12 @@ func TestTFRegistryProviderReleaseListReleases(t *testing.T) {
 	}{
 		{
 			client: &mockTFRegistryClient{
-				providerRes: &tfregistry.ProviderLatestResponse{
-					Versions: []string{"0.3.0", "0.2.0", "0.1.0"},
+				providerRes: &tfregistry.ListProviderVersionsResponse{
+					Versions: []tfregistry.ProviderVersion{
+						{Version: "0.3.0"},
+						{Version: "0.2.0"},
+						{Version: "0.1.0"},
+					},
 				},
 				err: nil,
 			},

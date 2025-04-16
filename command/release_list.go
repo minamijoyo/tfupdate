@@ -65,10 +65,16 @@ Arguments
                        - github or gitlab:
                          owner/repo
                          e.g. terraform-providers/terraform-provider-aws
-                      - tfregistryModule
+                       - tfregistryModule:
                          namespace/name/provider
                          e.g. terraform-aws-modules/vpc/aws
-                      - tfregistryProvider (experimental)
+                       - tfregistryProvider:
+                         namespace/type
+                         e.g. hashicorp/aws
+                       - opentofuRegistryModule:
+                         namespace/name/provider
+                         e.g. terraform-aws-modules/vpc/aws
+                       - opentofuRegistryProvider:
                          namespace/type
                          e.g. hashicorp/aws
 
@@ -78,8 +84,9 @@ Options:
                        - github (default)
                        - gitlab
                        - tfregistryModule
-                       - tfregistryProvider (experimental)
-
+                       - tfregistryProvider
+                       - opentofuRegistryModule
+                       - opentofuRegistryProvider
   -n  --max-length   The maximum length of list.
       --pre-release  Show pre-releases. (default: false)
 `

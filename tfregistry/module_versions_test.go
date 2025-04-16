@@ -8,33 +8,40 @@ import (
 	"testing"
 )
 
-func TestModuleLatestForProvider(t *testing.T) {
+func TestListModuleVersions(t *testing.T) {
 	cases := []struct {
 		desc string
-		req  *ModuleLatestForProviderRequest
+		req  *ListModuleVersionsRequest
 		ok   bool
 		code int
 		res  string
-		want *ModuleLatestForProviderResponse
+		want *ListModuleVersionsResponse
 	}{
 		{
 			desc: "simple",
-			req: &ModuleLatestForProviderRequest{
+			req: &ListModuleVersionsRequest{
 				Namespace: "terraform-aws-modules",
 				Name:      "vpc",
 				Provider:  "aws",
 			},
 			ok:   true,
 			code: 200,
-			res:  `{"version": "2.24.0", "versions": ["2.22.0", "2.23.0", "2.24.0"]}`,
-			want: &ModuleLatestForProviderResponse{
-				Version:  "2.24.0",
-				Versions: []string{"2.22.0", "2.23.0", "2.24.0"},
+			res:  `{"modules": [{"versions": [{"version": "2.22.0"}, {"version": "2.23.0"}, {"version": "2.24.0"}]}]}`,
+			want: &ListModuleVersionsResponse{
+				Modules: []ModuleVersions{
+					{
+						Versions: []ModuleVersion{
+							{Version: "2.22.0"},
+							{Version: "2.23.0"},
+							{Version: "2.24.0"},
+						},
+					},
+				},
 			},
 		},
 		{
 			desc: "not found",
-			req: &ModuleLatestForProviderRequest{
+			req: &ListModuleVersionsRequest{
 				Namespace: "hoge",
 				Name:      "fuga",
 				Provider:  "piyo",
@@ -46,7 +53,7 @@ func TestModuleLatestForProvider(t *testing.T) {
 		},
 		{
 			desc: "invalid request (Namespace)",
-			req: &ModuleLatestForProviderRequest{
+			req: &ListModuleVersionsRequest{
 				Namespace: "",
 				Name:      "fuga",
 				Provider:  "piyo",
@@ -58,7 +65,7 @@ func TestModuleLatestForProvider(t *testing.T) {
 		},
 		{
 			desc: "invalid request (Name)",
-			req: &ModuleLatestForProviderRequest{
+			req: &ListModuleVersionsRequest{
 				Namespace: "hoge",
 				Name:      "",
 				Provider:  "piyo",
@@ -70,7 +77,7 @@ func TestModuleLatestForProvider(t *testing.T) {
 		},
 		{
 			desc: "invalid request (Provider)",
-			req: &ModuleLatestForProviderRequest{
+			req: &ListModuleVersionsRequest{
 				Namespace: "hoge",
 				Name:      "fuga",
 				Provider:  "",
@@ -86,16 +93,16 @@ func TestModuleLatestForProvider(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			mux, mockServerURL := newMockServer()
 			client := newTestClient(mockServerURL)
-			subPath := fmt.Sprintf("%s%s/%s/%s", moduleV1Service, tc.req.Namespace, tc.req.Name, tc.req.Provider)
+			subPath := fmt.Sprintf("%s%s/%s/%s/versions", moduleV1Service, tc.req.Namespace, tc.req.Name, tc.req.Provider)
 			mux.HandleFunc(subPath, func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(tc.code)
 				fmt.Fprint(w, tc.res)
 			})
 
-			got, err := client.ModuleLatestForProvider(context.Background(), tc.req)
+			got, err := client.ListModuleVersions(context.Background(), tc.req)
 
 			if tc.ok && err != nil {
-				t.Fatalf("failed to call ModuleLatestForProvider: err = %s, req = %#v", err, tc.req)
+				t.Fatalf("failed to call ListModuleVersions: err = %s, req = %#v", err, tc.req)
 			}
 
 			if !tc.ok && err == nil {
