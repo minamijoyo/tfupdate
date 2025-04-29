@@ -346,12 +346,6 @@ Arguments
                        - tfregistryProvider:
                          namespace/type
                          e.g. hashicorp/aws
-                       - opentofuRegistryModule:
-                         namespace/name/provider
-                         e.g. terraform-aws-modules/vpc/aws
-                       - opentofuRegistryProvider:
-                         namespace/type
-                         e.g. hashicorp/aws
 
 Options:
   -s  --source-type  A type of release data source.
@@ -360,8 +354,6 @@ Options:
                        - gitlab
                        - tfregistryModule
                        - tfregistryProvider
-                       - opentofuRegistryModule
-                       - opentofuRegistryProvider
 ```
 
 ```
@@ -372,6 +364,8 @@ $ tfupdate release latest terraform-providers/terraform-provider-aws
 If you want to access private repositories on GitHub, export your access token to the `GITHUB_TOKEN` environment variable.
 
 If you want to access public or private repositories on GitLab, export your access token with api permissions to the `GITLAB_TOKEN` environment variable. If you are using an instance that is not `https://gitlab.com`, set the correct base URL to the `GITLAB_BASE_URL` environment variable (defaults to `https://gitlab.com/api/v4/`).
+
+If you want to use the public OpenTofu registry, set the `TFREGISTRY_BASE_URL` environment variable to `https://registry.opentofu.org/`.
 
 ```
 $ tfupdate release list --help
@@ -389,12 +383,6 @@ Arguments
                        - tfregistryProvider:
                          namespace/type
                          e.g. hashicorp/aws
-                       - opentofuRegistryModule:
-                         namespace/name/provider
-                         e.g. terraform-aws-modules/vpc/aws
-                       - opentofuRegistryProvider:
-                         namespace/type
-                         e.g. hashicorp/aws
 
 Options:
   -s  --source-type  A type of release data source.
@@ -403,8 +391,6 @@ Options:
                        - gitlab
                        - tfregistryModule
                        - tfregistryProvider
-                       - opentofuRegistryModule
-                       - opentofuRegistryProvider
   -n  --max-length   The maximum length of list.
 ```
 

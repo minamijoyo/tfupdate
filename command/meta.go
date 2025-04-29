@@ -40,16 +40,14 @@ func newRelease(sourceType string, source string) (release.Release, error) {
 		}
 		return release.NewGitLabRelease(source, config)
 	case "tfregistryModule":
-		config := release.NewDefaultTerraformRegistryConfig()
+		config := release.TFRegistryConfig{
+			BaseURL: env.TFRegistryBaseURL,
+		}
 		return release.NewTFRegistryModuleRelease(source, config)
 	case "tfregistryProvider":
-		config := release.NewDefaultTerraformRegistryConfig()
-		return release.NewTFRegistryProviderRelease(source, config)
-	case "opentofuRegistryModule":
-		config := release.NewDefaultOpenTofuRegistryConfig()
-		return release.NewTFRegistryModuleRelease(source, config)
-	case "opentofuRegistryProvider":
-		config := release.NewDefaultOpenTofuRegistryConfig()
+		config := release.TFRegistryConfig{
+			BaseURL: env.TFRegistryBaseURL,
+		}
 		return release.NewTFRegistryProviderRelease(source, config)
 	default:
 		return nil, fmt.Errorf("failed to new release data source. unknown type: %s", sourceType)

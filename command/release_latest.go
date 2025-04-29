@@ -67,12 +67,6 @@ Arguments
                        - tfregistryProvider:
                          namespace/type
                          e.g. hashicorp/aws
-                       - opentofuRegistryModule:
-                         namespace/name/provider
-                         e.g. terraform-aws-modules/vpc/aws
-                       - opentofuRegistryProvider:
-                         namespace/type
-                         e.g. hashicorp/aws
 
 Options:
   -s  --source-type  A type of release data source.
@@ -81,8 +75,6 @@ Options:
                        - gitlab
                        - tfregistryModule
                        - tfregistryProvider
-                       - opentofuRegistryModule
-                       - opentofuRegistryProvider
 `
 	return strings.TrimSpace(helpText)
 }
