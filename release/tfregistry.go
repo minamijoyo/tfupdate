@@ -34,22 +34,6 @@ type TFRegistryConfig struct {
 	BaseURL string
 }
 
-// NewDefaultTerraformRegistryConfig returns a TFRegistryConfig with the default
-// BaseURL for the public Terraform Registry.
-func NewDefaultTerraformRegistryConfig() TFRegistryConfig {
-	return TFRegistryConfig{
-		BaseURL: "https://registry.terraform.io/",
-	}
-}
-
-// NewDefaultOpenTofuRegistryConfig returns a TFRegistryConfig with the default
-// BaseURL for the public OpenTofu Registry.
-func NewDefaultOpenTofuRegistryConfig() TFRegistryConfig {
-	return TFRegistryConfig{
-		BaseURL: "https://registry.opentofu.org/",
-	}
-}
-
 // TFRegistryClient is a real TFRegistryAPI implementation.
 type TFRegistryClient struct {
 	client *tfregistry.Client
