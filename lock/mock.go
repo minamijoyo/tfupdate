@@ -3,6 +3,7 @@ package lock
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -10,8 +11,29 @@ import (
 	"strings"
 
 	tfaddr "github.com/hashicorp/terraform-registry-address"
+	"github.com/minamijoyo/tfupdate/tfregistry"
 	"golang.org/x/exp/slices"
 )
+
+// mockTFRegistryClient is a mock implementation of tfregistry.API
+type mockTFRegistryClient struct {
+	metadataRes *tfregistry.ProviderPackageMetadataResponse
+	err         error
+}
+
+var _ tfregistry.API = (*mockTFRegistryClient)(nil)
+
+func (c *mockTFRegistryClient) ProviderPackageMetadata(_ context.Context, _ *tfregistry.ProviderPackageMetadataRequest) (*tfregistry.ProviderPackageMetadataResponse, error) {
+	return c.metadataRes, c.err
+}
+
+func (c *mockTFRegistryClient) ListModuleVersions(_ context.Context, _ *tfregistry.ListModuleVersionsRequest) (*tfregistry.ListModuleVersionsResponse, error) {
+	return nil, nil // dummy implementation as it's not used in tests
+}
+
+func (c *mockTFRegistryClient) ListProviderVersions(_ context.Context, _ *tfregistry.ListProviderVersionsRequest) (*tfregistry.ListProviderVersionsResponse, error) {
+	return nil, nil // dummy implementation as it's not used in tests
+}
 
 // newMockServer returns a new mock server for testing.
 func newMockServer() (*http.ServeMux, *url.URL) {
@@ -22,7 +44,7 @@ func newMockServer() (*http.ServeMux, *url.URL) {
 }
 
 // newTestClient returns a new client for testing.
-func newTestClient(mockServerURL *url.URL, config TFRegistryConfig) *ProviderDownloaderClient {
+func newTestClient(mockServerURL *url.URL, config tfregistry.Config) *ProviderDownloaderClient {
 	config.BaseURL = mockServerURL.String()
 	c, _ := NewProviderDownloaderClient(config)
 	return c

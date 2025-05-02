@@ -16,8 +16,10 @@ func newMockServer() (*http.ServeMux, *url.URL) {
 
 // newTestClient returns a new client for testing.
 func newTestClient(mockServerURL *url.URL) *Client {
-	httpClient := &http.Client{}
-	c := NewClient(httpClient)
+	config := Config{
+		HTTPClient: &http.Client{},
+	}
+	c, _ := NewClient(config)
 	c.BaseURL = mockServerURL
 	return c
 }

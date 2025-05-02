@@ -89,10 +89,9 @@ fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2  terraform-prov
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			config := TFRegistryConfig{
-				api: tc.client,
-			}
+			config := tfregistry.Config{}
 			client := newTestClient(mockServerURL, config)
+			client.api = tc.client
 
 			req := &ProviderDownloadRequest{
 				Namespace: "minamijoyo",
@@ -153,9 +152,7 @@ func TestProviderDownloaderClientDownload(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			mux, mockServerURL := newMockServer()
-			config := TFRegistryConfig{
-				api: &mockTFRegistryClient{},
-			}
+			config := tfregistry.Config{}
 			client := newTestClient(mockServerURL, config)
 			mux.HandleFunc(tc.subPath, func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(tc.code)
