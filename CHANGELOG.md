@@ -1,5 +1,33 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+The tfupdate now supports OpenTofu, a community fork of Terraform.
+
+If you want to use the public OpenTofu registry, set the `TFREGISTRY_BASE_URL` environment variable to `https://registry.opentofu.org/`.
+
+```
+$ export TFREGISTRY_BASE_URL=https://registry.opentofu.org/
+```
+
+* Add support for updating version constraints of opentofu core ([#127](https://github.com/minamijoyo/tfupdate/pull/127))
+* Add support for .tofu extension ([#128](https://github.com/minamijoyo/tfupdate/pull/128))
+* Add support for the OpenTofu registry as a release source ([#130](https://github.com/minamijoyo/tfupdate/pull/130))
+* Allow TFREGISTRY_BASE_URL to set the host of the Terraform registry ([#132](https://github.com/minamijoyo/tfupdate/pull/132))
+* Add support for updating .terraform.lock.hcl using OpenTofu registry ([#134](https://github.com/minamijoyo/tfupdate/pull/134))
+
+ENHANCEMENTS:
+
+* Update Go to v1.24 ([#124](https://github.com/minamijoyo/tfupdate/pull/124))
+* Update hcl to v2.23.0 ([#125](https://github.com/minamijoyo/tfupdate/pull/125))
+* Add support for Terraform 1.11 ([#126](https://github.com/minamijoyo/tfupdate/pull/126))
+* Pin all GitHub Actions ([#129](https://github.com/minamijoyo/tfupdate/pull/129))
+* Unify tfregistry config for release and lock packages ([#133](https://github.com/minamijoyo/tfupdate/pull/133))
+
+NOTE:
+
+This release contains breaking changes as Go packages, but as a CLI, it should not affect end users.
+
 ## 0.8.5 (2024/08/02)
 
 ENHANCEMENTS:
