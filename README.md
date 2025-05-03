@@ -6,10 +6,10 @@
 ## Features
 
 - Update version constraints of Terraform core, OpenTofu core, providers, and modules
-- Update dependency lock files (.terraform.lock.hcl) without Terraform CLI
-- Update all your Terraform configurations and lock files recursively under a given directory
+- Update dependency lock files (.terraform.lock.hcl) without Terraform / OpenTofu CLI
+- Update all your Terraform / OpenTofu configurations and lock files recursively under a given directory
 - Get the latest release version from the GitHub, GitLab, Terraform Registry, or OpenTofu Registry
-- Terraform v0.12+ support
+- Terraform v0.12+ / OpenTofu v1.6+ support
 
 If you integrate tfupdate with your favorite CI or job scheduler, you can check the latest release daily and create a Pull Request automatically.
 
@@ -425,6 +425,12 @@ Options:
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.
+```
+
+If you want to use the public OpenTofu registry, set the `TFREGISTRY_BASE_URL` environment variable to `https://registry.opentofu.org/`.
+
+```
+$ export TFREGISTRY_BASE_URL=https://registry.opentofu.org/
 ```
 
 Given the following configuration:
