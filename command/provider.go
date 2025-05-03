@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/minamijoyo/tfupdate/release"
+	"github.com/minamijoyo/tfupdate/tfregistry"
 	"github.com/minamijoyo/tfupdate/tfupdate"
 	flag "github.com/spf13/pflag"
 )
@@ -65,7 +66,7 @@ func (c *ProviderCommand) Run(args []string) int {
 	}
 
 	log.Printf("[INFO] Update provider %s to %s", c.name, v)
-	option, err := tfupdate.NewOption("provider", c.name, v, []string{}, c.recursive, c.ignorePaths, "")
+	option, err := tfupdate.NewOption("provider", c.name, v, []string{}, c.recursive, c.ignorePaths, "", tfregistry.Config{})
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

@@ -4,37 +4,37 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/minamijoyo/tfupdate/lock"
+	"github.com/minamijoyo/tfupdate/tfregistry"
 	"github.com/spf13/afero"
 )
 
 func TestNewLockUpdater(t *testing.T) {
-	index := lock.NewMockIndex([]*lock.ProviderVersion{})
 	cases := []struct {
-		platforms []string
-		index     lock.Index
-		want      Updater
-		ok        bool
+		platforms        []string
+		tfregistryConfig tfregistry.Config
+		want             *LockUpdater
+		ok               bool
 	}{
 		{
-			platforms: []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
-			index:     index,
+			platforms:        []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
+			tfregistryConfig: tfregistry.Config{},
 			want: &LockUpdater{
-				platforms: []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
-				index:     index,
+				platforms:        []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
+				tfregistryConfig: tfregistry.Config{},
 			},
 			ok: true,
 		},
 	}
 
 	for _, tc := range cases {
-		got, err := NewLockUpdater(tc.platforms, tc.index)
+		got, err := NewLockUpdater(tc.platforms, tc.tfregistryConfig)
 		if tc.ok && err != nil {
 			t.Errorf("NewLockUpdater() with platforms = %#v returns unexpected err: %+v", tc.platforms, err)
 		}
@@ -43,13 +43,99 @@ func TestNewLockUpdater(t *testing.T) {
 			t.Errorf("NewLockUpdater() with platforms = %#v expects to return an error, but no error", tc.platforms)
 		}
 
-		if !reflect.DeepEqual(got, tc.want) {
-			t.Errorf("NewLockUpdater() with platforms = %s returns %#v, but want = %#v", tc.platforms, got, tc.want)
+		if tc.ok {
+			gotUpdater, ok := got.(*LockUpdater)
+			if !ok {
+				t.Errorf("NewLockUpdater() returns %T, want *LockUpdater", got)
+				continue
+			}
+
+			if diff := cmp.Diff(gotUpdater, tc.want,
+				cmpopts.IgnoreFields(LockUpdater{}, "index"),
+				cmp.AllowUnexported(LockUpdater{})); diff != "" {
+				t.Errorf("NewLockUpdater() with platforms = %s mismatch (-got +want):\n%s", tc.platforms, diff)
+			}
 		}
 	}
 }
 
-func TestUpdateLock(t *testing.T) {
+func TestLockUpdaterFullyQualifiedProviderAddress(t *testing.T) {
+	cases := []struct {
+		desc             string
+		address          string
+		tfregistryConfig tfregistry.Config
+		want             string
+		ok               bool
+	}{
+		{
+			desc:             "normal provider address",
+			address:          "hashicorp/null",
+			tfregistryConfig: tfregistry.Config{},
+			want:             "registry.terraform.io/hashicorp/null",
+			ok:               true,
+		},
+		{
+			desc:             "already fully qualified provider address",
+			address:          "registry.terraform.io/hashicorp/null",
+			tfregistryConfig: tfregistry.Config{},
+			want:             "registry.terraform.io/hashicorp/null",
+			ok:               true,
+		},
+		{
+			desc:    "with custom BaseURL",
+			address: "hashicorp/null",
+			tfregistryConfig: tfregistry.Config{
+				BaseURL: "https://registry.opentofu.org/",
+			},
+			want: "registry.opentofu.org/hashicorp/null",
+			ok:   true,
+		},
+		{
+			desc:    "with custom BaseURL and already fully qualified address",
+			address: "registry.terraform.io/hashicorp/null",
+			tfregistryConfig: tfregistry.Config{
+				BaseURL: "https://registry.opentofu.org/",
+			},
+			want: "registry.opentofu.org/hashicorp/null",
+			ok:   true,
+		},
+		{
+			desc:             "unknown provider address (namespace omitted)",
+			address:          "null",
+			tfregistryConfig: tfregistry.Config{},
+			want:             "",
+			ok:               false,
+		},
+		{
+			desc:             "legacy provider address (namespace as dash)",
+			address:          "-/null",
+			tfregistryConfig: tfregistry.Config{},
+			want:             "",
+			ok:               false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			u := &LockUpdater{
+				tfregistryConfig: tc.tfregistryConfig,
+			}
+
+			got, err := u.fullyQualifiedProviderAddress(tc.address)
+			if tc.ok && err != nil {
+				t.Errorf("unexpected error: %s", err)
+			}
+			if !tc.ok && err == nil {
+				t.Errorf("expected error, but got none")
+			}
+			if tc.ok && got != tc.want {
+				t.Errorf("got: %s, want: %s", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestUpdateLockWithTerraformRegistry(t *testing.T) {
 	platforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64"}
 	pvs := []*lock.ProviderVersion{
 		lock.NewMockProviderVersion(
@@ -1015,8 +1101,229 @@ provider "registry.terraform.io/integrations/github" {
 				t.Fatalf("failed to new global context: %s", err)
 			}
 
-			index := lock.NewMockIndex(pvs)
-			u, err := NewLockUpdater(platforms, index)
+			// Create a mock index for testing
+			mockIndex := lock.NewMockIndex(pvs)
+
+			// Create a LockUpdater with empty tfregistryConfig
+			u, err := NewLockUpdater(platforms, tfregistry.Config{})
+
+			// Replace the index with our mock for testing
+			lu := u.(*LockUpdater)
+			lu.index = mockIndex
+			if err != nil {
+				t.Fatalf("failed to new LockUpdater: %s", err)
+			}
+
+			f, diags := hclwrite.ParseConfig([]byte(tc.lockfile), ".terraform.lock.hcl", hcl.Pos{Line: 1, Column: 1})
+			if diags.HasErrors() {
+				t.Fatalf("unexpected diagnostics: %s", diags)
+			}
+
+			mc, err := NewModuleContext(dirname, gc)
+			if err != nil {
+				t.Fatalf("failed to new module context: %s", err)
+			}
+
+			err = u.Update(context.Background(), mc, ".terraform.lock.hcl", f)
+			if tc.ok && err != nil {
+				t.Errorf("faild to call Update: err = %s", err)
+			}
+
+			got := string(hclwrite.Format(f.BuildTokens(nil).Bytes()))
+
+			if !tc.ok && err == nil {
+				t.Errorf("expect to fail, but success: got = %s", got)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("got: %s, want = %s, diff = %s", got, tc.want, diff)
+			}
+		})
+	}
+}
+
+func TestUpdateLockWithOpenTofuRegistry(t *testing.T) {
+	platforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64"}
+	pvs := []*lock.ProviderVersion{
+		lock.NewMockProviderVersion(
+			"hashicorp/null",
+			"3.2.1",
+			[]string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
+			map[string]string{
+
+				"terraform-provider-null_3.2.1_linux_amd64.zip":  "h1:uQv2oPjJv+ue8bPrVp+So2hHd90UTssnCNajTW554Cw=",
+				"terraform-provider-null_3.2.1_darwin_amd64.zip": "h1:BdIx478D4wpFgFeaS+5Bdve1HIlt3Yhsr5hAbUs2rRg=",
+				"terraform-provider-null_3.2.1_darwin_arm64.zip": "h1:+JAon/4CyriC/c7c77NjJalKrKx6gwwQ7L7rVABWMtA=",
+			},
+			map[string]string{
+				"terraform-provider-null_3.2.1_linux_amd64.zip":   "zh:40335019c11e5bdb3780301da5197cbc756b4b5ac3d699c52583f1d34e963176",
+				"terraform-provider-null_3.2.1_linux_arm.zip":     "zh:42356e687656fc8ec1f230f786f830f344e64419552ec483e2bc79bd4b7cf1e8",
+				"terraform-provider-null_3.2.1_darwin_arm64.zip":  "zh:5ce03460813954cbebc9f9ad5befbe364d9dc67acb08869f67c1aa634fbf6d6c",
+				"terraform-provider-null_3.2.1_windows_386.zip":   "zh:658ea3e3e7ecc964bdbd08ecde63f3d79f298bab9922b29a6526ba941a4d403a",
+				"terraform-provider-null_3.2.1_windows_arm64.zip": "zh:68c06703bc57f9c882bfedda6f3047775f0d367093d00efb040800c798b8a613",
+				"terraform-provider-null_3.2.1_windows_amd64.zip": "zh:80fd03335f793dc54302dd53da98c91fd94f182bcacf13457bed1a99ecffbc1a",
+				"terraform-provider-null_3.2.1_linux_arm64.zip":   "zh:91a76f371815a130735c8fcb6196804d878aebcc67b4c3b73571d2063336ffd8",
+				"terraform-provider-null_3.2.1_windows_arm.zip":   "zh:c146fc0291b7f6284fe4d54ce6aaece6957e9acc93fc572dd505dfd8bcad3e6c",
+				"terraform-provider-null_3.2.1_linux_386.zip":     "zh:c38c9a295cfae9fb6372523c34b9466cd439d5e2c909b56a788960d387c24320",
+				"terraform-provider-null_3.2.1_darwin_amd64.zip":  "zh:e25265d4e87821d18dc9653a0ce01978a1ae5d363bc01dd273454db1aa0309c7",
+			},
+		),
+	}
+
+	cases := []struct {
+		desc            string
+		tfregstryConfig tfregistry.Config
+		src             string
+		lockfile        string
+		want            string
+		ok              bool
+	}{
+		{
+			desc: "simple",
+			tfregstryConfig: tfregistry.Config{
+				BaseURL: "https://registry.opentofu.org/",
+			},
+			src: `
+terraform {
+  required_version = "1.9.0"
+
+  required_providers {
+    null = {
+      source  = "hashicorp/null"
+      version = "3.2.1"
+    }
+  }
+}
+`,
+			lockfile: `
+# This file is maintained automatically by "tofu init".
+# Manual edits may be lost in future updates.
+
+provider "registry.opentofu.org/hashicorp/null" {
+  version     = "3.1.1"
+  constraints = "3.1.1"
+  hashes = [
+    "h1:Difmh8E1BLxb+7+waC9B76cMdsrcjaHlSY4r0fF2pwo=",
+    "h1:QitqPlS79NODAC5hplISDtI7b84ETNx3H9nrcJfMgF8=",
+    "h1:r1SUdAxGh9oAwW1XRSsbfIxGQo29cRvuLxxICN3KjWI=",
+    "zh:35e3cd3af991a2d6f5c3818d44c4d2c188238782849f79c8ba30caa2f73985a7",
+    "zh:4b1451dcd6a641a7e618c2bb586bffb8438d9142c357afb645266b94ec1a8450",
+    "zh:4cc1c7774562bed41d6bac9cfe80d81a2b68c6a13594058ae21d66ce0854db6e",
+    "zh:63535ceefb44f94482c8b6cf70603d64f966c17772e8e2402dd879b54523396a",
+    "zh:70de13ff0371960286870f14e7d89d0dd886c2418aaaac8045ed82c8787ceb14",
+    "zh:79f158d4ac8c25915312a2bc1133c70902974f369a7cedd652439184487ad2c3",
+    "zh:7f38e45a859fc82e9122a8d01d568c664f723910cc6714421640134a9f974681",
+    "zh:b5b7fc2833c5c7c2f1bb7cda9dca8c2d34ea2ed8d592cd870d20ae468d1c5650",
+    "zh:f4183aea2c36dfb015990af272c55606345ddbc586136628b11687f3e99c95a4",
+  ]
+}
+`,
+			want: `
+# This file is maintained automatically by "tofu init".
+# Manual edits may be lost in future updates.
+
+provider "registry.opentofu.org/hashicorp/null" {
+  version     = "3.2.1"
+  constraints = "3.2.1"
+  hashes = [
+    "h1:+JAon/4CyriC/c7c77NjJalKrKx6gwwQ7L7rVABWMtA=",
+    "h1:BdIx478D4wpFgFeaS+5Bdve1HIlt3Yhsr5hAbUs2rRg=",
+    "h1:uQv2oPjJv+ue8bPrVp+So2hHd90UTssnCNajTW554Cw=",
+    "zh:40335019c11e5bdb3780301da5197cbc756b4b5ac3d699c52583f1d34e963176",
+    "zh:42356e687656fc8ec1f230f786f830f344e64419552ec483e2bc79bd4b7cf1e8",
+    "zh:5ce03460813954cbebc9f9ad5befbe364d9dc67acb08869f67c1aa634fbf6d6c",
+    "zh:658ea3e3e7ecc964bdbd08ecde63f3d79f298bab9922b29a6526ba941a4d403a",
+    "zh:68c06703bc57f9c882bfedda6f3047775f0d367093d00efb040800c798b8a613",
+    "zh:80fd03335f793dc54302dd53da98c91fd94f182bcacf13457bed1a99ecffbc1a",
+    "zh:91a76f371815a130735c8fcb6196804d878aebcc67b4c3b73571d2063336ffd8",
+    "zh:c146fc0291b7f6284fe4d54ce6aaece6957e9acc93fc572dd505dfd8bcad3e6c",
+    "zh:c38c9a295cfae9fb6372523c34b9466cd439d5e2c909b56a788960d387c24320",
+    "zh:e25265d4e87821d18dc9653a0ce01978a1ae5d363bc01dd273454db1aa0309c7",
+  ]
+}
+`,
+			ok: true,
+		},
+		{
+			desc: "create from empty",
+			tfregstryConfig: tfregistry.Config{
+				BaseURL: "https://registry.opentofu.org/",
+			},
+			src: `
+terraform {
+  required_version = "1.9.0"
+
+  required_providers {
+    null = {
+      source  = "hashicorp/null"
+      version = "3.2.1"
+    }
+  }
+}
+`,
+			lockfile: ``,
+			want: `
+provider "registry.opentofu.org/hashicorp/null" {
+  version     = "3.2.1"
+  constraints = "3.2.1"
+  hashes = [
+    "h1:+JAon/4CyriC/c7c77NjJalKrKx6gwwQ7L7rVABWMtA=",
+    "h1:BdIx478D4wpFgFeaS+5Bdve1HIlt3Yhsr5hAbUs2rRg=",
+    "h1:uQv2oPjJv+ue8bPrVp+So2hHd90UTssnCNajTW554Cw=",
+    "zh:40335019c11e5bdb3780301da5197cbc756b4b5ac3d699c52583f1d34e963176",
+    "zh:42356e687656fc8ec1f230f786f830f344e64419552ec483e2bc79bd4b7cf1e8",
+    "zh:5ce03460813954cbebc9f9ad5befbe364d9dc67acb08869f67c1aa634fbf6d6c",
+    "zh:658ea3e3e7ecc964bdbd08ecde63f3d79f298bab9922b29a6526ba941a4d403a",
+    "zh:68c06703bc57f9c882bfedda6f3047775f0d367093d00efb040800c798b8a613",
+    "zh:80fd03335f793dc54302dd53da98c91fd94f182bcacf13457bed1a99ecffbc1a",
+    "zh:91a76f371815a130735c8fcb6196804d878aebcc67b4c3b73571d2063336ffd8",
+    "zh:c146fc0291b7f6284fe4d54ce6aaece6957e9acc93fc572dd505dfd8bcad3e6c",
+    "zh:c38c9a295cfae9fb6372523c34b9466cd439d5e2c909b56a788960d387c24320",
+    "zh:e25265d4e87821d18dc9653a0ce01978a1ae5d363bc01dd273454db1aa0309c7",
+  ]
+}
+`,
+			ok: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			dirname := "test"
+			err := fs.MkdirAll(dirname, os.ModePerm)
+			if err != nil {
+				t.Fatalf("failed to create dir: %s", err)
+			}
+
+			err = afero.WriteFile(fs, filepath.Join(dirname, "main.tf"), []byte(tc.src), 0644)
+			if err != nil {
+				t.Fatalf("failed to write file: %s", err)
+			}
+
+			err = afero.WriteFile(fs, filepath.Join(dirname, ".terraform.lock.hcl"), []byte(tc.lockfile), 0644)
+			if err != nil {
+				t.Fatalf("failed to write file: %s", err)
+			}
+
+			o := Option{
+				updateType: "lock",
+				platforms:  platforms,
+			}
+			gc, err := NewGlobalContext(fs, o)
+			if err != nil {
+				t.Fatalf("failed to new global context: %s", err)
+			}
+
+			// Create a mock index for testing
+			mockIndex := lock.NewMockIndex(pvs)
+
+			// Create a LockUpdater with the tfregistryConfig
+			u, err := NewLockUpdater(platforms, tc.tfregstryConfig)
+
+			// Replace the index with our mock for testing
+			lu := u.(*LockUpdater)
+			lu.index = mockIndex
 			if err != nil {
 				t.Fatalf("failed to new LockUpdater: %s", err)
 			}

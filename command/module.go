@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/minamijoyo/tfupdate/tfregistry"
 	"github.com/minamijoyo/tfupdate/tfupdate"
 	flag "github.com/spf13/pflag"
 )
@@ -52,7 +53,7 @@ func (c *ModuleCommand) Run(args []string) int {
 	}
 
 	log.Printf("[INFO] Update module %s to %s", c.name, v)
-	option, err := tfupdate.NewOption("module", c.name, v, []string{}, c.recursive, c.ignorePaths, c.sourceMatchType)
+	option, err := tfupdate.NewOption("module", c.name, v, []string{}, c.recursive, c.ignorePaths, c.sourceMatchType, tfregistry.Config{})
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

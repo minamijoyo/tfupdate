@@ -24,7 +24,7 @@ jobs:
         go-version-file: '.go-version'
     - name: test
       run: make test
-  testacc:
+  testacc_terraform:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -35,11 +35,32 @@ jobs:
         - 0.14.11
     env:
       TERRAFORM_VERSION: ${{ matrix.terraform }}
+      TFUPDATE_EXEC_PATH: terraform
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
     - name: docker build
       run: docker compose build
     - name: terraform --version
       run: docker compose run --rm tfupdate terraform --version
+    - name: testacc
+      run: docker compose run --rm tfupdate make testacc
+  testacc_opentofu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        opentofu:
+        - 1.9.1
+        - 1.6.3
+    env:
+      OPENTOFU_VERSION: ${{ matrix.opentofu }}
+      TFUPDATE_EXEC_PATH: tofu
+      TFREGISTRY_BASE_URL: https://registry.opentofu.org/
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: docker build
+      run: docker compose build
+    - name: tofu --version
+      run: docker compose run --rm tfupdate tofu --version
     - name: testacc
       run: docker compose run --rm tfupdate make testacc

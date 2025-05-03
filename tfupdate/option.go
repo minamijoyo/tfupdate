@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/minamijoyo/tfupdate/tfregistry"
 	"golang.org/x/exp/slices"
 )
 
@@ -39,10 +40,13 @@ type Option struct {
 	// In case the sourceMatchType is set to regex this field is used to match the name.
 	// In case the provided sourceMatchType is full this field is nil.
 	nameRegex *regexp.Regexp
+
+	// tfregistryConfig is a configuration for Terraform Registry API.
+	tfregistryConfig tfregistry.Config
 }
 
 // NewOption returns an option.
-func NewOption(updateType string, name string, version string, platforms []string, recursive bool, ignorePaths []string, sourceMatchType string) (Option, error) {
+func NewOption(updateType string, name string, version string, platforms []string, recursive bool, ignorePaths []string, sourceMatchType string, tfregistryConfig tfregistry.Config) (Option, error) {
 	regexps := make([]*regexp.Regexp, 0, len(ignorePaths))
 	for _, ignorePath := range ignorePaths {
 		if len(ignorePath) == 0 {
@@ -62,13 +66,14 @@ func NewOption(updateType string, name string, version string, platforms []strin
 	}
 
 	return Option{
-		updateType:  updateType,
-		name:        name,
-		version:     version,
-		platforms:   platforms,
-		recursive:   recursive,
-		ignorePaths: regexps,
-		nameRegex:   nameRegex,
+		updateType:       updateType,
+		name:             name,
+		version:          version,
+		platforms:        platforms,
+		recursive:        recursive,
+		ignorePaths:      regexps,
+		nameRegex:        nameRegex,
+		tfregistryConfig: tfregistryConfig,
 	}, nil
 }
 
