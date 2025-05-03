@@ -5,7 +5,10 @@ services:
       dockerfile: ./Dockerfile.dev
       args:
         TERRAFORM_VERSION: ${TERRAFORM_VERSION:-latest}
+        OPENTOFU_VERSION: ${OPENTOFU_VERSION:-latest}
     volumes:
       - ".:/work"
     environment:
       CGO_ENABLED: 0 # disable cgo for go test
+      TFUPDATE_EXEC_PATH:
+      TFREGISTRY_BASE_URL:

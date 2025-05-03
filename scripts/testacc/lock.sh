@@ -24,7 +24,7 @@ setup()
 
     # always create a new lock
     rm -f .terraform.lock.hcl
-    terraform providers lock -platform=linux_amd64 -platform=darwin_amd64 -platform=darwin_arm64
+    "$TFUPDATE_EXEC_PATH" providers lock -platform=linux_amd64 -platform=darwin_amd64 -platform=darwin_arm64
     cat .terraform.lock.hcl
     rm -rf .terraform
 
@@ -50,7 +50,7 @@ lock()
     mv .terraform.lock.hcl .terraform.lock.hcl.got
 
     # want
-    terraform providers lock -platform=linux_amd64 -platform=darwin_amd64 -platform=darwin_arm64
+    "$TFUPDATE_EXEC_PATH" providers lock -platform=linux_amd64 -platform=darwin_amd64 -platform=darwin_arm64
 
     # assert the result
     cat .terraform.lock.hcl
