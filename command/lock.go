@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kelseyhightower/envconfig"
+	"github.com/minamijoyo/tfupdate/tfregistry"
 	"github.com/minamijoyo/tfupdate/tfupdate"
 	flag "github.com/spf13/pflag"
 )
@@ -53,7 +55,21 @@ func (c *LockCommand) Run(args []string) int {
 	}
 
 	log.Println("[INFO] Update dependency lock files")
-	option, err := tfupdate.NewOption("lock", "", "", c.platforms, c.recursive, c.ignorePaths, "")
+
+	// Fetch environment variables
+	var env Env
+	err := envconfig.Process("", &env)
+	if err != nil {
+		c.UI.Error(fmt.Sprintf("failed to fetch environment variables: %s", err))
+		return 1
+	}
+
+	// Create tfregistry.Config
+	tfregistryConfig := tfregistry.Config{
+		BaseURL: env.TFRegistryBaseURL,
+	}
+
+	option, err := tfupdate.NewOption("lock", "", "", c.platforms, c.recursive, c.ignorePaths, "", tfregistryConfig)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/minamijoyo/tfupdate/lock"
 	"github.com/pkg/errors"
 )
 
@@ -23,11 +22,6 @@ type Updater interface {
 
 // NewUpdater is a factory method which returns an Updater implementation.
 func NewUpdater(o Option) (Updater, error) {
-	lockIndex, err := lock.NewDefaultIndex()
-	if err != nil {
-		return nil, err
-	}
-
 	switch o.updateType {
 	case "terraform":
 		return NewTerraformUpdater(o.version)
@@ -38,7 +32,7 @@ func NewUpdater(o Option) (Updater, error) {
 	case "module":
 		return NewModuleUpdater(o.name, o.version, o.nameRegex)
 	case "lock":
-		return NewLockUpdater(o.platforms, lockIndex)
+		return NewLockUpdater(o.platforms, o.tfregistryConfig)
 	default:
 		return nil, errors.Errorf("failed to new updater. unknown type: %s", o.updateType)
 	}

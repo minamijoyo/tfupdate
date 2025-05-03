@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	tfaddr "github.com/hashicorp/terraform-registry-address"
 	"github.com/minamijoyo/tfupdate/lock"
+	"github.com/minamijoyo/tfupdate/tfregistry"
 	"github.com/zclconf/go-cty/cty"
 )
 
@@ -18,13 +19,23 @@ type LockUpdater struct {
 
 	// index is a cached index for updating dependency lock files.
 	index lock.Index
+
+	// tfregistryConfig is a configuration for Terraform Registry API.
+	tfregistryConfig tfregistry.Config
 }
 
 // NewLockUpdater is a factory method which returns an LockUpdater instance.
-func NewLockUpdater(platforms []string, index lock.Index) (Updater, error) {
+func NewLockUpdater(platforms []string, tfregistryConfig tfregistry.Config) (Updater, error) {
+	// Create a new index with the provided registry config
+	index, err := lock.NewIndexFromConfig(tfregistryConfig)
+	if err != nil {
+		return nil, err
+	}
+
 	return &LockUpdater{
-		platforms: platforms,
-		index:     index,
+		platforms:        platforms,
+		index:            index,
+		tfregistryConfig: tfregistryConfig,
 	}, nil
 }
 

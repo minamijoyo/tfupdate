@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/minamijoyo/tfupdate/release"
+	"github.com/minamijoyo/tfupdate/tfregistry"
 	"github.com/minamijoyo/tfupdate/tfupdate"
 	flag "github.com/spf13/pflag"
 )
@@ -56,7 +57,7 @@ func (c *TerraformCommand) Run(args []string) int {
 	}
 
 	log.Printf("[INFO] Update terraform to %s", v)
-	option, err := tfupdate.NewOption("terraform", "", v, []string{}, c.recursive, c.ignorePaths, "")
+	option, err := tfupdate.NewOption("terraform", "", v, []string{}, c.recursive, c.ignorePaths, "", tfregistry.Config{})
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1

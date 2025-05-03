@@ -31,9 +31,9 @@ type index struct {
 	papi ProviderDownloaderAPI
 }
 
-// NewDefaultIndex returns a new instance of default Index.
-func NewDefaultIndex() (Index, error) {
-	client, err := NewProviderDownloaderClient(tfregistry.Config{})
+// NewIndexFromConfig returns a new instance of Index with the given registry config.
+func NewIndexFromConfig(config tfregistry.Config) (Index, error) {
+	client, err := NewProviderDownloaderClient(config)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func NewDefaultIndex() (Index, error) {
 	return index, nil
 }
 
-// NewIndex returns a new instance of Index.
+// NewIndex returns a new instance of Index with the given provider downloader API.
 func NewIndex(papi ProviderDownloaderAPI) Index {
 	providers := make(map[string]*providerIndex)
 	return &index{

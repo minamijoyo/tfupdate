@@ -4,37 +4,37 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/minamijoyo/tfupdate/lock"
+	"github.com/minamijoyo/tfupdate/tfregistry"
 	"github.com/spf13/afero"
 )
 
 func TestNewLockUpdater(t *testing.T) {
-	index := lock.NewMockIndex([]*lock.ProviderVersion{})
 	cases := []struct {
-		platforms []string
-		index     lock.Index
-		want      Updater
-		ok        bool
+		platforms        []string
+		tfregistryConfig tfregistry.Config
+		want             *LockUpdater
+		ok               bool
 	}{
 		{
-			platforms: []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
-			index:     index,
+			platforms:        []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
+			tfregistryConfig: tfregistry.Config{},
 			want: &LockUpdater{
-				platforms: []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
-				index:     index,
+				platforms:        []string{"darwin_arm64", "darwin_amd64", "linux_amd64"},
+				tfregistryConfig: tfregistry.Config{},
 			},
 			ok: true,
 		},
 	}
 
 	for _, tc := range cases {
-		got, err := NewLockUpdater(tc.platforms, tc.index)
+		got, err := NewLockUpdater(tc.platforms, tc.tfregistryConfig)
 		if tc.ok && err != nil {
 			t.Errorf("NewLockUpdater() with platforms = %#v returns unexpected err: %+v", tc.platforms, err)
 		}
@@ -43,8 +43,18 @@ func TestNewLockUpdater(t *testing.T) {
 			t.Errorf("NewLockUpdater() with platforms = %#v expects to return an error, but no error", tc.platforms)
 		}
 
-		if !reflect.DeepEqual(got, tc.want) {
-			t.Errorf("NewLockUpdater() with platforms = %s returns %#v, but want = %#v", tc.platforms, got, tc.want)
+		if tc.ok {
+			gotUpdater, ok := got.(*LockUpdater)
+			if !ok {
+				t.Errorf("NewLockUpdater() returns %T, want *LockUpdater", got)
+				continue
+			}
+
+			if diff := cmp.Diff(gotUpdater, tc.want,
+				cmpopts.IgnoreFields(LockUpdater{}, "index"),
+				cmp.AllowUnexported(LockUpdater{})); diff != "" {
+				t.Errorf("NewLockUpdater() with platforms = %s mismatch (-got +want):\n%s", tc.platforms, diff)
+			}
 		}
 	}
 }
@@ -1015,8 +1025,15 @@ provider "registry.terraform.io/integrations/github" {
 				t.Fatalf("failed to new global context: %s", err)
 			}
 
-			index := lock.NewMockIndex(pvs)
-			u, err := NewLockUpdater(platforms, index)
+			// Create a mock index for testing
+			mockIndex := lock.NewMockIndex(pvs)
+
+			// Create a LockUpdater with empty tfregistryConfig
+			u, err := NewLockUpdater(platforms, tfregistry.Config{})
+
+			// Replace the index with our mock for testing
+			lu := u.(*LockUpdater)
+			lu.index = mockIndex
 			if err != nil {
 				t.Fatalf("failed to new LockUpdater: %s", err)
 			}
