@@ -28,7 +28,7 @@ brews:
       name: "Masayuki Morita"
       email: minamijoyo@gmail.com
     homepage: https://github.com/minamijoyo/tfupdate
-    description: "Update version constraints in your Terraform configurations"
+    description: "Update version constraints in your Terraform / OpenTofu configurations"
     skip_upload: auto
     test: |
       system "#{bin}/tfupdate --version"
