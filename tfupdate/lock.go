@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"path/filepath"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	tfaddr "github.com/hashicorp/terraform-registry-address"
+	svchost "github.com/hashicorp/terraform-svchost"
 	"github.com/minamijoyo/tfupdate/lock"
 	"github.com/minamijoyo/tfupdate/tfregistry"
 	"github.com/zclconf/go-cty/cty"
@@ -53,7 +55,7 @@ func (u *LockUpdater) Update(ctx context.Context, mc *ModuleContext, filename st
 // updateLockfile updates the dependency lock file.
 func (u *LockUpdater) updateLockfile(ctx context.Context, mc *ModuleContext, f *hclwrite.File) error {
 	for _, p := range mc.SelecetedProviders() {
-		pAddr, err := fullyQualifiedProviderAddress(p.Source)
+		pAddr, err := u.fullyQualifiedProviderAddress(p.Source)
 		if err != nil {
 			// Unsupported formats, such as legacy abbreviated notation, will result
 			// in parse errors, but should be ignored without returning an error if
@@ -120,23 +122,34 @@ func (u *LockUpdater) updateProviderBlock(ctx context.Context, pBlock *hclwrite.
 	return nil
 }
 
-// The financeQualifiedProviderAddress converts the short form of the provider
+// fullyQualifiedProviderAddress converts the short form of the provider
 // address into the fully qualified form.
-// hashicorp/null => registry.terraform.io/hashicorp/null
-func fullyQualifiedProviderAddress(address string) (string, error) {
+// Example: hashicorp/null => registry.terraform.io/hashicorp/null
+// If BaseURL is set (e.g., https://registry.opentofu.org/), it will use its hostname
+// instead of the default one (e.g., hashicorp/null => registry.opentofu.org/hashicorp/null).
+func (u *LockUpdater) fullyQualifiedProviderAddress(address string) (string, error) {
 	pAddr, err := tfaddr.ParseProviderSource(address)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse provider aaddress: %s", address)
+		return "", fmt.Errorf("failed to parse provider address: %s", address)
 	}
 
 	// Since .terraform.lock.hcl was introduced from v0.14, we assume that
 	// provider address is qualified with namespaces at least. We won't support
 	// implicit legacy things.
 	if !pAddr.HasKnownNamespace() {
-		return "", fmt.Errorf("failed to parse unknown provider aaddress: %s", address)
+		return "", fmt.Errorf("failed to parse unknown provider address: %s", address)
 	}
 	if pAddr.IsLegacy() {
-		return "", fmt.Errorf("failed to parse legacy provider aaddress: %s", address)
+		return "", fmt.Errorf("failed to parse legacy provider address: %s", address)
+	}
+
+	// If BaseURL is set, use its hostname
+	if u.tfregistryConfig.BaseURL != "" {
+		baseURL, err := url.Parse(u.tfregistryConfig.BaseURL)
+		if err == nil && baseURL.Hostname() != "" {
+			// Use the hostname from BaseURL with type casting to svchost.Hostname
+			pAddr.Hostname = svchost.Hostname(baseURL.Hostname())
+		}
 	}
 
 	return pAddr.String(), nil
