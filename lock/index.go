@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	tfaddr "github.com/hashicorp/terraform-registry-address"
+	"github.com/minamijoyo/tfupdate/tfregistry"
 )
 
 // Index is an in-memory data store for caching provider hash values.
@@ -32,7 +33,7 @@ type index struct {
 
 // NewDefaultIndex returns a new instance of default Index.
 func NewDefaultIndex() (Index, error) {
-	client, err := NewProviderDownloaderClient(TFRegistryConfig{})
+	client, err := NewProviderDownloaderClient(tfregistry.Config{})
 	if err != nil {
 		return nil, err
 	}

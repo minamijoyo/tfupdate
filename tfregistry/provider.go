@@ -25,5 +25,6 @@ type ProviderV1API interface {
 
 	// ProviderPackageMetadata returns a package metadata of a provider.
 	// https://developer.hashicorp.com/terraform/internals/provider-registry-protocol#find-a-provider-package
+	// https://opentofu.org/docs/internals/provider-registry-protocol/#find-a-provider-package
 	ProviderPackageMetadata(ctx context.Context, req *ProviderPackageMetadataRequest) (*ProviderPackageMetadataResponse, error)
 }

@@ -14,7 +14,7 @@ import (
 // we implement a pure Terraform Registry API client.
 // https://www.terraform.io/docs/registry/api.html
 //
-// Currently only the official public registry is supported.
+// The public Terraform and OpenTofu registries are supported.
 // There are other APIs and request/response fields,
 // but we define only the ones we need here to keep it simple.
 
@@ -22,6 +22,28 @@ const (
 	// The public Terraform Registry API endpoint.
 	defaultBaseURL = "https://registry.terraform.io/"
 )
+
+// API is an interface which calls Terraform Registry API.
+// This works for both Terraform and OpenTofu registries.
+// This abstraction layer is needed for testing with mock.
+type API interface {
+	ModuleV1API
+	ProviderV1API
+}
+
+// Config is a set of configurations for TFRegistry client.
+type Config struct {
+	// HTTPClient is a http client which communicates with the API.
+	// If nil, a default client will be used.
+	HTTPClient *http.Client
+
+	// BaseURL is a URL for Terraform Registry API requests.
+	// Defaults to the public Terraform Registry API.
+	// We have not yet implemented registry authentication,
+	// so private registries such as HCP Terraform are not yet supported.
+	// BaseURL should always be specified with a trailing slash.
+	BaseURL string
+}
 
 // Client manages communication with the Terraform Registry API.
 type Client struct {
@@ -31,14 +53,29 @@ type Client struct {
 	BaseURL *url.URL
 }
 
+// Ensure Client implements API interface
+var _ API = (*Client)(nil)
+
 // NewClient returns a new Client instance.
-func NewClient(httpClient *http.Client) *Client {
+func NewClient(config Config) (*Client, error) {
+	httpClient := config.HTTPClient
 	if httpClient == nil {
 		httpClient = &http.Client{}
 	}
-	baseURL, _ := url.Parse(defaultBaseURL)
+
+	var baseURL *url.URL
+	var err error
+	if config.BaseURL != "" {
+		baseURL, err = url.Parse(config.BaseURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse base URL: %s", err)
+		}
+	} else {
+		baseURL, _ = url.Parse(defaultBaseURL)
+	}
+
 	c := &Client{httpClient: httpClient, BaseURL: baseURL}
-	return c
+	return c, nil
 }
 
 // newRequest builds a http Request instance.

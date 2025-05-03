@@ -5,6 +5,7 @@ import (
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/minamijoyo/tfupdate/release"
+	"github.com/minamijoyo/tfupdate/tfregistry"
 	"github.com/mitchellh/cli"
 	"github.com/spf13/afero"
 )
@@ -40,12 +41,12 @@ func newRelease(sourceType string, source string) (release.Release, error) {
 		}
 		return release.NewGitLabRelease(source, config)
 	case "tfregistryModule":
-		config := release.TFRegistryConfig{
+		config := tfregistry.Config{
 			BaseURL: env.TFRegistryBaseURL,
 		}
 		return release.NewTFRegistryModuleRelease(source, config)
 	case "tfregistryProvider":
-		config := release.TFRegistryConfig{
+		config := tfregistry.Config{
 			BaseURL: env.TFRegistryBaseURL,
 		}
 		return release.NewTFRegistryProviderRelease(source, config)

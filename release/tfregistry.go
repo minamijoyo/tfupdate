@@ -3,71 +3,16 @@ package release
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/minamijoyo/tfupdate/tfregistry"
 )
 
-// TFRegistryAPI is an interface which calls Terraform Registry API.
-// This works for both Terraform and OpenTofu registries.
-// This abstraction layer is needed for testing with mock.
-type TFRegistryAPI interface {
-	// ListModuleVersions returns all versions of a module for a single provider.
-	ListModuleVersions(ctx context.Context, req *tfregistry.ListModuleVersionsRequest) (*tfregistry.ListModuleVersionsResponse, error)
-
-	// ListProviderVersions returns all versions of a provider.
-	ListProviderVersions(ctx context.Context, req *tfregistry.ListProviderVersionsRequest) (*tfregistry.ListProviderVersionsResponse, error)
-}
-
-// TFRegistryConfig is a set of configurations for TFRegistryModuleRelease and TFRegistryProviderRelease.
-type TFRegistryConfig struct {
-	// api is an instance of TFRegistryAPI interface.
-	// It can be replaced for testing.
-	api TFRegistryAPI
-
-	// BaseURL is a URL for Terraform Registry API requests.
-	// Defaults to the public Terraform Registry API.
-	// This looks like the Terraform Cloud support, but currently for testing purposes only.
-	// The Terraform Cloud is not supported yet.
-	// BaseURL should always be specified with a trailing slash.
-	BaseURL string
-}
-
-// TFRegistryClient is a real TFRegistryAPI implementation.
-type TFRegistryClient struct {
-	client *tfregistry.Client
-}
-
-var _ TFRegistryAPI = (*TFRegistryClient)(nil)
-
-// NewTFRegistryClient returns a real TFRegistryClient instance.
-func NewTFRegistryClient(config TFRegistryConfig) (*TFRegistryClient, error) {
-	c := tfregistry.NewClient(nil)
-
-	if len(config.BaseURL) != 0 {
-		baseURL, err := url.Parse(config.BaseURL)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse tfregistry base url: %s", err)
-		}
-		c.BaseURL = baseURL
-	}
-
-	return &TFRegistryClient{
-		client: c,
-	}, nil
-}
-
-// ListModuleVersions returns all versions of a module for a single provider.
-func (c *TFRegistryClient) ListModuleVersions(ctx context.Context, req *tfregistry.ListModuleVersionsRequest) (*tfregistry.ListModuleVersionsResponse, error) {
-	return c.client.ListModuleVersions(ctx, req)
-}
-
 // TFRegistryModuleRelease is a release implementation which provides version information with TFRegistryModule Release.
 type TFRegistryModuleRelease struct {
-	// api is an instance of TFRegistryAPI interface.
+	// api is an instance of tfregistry.API interface.
 	// It can be replaced for testing.
-	api TFRegistryAPI
+	api tfregistry.API
 
 	// namespace is a user name which owns the module.
 	namespace string
@@ -82,26 +27,19 @@ type TFRegistryModuleRelease struct {
 var _ Release = (*TFRegistryModuleRelease)(nil)
 
 // NewTFRegistryModuleRelease is a factory method which returns an TFRegistryModuleRelease instance.
-func NewTFRegistryModuleRelease(source string, config TFRegistryConfig) (Release, error) {
+func NewTFRegistryModuleRelease(source string, config tfregistry.Config) (Release, error) {
 	s := strings.SplitN(source, "/", 3)
 	if len(s) != 3 {
 		return nil, fmt.Errorf("failed to parse source: %s", source)
 	}
 
-	// If config.api is not set, create a default TFRegistryClient
-	var api TFRegistryAPI
-	if config.api == nil {
-		var err error
-		api, err = NewTFRegistryClient(config)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		api = config.api
+	client, err := tfregistry.NewClient(config)
+	if err != nil {
+		return nil, err
 	}
 
 	return &TFRegistryModuleRelease{
-		api:       api,
+		api:       client,
 		namespace: s[0],
 		name:      s[1],
 		provider:  s[2],
@@ -134,16 +72,11 @@ func (r *TFRegistryModuleRelease) ListReleases(ctx context.Context) ([]string, e
 	return versions, nil
 }
 
-// ListProviderVersions returns all versions of a provider.
-func (c *TFRegistryClient) ListProviderVersions(ctx context.Context, req *tfregistry.ListProviderVersionsRequest) (*tfregistry.ListProviderVersionsResponse, error) {
-	return c.client.ListProviderVersions(ctx, req)
-}
-
 // TFRegistryProviderRelease is a release implementation which provides version information with TFRegistryProvider Release.
 type TFRegistryProviderRelease struct {
-	// api is an instance of TFRegistryAPI interface.
+	// api is an instance of tfregistry.API interface.
 	// It can be replaced for testing.
-	api TFRegistryAPI
+	api tfregistry.API
 
 	// The user or organization the provider is owned by.
 	namespace string
@@ -155,26 +88,19 @@ type TFRegistryProviderRelease struct {
 var _ Release = (*TFRegistryProviderRelease)(nil)
 
 // NewTFRegistryProviderRelease is a factory method which returns an TFRegistryProviderRelease instance.
-func NewTFRegistryProviderRelease(source string, config TFRegistryConfig) (Release, error) {
+func NewTFRegistryProviderRelease(source string, config tfregistry.Config) (Release, error) {
 	s := strings.SplitN(source, "/", 2)
 	if len(s) != 2 {
 		return nil, fmt.Errorf("failed to parse source: %s", source)
 	}
 
-	// If config.api is not set, create a default TFRegistryClient
-	var api TFRegistryAPI
-	if config.api == nil {
-		var err error
-		api, err = NewTFRegistryClient(config)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		api = config.api
+	client, err := tfregistry.NewClient(config)
+	if err != nil {
+		return nil, err
 	}
 
 	return &TFRegistryProviderRelease{
-		api:          api,
+		api:          client,
 		namespace:    s[0],
 		providerType: s[1],
 	}, nil

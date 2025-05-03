@@ -25,31 +25,29 @@ type ProviderDownloaderAPI interface {
 
 // ProviderDownloaderClient implements the ProviderDownloaderAPI interface
 type ProviderDownloaderClient struct {
-	// api is an instance of TFRegistryAPI interface.
+	// api is an instance of tfregistry.API interface.
 	// It can be replaced for testing.
-	api TFRegistryAPI
+	api tfregistry.API
 
 	// httpClient is a http client which communicates with the ProviderDownloaderAPI.
 	httpClient *http.Client
 }
 
-// ProviderDownloaderClient is a factory method which returns a ProviderDownloaderClient instance.
-func NewProviderDownloaderClient(config TFRegistryConfig) (*ProviderDownloaderClient, error) {
-	// If config.api is not set, create a default TFRegistryClient
-	var api TFRegistryAPI
-	if config.api == nil {
-		var err error
-		api, err = NewTFRegistryClient(config)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		api = config.api
+// NewProviderDownloaderClient is a factory method which returns a ProviderDownloaderClient instance.
+func NewProviderDownloaderClient(config tfregistry.Config) (*ProviderDownloaderClient, error) {
+	api, err := tfregistry.NewClient(config)
+	if err != nil {
+		return nil, err
+	}
+
+	httpClient := config.HTTPClient
+	if httpClient == nil {
+		httpClient = &http.Client{}
 	}
 
 	return &ProviderDownloaderClient{
 		api:        api,
-		httpClient: &http.Client{},
+		httpClient: httpClient,
 	}, nil
 }
 
