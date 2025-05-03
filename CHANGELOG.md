@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.9.0 (2025/05/03)
+
 NEW FEATURES:
 
 The tfupdate now supports OpenTofu, a community fork of Terraform.
