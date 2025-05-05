@@ -4,7 +4,7 @@ import (
 	"log"
 
 	version "github.com/hashicorp/go-version"
-	"github.com/hashicorp/terraform-config-inspect/tfconfig"
+	"github.com/minamijoyo/terraform-config-inspect/tfconfig"
 	"github.com/spf13/afero"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
