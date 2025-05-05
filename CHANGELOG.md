@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+BUG FIXES:
+
+* Fix the build issue with the replace directive ([#136](https://github.com/minamijoyo/tfupdate/pull/136))
+
 ## 0.9.0 (2025/05/03)
 
 NEW FEATURES:
