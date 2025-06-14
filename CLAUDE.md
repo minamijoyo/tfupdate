@@ -102,3 +102,58 @@ Key external libraries:
 - Go 1.24+
 - golangci-lint (for linting)
 - Make (for build automation)
+
+## AI Agent Development Rules
+
+When working on this codebase, AI agents must follow these strict guidelines:
+
+### Language Requirements
+- **ALL documentation, comments, commit messages, and code-related text MUST be written in English**
+- This applies regardless of the language used in AI agent instructions
+- Maintain consistency with the existing English-only codebase
+- Exception: User-facing error messages may be localized if explicitly required
+
+### Code Quality Standards
+- Follow existing code patterns and architectural decisions
+- Maintain high test coverage (aim for >85% on new code)
+- Use interface-driven design for new components
+- Implement proper error handling with context propagation
+- Add comprehensive unit tests for all new functionality
+
+### Documentation Standards
+- Update relevant documentation when making changes
+- Use clear, concise English in all comments
+- Document complex algorithms and business logic
+- Keep CLAUDE.md updated with architectural changes
+- Follow existing comment style and patterns
+- Use ASCII characters only in internal documentation (no emojis or special symbols)
+- ADR (Architecture Decision Records) should be stored in `docs/adr/` with YYYYMMDD prefix
+- Avoid redundant metadata in ADRs (no Date/Status/Deciders headers)
+
+### Testing Requirements
+- Write tests before implementing features (TDD approach)
+- Ensure all tests pass before submitting changes
+- Include both positive and negative test cases
+- Mock external dependencies appropriately
+- Run `make check` to verify code quality
+
+### Project Management
+- Use checkboxes in TODO lists to track completion status
+- Avoid separate "Completed Items" sections (git history provides completion dates)
+- Store project planning and analysis documents in appropriate directories:
+  - Technical decisions: `docs/adr/`
+  - AI-specific project tasks: `.claude/projects/{project_name}/`
+- Organize multiple concurrent projects under `.claude/projects/` directory
+
+## Active Projects
+
+This section tracks ongoing improvement projects for the codebase.
+
+### AI Agent Optimization
+Optimizing the codebase for AI agent coding efficiency through improved test coverage, documentation, and development experience.
+
+**Resources:**
+- Task list: `.claude/projects/ai_agent_optimization/TODO.md`
+- Analysis & plan: `docs/adr/20250614_ai_agent_optimization.md`
+
+**Scope:** Test coverage improvements, architecture documentation, code readability enhancements, and development tooling standardization.
