@@ -41,10 +41,10 @@
 ## Implementation Checklist
 
 ### Step 1: Foundation Testing
-- [ ] **1.1 Test Helper Creation**
-  - [ ] Create `command/testing.go` with Mock UI/Fs helpers
-  - [ ] Add common assertion functions
-  - [ ] Establish test file naming conventions
+- [x] **1.1 Test Helper Creation**
+  - [x] Create `command/testing.go` with Mock UI/Fs helpers
+  - [x] Add common assertion functions
+  - [x] Establish test file naming conventions
   
 - [ ] **1.2 Help/Synopsis Testing**
   - [ ] Test `TerraformCommand.Help()` and `Synopsis()`
