@@ -155,5 +155,12 @@ Optimizing the codebase for AI agent coding efficiency through improved test cov
 **Resources:**
 - Task list: `.claude/projects/ai_agent_optimization/TODO.md`
 - Analysis & plan: `docs/adr/20250614_ai_agent_optimization.md`
+- Phase 1 plan: `.claude/projects/ai_agent_optimization/phase1.md`
 
 **Scope:** Test coverage improvements, architecture documentation, code readability enhancements, and development tooling standardization.
+
+**Development Workflow:**
+- Each phase has a detailed plan document (phase1.md, phase2.md, etc.)
+- Implementation follows checklist order from top to bottom
+- Mark tasks as completed using checkboxes in phase documents
+- Commit progress incrementally with descriptive messages
