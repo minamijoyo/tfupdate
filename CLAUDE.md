@@ -8,7 +8,7 @@ tfupdate is a CLI tool that updates version constraints for Terraform and OpenTo
 
 ## Quick Reference
 
-For comprehensive development setup, testing guidelines, and build instructions, see **CONTRIBUTING.md**.
+See @CONTRIBUTING.md for comprehensive development setup, testing guidelines, and build instructions.
 
 ### Essential Commands
 ```bash
@@ -66,22 +66,20 @@ GITLAB_BASE_URL=<url>             # For GitLab instances (default: https://gitla
 TFREGISTRY_BASE_URL=<url>         # For OpenTofu registry (set to https://registry.opentofu.org/)
 ```
 
-
 ## AI Agent Development Rules
 
 When working on this codebase, AI agents must follow these specific guidelines:
 
 ### Core Requirements
-- **Always refer to CONTRIBUTING.md first** for all development standards, coding guidelines, testing conventions, and commit message formats
-- **ALL code, comments, and documentation MUST be written in English** regardless of user instruction language
+- Refer to @CONTRIBUTING.md for development standards and testing conventions
+- Code, comments, and documentation must be written in English
 - Follow established patterns and maintain consistency with existing codebase
 
 ### AI-Specific Workflow Rules
-- **Phase-based development**: Use detailed phase documents (.claude/projects/{project}/phase*.md) for complex tasks
-- **Incremental commits**: One commit per checklist item with descriptive messages
-- **Progress tracking**: Always update phase document checklists immediately after task completion
-- **CRITICAL: Update checklists after implementation**: Never forget to mark completed tasks in phase documents
-- **Documentation focus**: Prioritize code readability and comprehensive documentation for future AI agent efficiency
+- Use phase documents (.claude/projects/{project}/phase*.md) for complex tasks
+- Make incremental commits with descriptive messages
+- Update phase document checklists after task completion
+- Prioritize code readability and comprehensive documentation
 
 ### Project Organization
 - Store AI-specific planning documents in `.claude/projects/{project_name}/`
@@ -89,9 +87,8 @@ When working on this codebase, AI agents must follow these specific guidelines:
 - Maintain clear separation between general project docs and AI optimization work
 
 ### Quality Verification
-- **MANDATORY: Run `make check` after EVERY implementation** - Never skip this step
-- **CRITICAL: Fix ALL lint and test issues before committing** - Zero tolerance for quality issues
-- **WORKFLOW: Implementation → `make check` → Fix issues → Commit** - Follow this exact sequence
+- Run `make check` after implementation before committing
+- Fix lint and test issues before committing
 - Ensure test coverage meets project standards (>85% for new code)
 - Verify all existing tests pass without regression
 
@@ -108,14 +105,3 @@ Optimizing the codebase for AI agent coding efficiency through improved test cov
 - Phase 1 plan: `.claude/projects/ai_agent_optimization/phase1.md`
 
 **Scope:** Test coverage improvements, architecture documentation, code readability enhancements, and development tooling standardization.
-
-**Development Workflow:**
-- Each phase has a detailed plan document (phase1.md, phase2.md, etc.)
-- Implementation follows checklist order from top to bottom
-- **Mark tasks as completed using checkboxes in phase documents** - REQUIRED after each task completion
-- **One commit per checklist item** - Each completed task gets its own descriptive commit
-- **MANDATORY: Run `make check` after EVERY implementation** - Never commit without passing quality checks
-- **EXACT SEQUENCE: Code → `make check` → Fix → Commit** - No exceptions
-- Commit progress incrementally with clear, focused messages
-- Always update phase document checklists immediately after implementation
-
