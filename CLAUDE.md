@@ -80,6 +80,7 @@ When working on this codebase, AI agents must follow these specific guidelines:
 - **Phase-based development**: Use detailed phase documents (.claude/projects/{project}/phase*.md) for complex tasks
 - **Incremental commits**: One commit per checklist item with descriptive messages
 - **Progress tracking**: Always update phase document checklists immediately after task completion
+- **CRITICAL: Update checklists after implementation**: Never forget to mark completed tasks in phase documents
 - **Documentation focus**: Prioritize code readability and comprehensive documentation for future AI agent efficiency
 
 ### Project Organization
@@ -88,7 +89,9 @@ When working on this codebase, AI agents must follow these specific guidelines:
 - Maintain clear separation between general project docs and AI optimization work
 
 ### Quality Verification
-- Run `make check` before each commit to verify code quality
+- **MANDATORY: Run `make check` after EVERY implementation** - Never skip this step
+- **CRITICAL: Fix ALL lint and test issues before committing** - Zero tolerance for quality issues
+- **WORKFLOW: Implementation → `make check` → Fix issues → Commit** - Follow this exact sequence
 - Ensure test coverage meets project standards (>85% for new code)
 - Verify all existing tests pass without regression
 
@@ -111,5 +114,8 @@ Optimizing the codebase for AI agent coding efficiency through improved test cov
 - Implementation follows checklist order from top to bottom
 - **Mark tasks as completed using checkboxes in phase documents** - REQUIRED after each task completion
 - **One commit per checklist item** - Each completed task gets its own descriptive commit
+- **MANDATORY: Run `make check` after EVERY implementation** - Never commit without passing quality checks
+- **EXACT SEQUENCE: Code → `make check` → Fix → Commit** - No exceptions
 - Commit progress incrementally with clear, focused messages
 - Always update phase document checklists immediately after implementation
+

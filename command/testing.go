@@ -28,12 +28,12 @@ func NewMockUI() *MockUI {
 }
 
 // Ask reads a line of input from the input reader.
-func (u *MockUI) Ask(query string) (string, error) {
+func (u *MockUI) Ask(_ string) (string, error) {
 	return u.InputReader.ReadString('\n')
 }
 
 // AskSecret reads a line of input from the input reader without echoing.
-func (u *MockUI) AskSecret(query string) (string, error) {
+func (u *MockUI) AskSecret(_ string) (string, error) {
 	return u.InputReader.ReadString('\n')
 }
 
@@ -154,7 +154,7 @@ func AssertDeepEqual(t *testing.T, got, want interface{}, format string, args ..
 func AssertDiff(t *testing.T, got, want interface{}, format string, args ...interface{}) {
 	t.Helper()
 	if diff := cmp.Diff(got, want); diff != "" {
-		t.Errorf(format+" mismatch:\ngot: %s\nwant: %s\ndiff: %s", 
+		t.Errorf(format+" mismatch:\ngot: %s\nwant: %s\ndiff: %s",
 			append(args, spew.Sdump(got), spew.Sdump(want), diff)...)
 	}
 }
@@ -167,7 +167,7 @@ func AssertFileContent(t *testing.T, fs afero.Fs, filename, expected, format str
 		t.Fatalf("failed to read file %s: %s", filename, err)
 	}
 	if string(got) != expected {
-		t.Errorf(format+" file content mismatch:\ngot: %s\nwant: %s", 
+		t.Errorf(format+" file content mismatch:\ngot: %s\nwant: %s",
 			append(args, string(got), expected)...)
 	}
 }
@@ -193,7 +193,7 @@ func AssertUIOutput(t *testing.T, ui *MockUI, expected, format string, args ...i
 	t.Helper()
 	got := ui.GetOutput()
 	if !strings.Contains(got, expected) {
-		t.Errorf(format+" UI output does not contain expected content:\ngot: %s\nwant to contain: %s", 
+		t.Errorf(format+" UI output does not contain expected content:\ngot: %s\nwant to contain: %s",
 			append(args, got, expected)...)
 	}
 }
@@ -203,7 +203,7 @@ func AssertUIError(t *testing.T, ui *MockUI, expected, format string, args ...in
 	t.Helper()
 	got := ui.GetErrorOutput()
 	if !strings.Contains(got, expected) {
-		t.Errorf(format+" UI error output does not contain expected content:\ngot: %s\nwant to contain: %s", 
+		t.Errorf(format+" UI error output does not contain expected content:\ngot: %s\nwant to contain: %s",
 			append(args, got, expected)...)
 	}
 }

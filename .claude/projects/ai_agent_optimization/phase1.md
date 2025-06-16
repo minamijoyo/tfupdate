@@ -47,14 +47,14 @@
   - [x] Establish test file naming conventions
   
 - [ ] **1.2 Help/Synopsis Testing**
-  - [ ] Test `TerraformCommand.Help()` and `Synopsis()`
-  - [ ] Test `OpenTofuCommand.Help()` and `Synopsis()`
-  - [ ] Test `ProviderCommand.Help()` and `Synopsis()`
-  - [ ] Test `ModuleCommand.Help()` and `Synopsis()`
-  - [ ] Test `LockCommand.Help()` and `Synopsis()`
-  - [ ] Test `ReleaseCommand.Help()` and `Synopsis()`
-  - [ ] Test `ReleaseLatestCommand.Help()` and `Synopsis()`
-  - [ ] Test `ReleaseListCommand.Help()` and `Synopsis()`
+  - [x] Test `TerraformCommand.Help()` and `Synopsis()`
+  - [x] Test `OpenTofuCommand.Help()` and `Synopsis()`
+  - [x] Test `ProviderCommand.Help()` and `Synopsis()`
+  - [x] Test `ModuleCommand.Help()` and `Synopsis()`
+  - [x] Test `LockCommand.Help()` and `Synopsis()`
+  - [x] Test `ReleaseCommand.Help()` and `Synopsis()`
+  - [x] Test `ReleaseLatestCommand.Help()` and `Synopsis()`
+  - [x] Test `ReleaseListCommand.Help()` and `Synopsis()`
   
 - [ ] **1.3 Factory Testing**
   - [ ] Test `newRelease()` with environment variable mocking
