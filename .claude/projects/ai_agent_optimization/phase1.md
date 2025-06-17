@@ -56,15 +56,15 @@
   - [x] Test `ReleaseLatestCommand.Help()` and `Synopsis()`
   - [x] Test `ReleaseListCommand.Help()` and `Synopsis()`
   
-- [ ] **1.3 Factory Testing**
-  - [ ] Test `newRelease()` with environment variable mocking
-  - [ ] Test all sourceType branches (github, gitlab, tfregistryModule, tfregistryProvider)
-  - [ ] Test error cases and invalid sourceType
+- [x] **1.3 Factory Testing**
+  - [x] Test `newRelease()` with environment variable mocking
+  - [x] Test all sourceType branches (github, gitlab, tfregistryModule, tfregistryProvider)
+  - [x] Test error cases and invalid sourceType
   
-- [ ] **1.4 Step 1 Verification**
-  - [ ] Run tests: `make test`
-  - [ ] Check coverage: Expected ~30% command package improvement
-  - [ ] Run linting: `make lint`
+- [x] **1.4 Step 1 Verification**
+  - [x] Run tests: `make test`
+  - [x] Check coverage: Expected ~30% command package improvement
+  - [x] Run linting: `make lint`
 
 ### Step 2: Run() Method Testing
 - [ ] **2.1 Argument Parsing Tests**
