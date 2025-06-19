@@ -17,6 +17,11 @@ type Meta struct {
 
 	// Fs is an afero filesystem.
 	Fs afero.Fs
+
+	// releaseFactory is a factory function to create Release instances.
+	// It can be overridden for testing to avoid external API calls.
+	// If nil, the default newRelease function will be used.
+	releaseFactory func(sourceType, source string) (release.Release, error)
 }
 
 // newRelease is a factory method which returns an Release implementation.
@@ -53,4 +58,13 @@ func newRelease(sourceType string, source string) (release.Release, error) {
 	default:
 		return nil, fmt.Errorf("failed to new release data source. unknown type: %s", sourceType)
 	}
+}
+
+// NewRelease creates a Release instance using the configured factory or default implementation.
+func (m *Meta) NewRelease(sourceType, source string) (release.Release, error) {
+	factory := m.releaseFactory
+	if factory == nil {
+		factory = newRelease
+	}
+	return factory(sourceType, source)
 }

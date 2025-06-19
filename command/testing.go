@@ -3,12 +3,14 @@ package command
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/go-cmp/cmp"
+	"github.com/minamijoyo/tfupdate/release"
 	"github.com/mitchellh/cli"
 	"github.com/spf13/afero"
 )
@@ -96,6 +98,24 @@ func NewTestMetaWithFs(fs afero.Fs) Meta {
 	return Meta{
 		UI: NewMockUI(),
 		Fs: fs,
+	}
+}
+
+// NewTestMetaWithReleaseFactory creates a Meta instance with mock release factory for testing.
+func NewTestMetaWithReleaseFactory(factory func(sourceType, source string) (release.Release, error)) Meta {
+	return Meta{
+		UI:             NewMockUI(),
+		Fs:             afero.NewMemMapFs(),
+		releaseFactory: factory,
+	}
+}
+
+// NewTestMetaWithUIAndReleaseFactory creates a Meta instance with provided UI and mock release factory for testing.
+func NewTestMetaWithUIAndReleaseFactory(ui cli.Ui, factory func(sourceType, source string) (release.Release, error)) Meta {
+	return Meta{
+		UI:             ui,
+		Fs:             afero.NewMemMapFs(),
+		releaseFactory: factory,
 	}
 }
 
@@ -205,5 +225,46 @@ func AssertUIError(t *testing.T, ui *MockUI, expected, format string, args ...in
 	if !strings.Contains(got, expected) {
 		t.Errorf(format+" UI error output does not contain expected content:\ngot: %s\nwant to contain: %s",
 			append(args, got, expected)...)
+	}
+}
+
+// MockRelease is a mock implementation of release.Release for testing.
+type MockRelease struct {
+	Versions []string
+	Err      error
+}
+
+// Verify MockRelease implements release.Release interface.
+var _ release.Release = (*MockRelease)(nil)
+
+// ListReleases implements release.Release interface.
+func (r *MockRelease) ListReleases(_ context.Context) ([]string, error) {
+	return r.Versions, r.Err
+}
+
+// NewMockReleaseFactory creates a release factory that returns a mock release.
+func NewMockReleaseFactory(versions []string, err error) func(sourceType, source string) (release.Release, error) {
+	return func(_, _ string) (release.Release, error) {
+		if err != nil {
+			return nil, err
+		}
+		return &MockRelease{
+			Versions: versions,
+			Err:      nil,
+		}, nil
+	}
+}
+
+// NewMockReleaseFactoryWithError creates a release factory that returns an error during factory creation.
+func NewMockReleaseFactoryWithError(err error) func(sourceType, source string) (release.Release, error) {
+	return func(_, _ string) (release.Release, error) {
+		if err != nil {
+			return nil, err
+		}
+		// If no error, return a mock that works
+		return &MockRelease{
+			Versions: []string{"1.0.0"},
+			Err:      nil,
+		}, nil
 	}
 }

@@ -68,20 +68,20 @@
 
 ### Step 2: Run() Method Testing
 - [ ] **2.1 Argument Parsing Tests**
-  - [ ] Test `TerraformCommand.Run()` argument validation
+  - [x] Test `TerraformCommand.Run()` argument validation
   - [ ] Test `OpenTofuCommand.Run()` argument validation
   - [ ] Test `ProviderCommand.Run()` argument validation
   - [ ] Test `ModuleCommand.Run()` argument validation
   - [ ] Test `LockCommand.Run()` argument validation
   - [ ] Test `ReleaseLatestCommand.Run()` argument validation
   - [ ] Test `ReleaseListCommand.Run()` argument validation
-  - [ ] Test flag parsing for all commands
-  - [ ] Test error message validation
+  - [x] Test flag parsing for all commands (completed for TerraformCommand)
+  - [x] Test error message validation (completed for TerraformCommand)
   
 - [ ] **2.2 Normal Flow Testing**
-  - [ ] Mock external dependencies for all commands
-  - [ ] Test basic successful execution flow
-  - [ ] Test return value verification
+  - [x] Mock external dependencies for all commands (Meta.releaseFactory implemented)
+  - [x] Test basic successful execution flow (completed for TerraformCommand)
+  - [x] Test return value verification (completed for TerraformCommand)
   - [ ] Test logging output verification
   
 - [ ] **2.3 Step 2 Verification**
