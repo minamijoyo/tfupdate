@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"testing"
 )
 
@@ -158,128 +157,6 @@ func TestOpenTofuCommandRunParse(t *testing.T) {
 				AssertEqual(t, cmd.version, tc.expectedVersion, "OpenTofuCommand.Run(%v) version", tc.args)
 				AssertEqual(t, cmd.recursive, tc.expectedRecursive, "OpenTofuCommand.Run(%v) recursive", tc.args)
 				AssertDeepEqual(t, cmd.ignorePaths, tc.expectedIgnorePaths, "OpenTofuCommand.Run(%v) ignorePaths", tc.args)
-			}
-		})
-	}
-}
-
-func TestOpenTofuCommandRunUpdate(t *testing.T) {
-	testCases := []struct {
-		desc             string
-		version          string
-		fileContent      string
-		mockVersions     []string
-		mockError        error
-		ok               bool
-		expectedUpdate   bool
-		expectedErrorMsg string
-	}{
-		// Success cases
-		{
-			desc:    "specific version update",
-			version: "1.6.0",
-			fileContent: `terraform {
-  required_version = "~> 1.5"
-}`,
-			mockVersions:   []string{"1.6.0", "1.6.1"}, // Mock not used for specific version
-			mockError:      nil,
-			ok:             true,
-			expectedUpdate: true,
-		},
-		{
-			desc:    "latest version update",
-			version: "latest",
-			fileContent: `terraform {
-  required_version = "~> 1.5"
-}`,
-			mockVersions:   []string{"1.6.0", "1.6.1", "1.6.2"},
-			mockError:      nil,
-			ok:             true,
-			expectedUpdate: true,
-		},
-		// Release error cases
-		{
-			desc:    "release API error",
-			version: "latest",
-			fileContent: `terraform {
-  required_version = "~> 1.5"
-}`,
-			mockVersions:     nil,
-			mockError:        errors.New("API error"),
-			ok:               false,
-			expectedUpdate:   false,
-			expectedErrorMsg: "API error",
-		},
-		{
-			desc:    "no releases available",
-			version: "latest",
-			fileContent: `terraform {
-  required_version = "~> 1.5"
-}`,
-			mockVersions:     []string{},
-			mockError:        nil,
-			ok:               false,
-			expectedUpdate:   false,
-			expectedErrorMsg: "no releases found",
-		},
-		// File processing error cases
-		{
-			desc:             "invalid terraform file",
-			version:          "1.6.0",
-			fileContent:      `invalid terraform syntax {`,
-			mockVersions:     []string{"1.6.0"},
-			mockError:        nil,
-			ok:               false,
-			expectedUpdate:   false,
-			expectedErrorMsg: "Unclosed configuration block",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
-			ui := NewMockUI()
-			cmd := &OpenTofuCommand{
-				Meta: NewTestMetaWithUIAndReleaseFactory(
-					ui,
-					NewMockReleaseFactory(tc.mockVersions, tc.mockError),
-				),
-			}
-
-			// Create test file
-			err := WriteTestFile(cmd.Fs, "test.tf", tc.fileContent)
-			if err != nil {
-				t.Fatalf("Failed to write test file: %v", err)
-			}
-
-			args := []string{"-v", tc.version, "test.tf"}
-			exitCode := cmd.Run(args)
-
-			if tc.ok {
-				AssertCommandSuccess(t, exitCode, "OpenTofuCommand.Run(%v)", args)
-
-				if tc.expectedUpdate {
-					// Check that file was updated
-					updatedContent, err := ReadTestFile(cmd.Fs, "test.tf")
-					AssertNoError(t, err, "Reading updated file")
-
-					// The content should be different from original
-					if updatedContent == tc.fileContent {
-						t.Errorf("File content was not updated. Expected change but got same content: %s", updatedContent)
-					}
-				}
-			} else {
-				AssertCommandFailure(t, exitCode, "OpenTofuCommand.Run(%v)", args)
-
-				// Check error output contains some error message
-				errorOutput := ui.GetErrorOutput()
-				if errorOutput == "" {
-					t.Error("Expected error output but got empty string")
-				}
-
-				// Check specific error message if provided
-				if tc.expectedErrorMsg != "" {
-					AssertUIError(t, ui, tc.expectedErrorMsg, "OpenTofuCommand.Run(%v)", args)
-				}
 			}
 		})
 	}

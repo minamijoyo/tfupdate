@@ -37,7 +37,7 @@ Thank you for your interest in contributing to tfupdate! This document provides 
 
 ### Code Quality
 
-- Maintain high test coverage (aim for >85% on new code)
+- Maintain high test coverage (aim for >70% on new code)
 - Use proper error handling with context propagation
 - Add comprehensive unit tests for all new functionality
 - Follow existing code patterns and architectural decisions

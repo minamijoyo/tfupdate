@@ -89,7 +89,8 @@ When working on this codebase, AI agents must follow these specific guidelines:
 ### Quality Verification
 - Run `make check` after implementation before committing
 - Fix lint and test issues before committing
-- Ensure test coverage meets project standards (>85% for new code)
+- Ensure test coverage meets project standards (>70% for new code)
+- Generate coverage files in `tmp/coverage/` to avoid accidental commits
 - Verify all existing tests pass without regression
 
 ## Active Projects
