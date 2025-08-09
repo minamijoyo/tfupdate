@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.9.2 (2025/08/09)
+
 ENHANCEMENTS:
 
 * Update golang.org/x/crypto to v0.41.0 ([#143](https://github.com/minamijoyo/tfupdate/pull/143))
