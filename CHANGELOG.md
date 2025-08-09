@@ -1,5 +1,12 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Update golang.org/x/crypto to v0.41.0 ([#143](https://github.com/minamijoyo/tfupdate/pull/143))
+* Update hcl to v2.24.0 ([#144](https://github.com/minamijoyo/tfupdate/pull/144))
+* Add support for Terraform 1.12 ([#145](https://github.com/minamijoyo/tfupdate/pull/145))
+* Add support for OpenTofu 1.10 ([#146](https://github.com/minamijoyo/tfupdate/pull/146))
+
 ## 0.9.1 (2025/05/05)
 
 BUG FIXES:
