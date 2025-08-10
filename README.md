@@ -551,6 +551,10 @@ You can also use a CircleCI orb:
 
 https://github.com/masutaka/circleci-tfupdate-orb
 
+## Security
+
+If you find any security issues in this project, please refer to [SECURITY.md](SECURITY.md).
+
 ## License
 
 MIT
