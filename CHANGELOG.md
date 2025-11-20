@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.9.3 (2025/11/20)
+
 ENHANCEMENTS:
 
 * Bump google.golang.org/protobuf from 1.28.1 to 1.33.0 ([#147](https://github.com/minamijoyo/tfupdate/pull/147))
