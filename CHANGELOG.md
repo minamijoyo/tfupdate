@@ -1,5 +1,12 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Bump google.golang.org/protobuf from 1.28.1 to 1.33.0 ([#147](https://github.com/minamijoyo/tfupdate/pull/147))
+* Bump golang.org/x/oauth2 from 0.4.0 to 0.27.0 ([#148](https://github.com/minamijoyo/tfupdate/pull/148))
+* Bump golang.org/x/crypto from 0.41.0 to 0.45.0 ([#150](https://github.com/minamijoyo/tfupdate/pull/150))
+* Add support for Terraform 1.14 ([#151](https://github.com/minamijoyo/tfupdate/pull/151))
+
 ## 0.9.2 (2025/08/09)
 
 ENHANCEMENTS:
