@@ -43,7 +43,7 @@ func (c *OpenTofuCommand) Run(args []string) int {
 
 	v := c.version
 	if v == "latest" {
-		r, err := newRelease("github", "opentofu/opentofu")
+		r, err := c.NewRelease("github", "opentofu/opentofu")
 		if err != nil {
 			c.UI.Error(err.Error())
 			return 1
