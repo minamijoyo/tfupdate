@@ -41,10 +41,10 @@ type ProviderPlatform struct {
 // This works for both Terraform and OpenTofu registries.
 func (c *Client) ListProviderVersions(ctx context.Context, req *ListProviderVersionsRequest) (*ListProviderVersionsResponse, error) {
 	if len(req.Namespace) == 0 {
-		return nil, fmt.Errorf("Invalid request. Namespace is required. req = %#v", req)
+		return nil, fmt.Errorf("invalid request. Namespace is required. req = %#v", req)
 	}
 	if len(req.Type) == 0 {
-		return nil, fmt.Errorf("Invalid request. Type is required. req = %#v", req)
+		return nil, fmt.Errorf("invalid request. Type is required. req = %#v", req)
 	}
 
 	subPath := fmt.Sprintf("%s%s/%s/versions", providerV1Service, req.Namespace, req.Type)

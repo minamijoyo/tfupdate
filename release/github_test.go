@@ -141,7 +141,7 @@ func TestNewGitHubRelease(t *testing.T) {
 				t.Errorf("NewGitHubRelease() with source = %s, api = %#v sets api = %#v, but want %s", tc.source, tc.api, r.api, tc.api)
 			}
 
-			if !(r.owner == tc.owner && r.repo == tc.repo) {
+			if r.owner != tc.owner || r.repo != tc.repo {
 				t.Errorf("NewGitHubRelease() with source = %s, api = %#v returns (%s, %s), but want (%s, %s)", tc.source, tc.api, r.owner, r.repo, tc.owner, tc.repo)
 			}
 		}

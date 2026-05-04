@@ -1,7 +1,7 @@
 ARG TERRAFORM_VERSION=latest
 FROM hashicorp/terraform:$TERRAFORM_VERSION AS terraform
 
-FROM alpine:3.21 AS opentofu
+FROM alpine:3.23 AS opentofu
 ARG OPENTOFU_VERSION=latest
 ADD https://get.opentofu.org/install-opentofu.sh /install-opentofu.sh
 RUN chmod +x /install-opentofu.sh
@@ -9,14 +9,13 @@ RUN apk add gpg gpg-agent
 RUN ./install-opentofu.sh --install-method standalone --opentofu-version $OPENTOFU_VERSION --install-path /usr/local/bin --symlink-path -
 
 # tfupdate
-FROM golang:1.24-alpine3.21 AS tfupdate
+FROM golang:1.26-alpine3.23 AS tfupdate
 RUN apk --no-cache add make git
 
 # A workaround for a permission issue of git.
 # Since UIDs are different between host and container,
 # the .git directory is untrusted by default.
 # We need to allow it explicitly.
-# https://github.com/actions/checkout/issues/760
 RUN git config --global --add safe.directory /work
 
 # for testing

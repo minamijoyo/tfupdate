@@ -38,13 +38,13 @@ type ModuleVersion struct {
 // This works for both Terraform and OpenTofu registries.
 func (c *Client) ListModuleVersions(ctx context.Context, req *ListModuleVersionsRequest) (*ListModuleVersionsResponse, error) {
 	if len(req.Namespace) == 0 {
-		return nil, fmt.Errorf("Invalid request. Namespace is required. req = %#v", req)
+		return nil, fmt.Errorf("invalid request. Namespace is required. req = %#v", req)
 	}
 	if len(req.Name) == 0 {
-		return nil, fmt.Errorf("Invalid request. Name is required. req = %#v", req)
+		return nil, fmt.Errorf("invalid request. Name is required. req = %#v", req)
 	}
 	if len(req.Provider) == 0 {
-		return nil, fmt.Errorf("Invalid request. Provider is required. req = %#v", req)
+		return nil, fmt.Errorf("invalid request. Provider is required. req = %#v", req)
 	}
 
 	subPath := fmt.Sprintf("%s%s/%s/%s/versions", moduleV1Service, req.Namespace, req.Name, req.Provider)
