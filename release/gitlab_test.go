@@ -134,7 +134,7 @@ func TestNewGitLabRelease(t *testing.T) {
 				t.Errorf("NewGitLabRelease() with source = %s, api = %#v sets api = %#v, but want %s", tc.source, tc.api, r.api, tc.api)
 			}
 
-			if !(r.owner == tc.owner && r.project == tc.project) {
+			if r.owner != tc.owner || r.project != tc.project {
 				t.Errorf("NewGitLabRelease() with source = %s, api = %#v returns (%s, %s), but want (%s, %s)", tc.source, tc.api, r.owner, r.project, tc.owner, tc.project)
 			}
 		}

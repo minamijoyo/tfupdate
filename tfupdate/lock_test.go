@@ -896,7 +896,7 @@ provider "registry.terraform.io/hashicorp/null" {
 			ok: true,
 		},
 		{
-			desc: "ignore unsupported constaints",
+			desc: "ignore unsupported constraints",
 			src: `
 terraform {
   required_version = "1.5.0"

@@ -135,6 +135,8 @@ func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwr
 	// variants because the left hand side of object key accepts an expression in
 	// HCL. For accurate implementation, it should be implemented using the
 	// original parser.
+	// nolint:staticcheck // QF1001: could apply De Morgan's law
+	// Ignore it in favor of subjective readability.
 	for !((tokens[i].Type == hclsyntax.TokenIdent || tokens[i].Type == hclsyntax.TokenQuotedLit) &&
 		string(tokens[i].Bytes) == "version") {
 		i++
@@ -146,6 +148,8 @@ func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwr
 	}
 
 	// find value of old version
+	// nolint:staticcheck // QF1001: could apply De Morgan's law
+	// Ignore it in favor of subjective readability.
 	for !(tokens[i].Type == hclsyntax.TokenQuotedLit && string(tokens[i].Bytes) == oldVersion) {
 		i++
 	}

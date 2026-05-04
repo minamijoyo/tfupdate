@@ -92,6 +92,8 @@ func UpdateDir(ctx context.Context, current *ModuleContext, dirname string) erro
 		}
 
 		// if an entry is a file
+		// nolint:staticcheck // QF1001: could apply De Morgan's law
+		// Ignore it in favor of subjective readability.
 		if !(filepath.Ext(entry.Name()) == ".tf" || filepath.Ext(entry.Name()) == ".tofu" || entry.Name() == ".terraform.lock.hcl") {
 			// skip unsupported file type
 			continue

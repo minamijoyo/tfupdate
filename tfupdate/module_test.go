@@ -335,7 +335,7 @@ module "vpc" {
 		}
 		name, version := parseModuleSource(s)
 
-		if !(name == tc.name && version == tc.version) {
+		if name != tc.name || version != tc.version {
 			t.Errorf("parseModuleSource() with src = %s returns (%s, %s), but want = (%s, %s)", tc.src, name, version, tc.name, tc.version)
 		}
 	}

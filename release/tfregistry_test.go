@@ -70,7 +70,7 @@ func TestNewTFRegistryModuleRelease(t *testing.T) {
 		if tc.ok {
 			r := got.(*TFRegistryModuleRelease)
 
-			if !(r.namespace == tc.namespace && r.name == tc.name && r.provider == tc.provider) {
+			if r.namespace != tc.namespace || r.name != tc.name || r.provider != tc.provider {
 				t.Errorf("NewTFRegistryModuleRelease() with source = %s returns (%s, %s, %s), but want (%s, %s, %s)", tc.source, r.namespace, r.name, r.provider, tc.namespace, tc.name, tc.provider)
 			}
 		}
@@ -113,7 +113,7 @@ func TestNewTFRegistryProviderRelease(t *testing.T) {
 		if tc.ok {
 			r := got.(*TFRegistryProviderRelease)
 
-			if !(r.namespace == tc.namespace && r.providerType == tc.providerType) {
+			if r.namespace != tc.namespace || r.providerType != tc.providerType {
 				t.Errorf("NewTFRegistryProviderRelease() with source = %s returns (%s, %s), but want (%s, %s)", tc.source, r.namespace, r.providerType, tc.namespace, tc.providerType)
 			}
 		}
