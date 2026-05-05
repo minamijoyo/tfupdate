@@ -1,5 +1,15 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Add support for OpenTofu v1.11 ([#152](https://github.com/minamijoyo/tfupdate/pull/152))
+* Add support for Terraform v1.15 ([#153](https://github.com/minamijoyo/tfupdate/pull/153))
+* Update Go to v1.26 ([#154](https://github.com/minamijoyo/tfupdate/pull/154))
+* Update actions/checkout to v6 ([#155](https://github.com/minamijoyo/tfupdate/pull/155))
+* Update create-github-app-token to v3 ([#156](https://github.com/minamijoyo/tfupdate/pull/156))
+* Update goreleaser-action to v7 ([#157](https://github.com/minamijoyo/tfupdate/pull/157))
+* Update docker/build-push-action to v7 ([#158](https://github.com/minamijoyo/tfupdate/pull/158))
+
 ## 0.9.3 (2025/11/20)
 
 ENHANCEMENTS:
