@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.9.4 (2026/05/05)
+
 ENHANCEMENTS:
 
 * Add support for OpenTofu v1.11 ([#152](https://github.com/minamijoyo/tfupdate/pull/152))
