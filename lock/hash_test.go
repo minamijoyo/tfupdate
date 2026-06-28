@@ -40,6 +40,13 @@ func TestZipDataToH1Hash(t *testing.T) {
 			ok:       true,
 		},
 		{
+			desc:     "windows_amd64",
+			makeZip:  true,
+			contents: "dummy_3.2.1_windows_amd64",
+			want:     "h1:PwmSfP1Tb8io64qqCx9AExzIqnHiZ/ER2l8qVhEEKdw=",
+			ok:       true,
+		},
+		{
 			desc:     "invalid zip format",
 			makeZip:  false,
 			contents: "dummy_3.2.1_linux_amd64",

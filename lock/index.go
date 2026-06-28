@@ -233,11 +233,21 @@ func buildProviderVersionFromPackageMetadata(address string, version string, res
 	zhHashes := make(map[string]string)
 
 	for platform, pkg := range res.Packages {
+		// Historically, the zh hash in the Terraform Registry contains `manifest.json`,
+		// so the key for the `ProviderVersion` map is `filename`, not `platform`.
+		// To ensure the same results with Terraform and OpenTofu,
+		// we need to build filename for each platform.
+		// e.g.) darwin_arm64 => terraform-provider-null_3.2.1_darwin_arm64.zip
+		pAddr, err := parseProviderAddress(address)
+		if err != nil {
+			return nil, err
+		}
+		filename := fmt.Sprintf("terraform-provider-%s_%s_%s.zip", pAddr.Type, version, platform)
 		for _, h := range pkg.Hashes {
 			if strings.HasPrefix(h, "h1:") {
-				h1Hashes[platform] = h
+				h1Hashes[filename] = h
 			} else if strings.HasPrefix(h, "zh:") {
-				zhHashes[platform] = h
+				zhHashes[filename] = h
 			} else {
 				return nil, fmt.Errorf("unknown hash type: %s", h)
 			}
