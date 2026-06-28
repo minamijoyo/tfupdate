@@ -147,12 +147,13 @@ func newMockProviderDownloadResponses(address string, version string, targetPlat
 func NewMockIndex(pvs []*ProviderVersion) Index {
 	i := &index{
 		providers: make(map[string]*providerIndex),
+		tfrapi:    nil,
 		papi:      nil,
 	}
 	for _, pv := range pvs {
 		pi, ok := i.providers[pv.address]
 		if !ok {
-			pi = newProviderIndex(pv.address, i.papi)
+			pi = newProviderIndex(pv.address, i.tfrapi, i.papi)
 			i.providers[pv.address] = pi
 		}
 		pi.versions[pv.version] = pv

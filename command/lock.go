@@ -48,12 +48,6 @@ func (c *LockCommand) Run(args []string) int {
 		return 1
 	}
 
-	if len(c.platforms) == 0 {
-		c.UI.Error("The --platform flag is required")
-		c.UI.Error(c.Help())
-		return 1
-	}
-
 	log.Println("[INFO] Update dependency lock files")
 
 	// Fetch environment variables
@@ -100,10 +94,11 @@ Arguments
 
 Options:
       --platform     Specify a platform to update dependency lock files.
-                     At least one or more --platform flags must be specified.
                      Use this option multiple times to include checksums for multiple target systems.
                      Target platform names consist of an operating system and a CPU architecture.
                      (e.g. linux_amd64, darwin_amd64, darwin_arm64)
+                     If the registry supports h1 hash values, as in the public OpenTofu Registry, omitting
+                     the platform will record hash values for all platforms without downloading binaries.
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.

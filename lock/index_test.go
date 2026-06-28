@@ -28,7 +28,7 @@ func TestIndexGetOrCreateProviderVersion(t *testing.T) {
 	targetPlatforms := []string{"darwin_arm64"}
 	allPlatforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64", "windows_amd64"}
 	client := &mockProviderDownloaderClient{}
-	index := NewIndex(client)
+	index := NewIndex(nil, client)
 
 	for _, address := range []string{"minamijoyo/dummy", "minamijoyo/null"} {
 		for _, version := range []string{"3.2.1", "3.2.2"} {
@@ -120,7 +120,7 @@ func TestProviderIndexGetOrCreateProviderVersion(t *testing.T) {
 				responses: mockResponses,
 				errs:      mockNoErrors,
 			}
-			pi := newProviderIndex(tc.address, client)
+			pi := newProviderIndex(tc.address, nil, client)
 
 			// 1st call
 			got, err := pi.getOrCreateProviderVersion(context.Background(), tc.version, tc.platforms)
@@ -255,7 +255,7 @@ func TestNewProviderDownloadRequest(t *testing.T) {
 	}
 }
 
-func TestBuildProviderVersion(t *testing.T) {
+func TestBuildProviderVersionFromDownload(t *testing.T) {
 	allPlatforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64", "windows_amd64"}
 
 	cases := []struct {
@@ -296,7 +296,7 @@ func TestBuildProviderVersion(t *testing.T) {
 				t.Fatalf("failed to create mockResponse: err = %s", err)
 			}
 
-			got, err := buildProviderVersion(tc.address, tc.version, tc.platform, res)
+			got, err := buildProviderVersionFromDownload(tc.address, tc.version, tc.platform, res)
 
 			if tc.ok && err != nil {
 				t.Fatalf("failed to call buildProviderVersion: err = %s", err)
