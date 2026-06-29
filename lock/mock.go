@@ -44,9 +44,9 @@ func newMockServer() (*http.ServeMux, *url.URL) {
 }
 
 // newTestClient returns a new client for testing.
-func newTestClient(mockServerURL *url.URL, config tfregistry.Config) *ProviderDownloaderClient {
+func newTestClient(mockServerURL *url.URL, config tfregistry.Config) *ProviderLockClient {
 	config.BaseURL = mockServerURL.String()
-	c, _ := NewProviderDownloaderClient(config)
+	c, _ := NewProviderLockClient(config)
 	return c
 }
 

@@ -34,8 +34,8 @@ type index struct {
 	// It can be replaced for testing.
 	tfrapi tfregistry.API
 
-	// papi is a ProviderDownloaderAPI interface implementation used for downloading provider.
-	papi ProviderDownloaderAPI
+	// papi is a ProviderLockAPI interface implementation used for locking provider.
+	papi ProviderLockAPI
 }
 
 // NewIndexFromConfig returns a new instance of Index with the given registry config.
@@ -45,7 +45,7 @@ func NewIndexFromConfig(config tfregistry.Config) (Index, error) {
 		return nil, err
 	}
 
-	client, err := NewProviderDownloaderClient(config)
+	client, err := NewProviderLockClient(config)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func NewIndexFromConfig(config tfregistry.Config) (Index, error) {
 }
 
 // NewIndex returns a new instance of Index with the given provider downloader API.
-func NewIndex(tfrapi tfregistry.API, papi ProviderDownloaderAPI) Index {
+func NewIndex(tfrapi tfregistry.API, papi ProviderLockAPI) Index {
 	providers := make(map[string]*providerIndex)
 	return &index{
 		providers: providers,
@@ -91,12 +91,12 @@ type providerIndex struct {
 	// It can be replaced for testing.
 	tfrapi tfregistry.API
 
-	// papi is a ProviderDownloaderAPI interface implementation used for downloading provider.
-	papi ProviderDownloaderAPI
+	// papi is a ProviderLockAPI interface implementation used for locking provider.
+	papi ProviderLockAPI
 }
 
 // newProviderIndex returns a new instance of providerIndex.
-func newProviderIndex(address string, tfrapi tfregistry.API, papi ProviderDownloaderAPI) *providerIndex {
+func newProviderIndex(address string, tfrapi tfregistry.API, papi ProviderLockAPI) *providerIndex {
 	versions := make(map[string]*ProviderVersion)
 	return &providerIndex{
 		address:  address,
@@ -272,7 +272,7 @@ func parseProviderAddress(address string) (*tfaddr.Provider, error) {
 	// We parse an provider address by using the terraform-registry-address
 	// library to support fully qualified addresses such as
 	// registry.terraform.io/hashicorp/null in the future, but note that the
-	// current ProviderDownloaderClient implementation only supports the public
+	// current ProviderLockClient implementation only supports the public
 	// standard registry (registry.terraform.io).
 	pAddr, err := tfaddr.ParseProviderSource(address)
 	if err != nil {

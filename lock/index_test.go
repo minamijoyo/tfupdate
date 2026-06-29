@@ -10,16 +10,16 @@ import (
 	"github.com/minamijoyo/tfupdate/tfregistry"
 )
 
-// mockProviderDownloaderClient is a mock ProviderDownloaderAPI implementation.
-type mockProviderDownloaderClient struct {
+// mockProviderLockClient is a mock ProviderLockAPI implementation.
+type mockProviderLockClient struct {
 	called    int
 	responses []*ProviderDownloadResponse
 	errs      []error
 }
 
-var _ ProviderDownloaderAPI = (*mockProviderDownloaderClient)(nil)
+var _ ProviderLockAPI = (*mockProviderLockClient)(nil)
 
-func (c *mockProviderDownloaderClient) ProviderDownload(ctx context.Context, req *ProviderDownloadRequest) (*ProviderDownloadResponse, error) { // nolint revive unused-parameter
+func (c *mockProviderLockClient) ProviderDownload(ctx context.Context, req *ProviderDownloadRequest) (*ProviderDownloadResponse, error) { // nolint revive unused-parameter
 	res := c.responses[c.called]
 	err := c.errs[c.called]
 	c.called++
@@ -29,7 +29,7 @@ func (c *mockProviderDownloaderClient) ProviderDownload(ctx context.Context, req
 func TestIndexGetOrCreateProviderVersion(t *testing.T) {
 	targetPlatforms := []string{"darwin_arm64"}
 	allPlatforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64", "windows_amd64"}
-	client := &mockProviderDownloaderClient{}
+	client := &mockProviderLockClient{}
 	index := NewIndex(nil, client)
 
 	for _, address := range []string{"minamijoyo/dummy", "minamijoyo/null"} {
@@ -118,7 +118,7 @@ func TestProviderIndexGetOrCreateProviderVersion(t *testing.T) {
 			mockResponses = append(mockResponses, res...)
 			mockResponses = append(mockResponses, res...)
 			mockNoErrors := make([]error, len(tc.platforms)*2)
-			client := &mockProviderDownloaderClient{
+			client := &mockProviderLockClient{
 				responses: mockResponses,
 				errs:      mockNoErrors,
 			}
