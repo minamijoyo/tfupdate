@@ -7,17 +7,21 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/go-cmp/cmp"
-	"github.com/minamijoyo/tfupdate/tfregistry"
 )
 
 // mockProviderLockClient is a mock ProviderLockAPI implementation.
 type mockProviderLockClient struct {
-	called    int
-	responses []*ProviderDownloadResponse
-	errs      []error
+	called      int
+	metadataRes *ProviderPackageMetadataResponse
+	responses   []*ProviderDownloadResponse
+	errs        []error
 }
 
 var _ ProviderLockAPI = (*mockProviderLockClient)(nil)
+
+func (c *mockProviderLockClient) ProviderPackageMetadata(ctx context.Context, req *ProviderPackageMetadataRequest) (*ProviderPackageMetadataResponse, error) {
+	return c.metadataRes, nil
+}
 
 func (c *mockProviderLockClient) ProviderDownload(ctx context.Context, req *ProviderDownloadRequest) (*ProviderDownloadResponse, error) { // nolint revive unused-parameter
 	res := c.responses[c.called]
@@ -30,7 +34,7 @@ func TestIndexGetOrCreateProviderVersion(t *testing.T) {
 	targetPlatforms := []string{"darwin_arm64"}
 	allPlatforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64", "windows_amd64"}
 	client := &mockProviderLockClient{}
-	index := NewIndex(nil, client)
+	index := NewIndex(client)
 
 	for _, address := range []string{"minamijoyo/dummy", "minamijoyo/null"} {
 		for _, version := range []string{"3.2.1", "3.2.2"} {
@@ -122,7 +126,7 @@ func TestProviderIndexGetOrCreateProviderVersion(t *testing.T) {
 				responses: mockResponses,
 				errs:      mockNoErrors,
 			}
-			pi := newProviderIndex(tc.address, nil, client)
+			pi := newProviderIndex(tc.address, client)
 
 			// 1st call
 			got, err := pi.getOrCreateProviderVersion(context.Background(), tc.version, tc.platforms)
@@ -325,7 +329,6 @@ func TestProviderIndexFetchProviderPackageMetadata(t *testing.T) {
 		version  string
 		platform string
 		code     int
-		res      *tfregistry.ProviderPackageMetadataResponse
 		want     *ProviderVersion
 		ok       bool
 	}{
@@ -335,7 +338,6 @@ func TestProviderIndexFetchProviderPackageMetadata(t *testing.T) {
 			version:  "3.2.1",
 			platform: "darwin_arm64",
 			code:     200,
-			res:      newMockProviderPackageMetadataResponse(),
 			want: &ProviderVersion{
 				address:   "minamijoyo/dummy",
 				version:   "3.2.1",
@@ -359,11 +361,11 @@ func TestProviderIndexFetchProviderPackageMetadata(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			client := &mockTFRegistryClient{
-				metadataRes: tc.res,
-				err:         nil,
+			res := newMockProviderPackageMetadataResponse()
+			client := &mockProviderLockClient{
+				metadataRes: res,
 			}
-			pi := newProviderIndex(tc.address, client, nil)
+			pi := newProviderIndex(tc.address, client)
 
 			got, err := pi.fetchProviderPackageMetadata(context.Background(), tc.version, tc.platform)
 
@@ -388,7 +390,7 @@ func TestNewProviderPackageMetadataRequest(t *testing.T) {
 		address  string
 		version  string
 		platform string
-		want     *tfregistry.ProviderPackageMetadataRequest
+		want     *ProviderPackageMetadataRequest
 		ok       bool
 	}{
 		{
@@ -396,7 +398,7 @@ func TestNewProviderPackageMetadataRequest(t *testing.T) {
 			address:  "minamijoyo/dummy",
 			version:  "3.2.1",
 			platform: "darwin_arm64",
-			want: &tfregistry.ProviderPackageMetadataRequest{
+			want: &ProviderPackageMetadataRequest{
 				Namespace: "minamijoyo",
 				Type:      "dummy",
 				Version:   "3.2.1",
@@ -410,7 +412,7 @@ func TestNewProviderPackageMetadataRequest(t *testing.T) {
 			address:  "registry.terraform.io/minamijoyo/dummy",
 			version:  "3.2.1",
 			platform: "darwin_arm64",
-			want: &tfregistry.ProviderPackageMetadataRequest{
+			want: &ProviderPackageMetadataRequest{
 				Namespace: "minamijoyo",
 				Type:      "dummy",
 				Version:   "3.2.1",
@@ -480,7 +482,7 @@ func TestBuildProviderVersionFromPackageMetadata(t *testing.T) {
 		desc    string
 		address string
 		version string
-		res     *tfregistry.ProviderPackageMetadataResponse
+		res     *ProviderPackageMetadataResponse
 		want    *ProviderVersion
 		ok      bool
 	}{

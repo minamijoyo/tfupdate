@@ -129,8 +129,8 @@ func newMockProviderDownloadResponse(address string, version string, targetPlatf
 	}, nil
 }
 
-func newMockProviderPackageMetadataResponse() *tfregistry.ProviderPackageMetadataResponse {
-	res := &tfregistry.ProviderPackageMetadataResponse{
+func newMockProviderPackageMetadataResponse() *ProviderPackageMetadataResponse {
+	res := &ProviderPackageMetadataResponse{
 		Filename:    "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
 		DownloadURL: "https://github.com/opentofu/terraform-provider-dummy/releases/download/v3.2.1/terraform-provider-dummy_3.2.1_darwin_arm64.zip",
 		SHASum:      "",
@@ -184,13 +184,12 @@ func newMockProviderDownloadResponses(address string, version string, targetPlat
 func NewMockIndex(pvs []*ProviderVersion) Index {
 	i := &index{
 		providers: make(map[string]*providerIndex),
-		tfrapi:    nil,
 		papi:      nil,
 	}
 	for _, pv := range pvs {
 		pi, ok := i.providers[pv.address]
 		if !ok {
-			pi = newProviderIndex(pv.address, i.tfrapi, i.papi)
+			pi = newProviderIndex(pv.address, i.papi)
 			i.providers[pv.address] = pi
 		}
 		pi.versions[pv.version] = pv

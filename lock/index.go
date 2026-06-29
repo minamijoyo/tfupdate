@@ -30,37 +30,27 @@ type index struct {
 	// The key is a provider address such as hashicorp/null.
 	providers map[string]*providerIndex
 
-	// tfrapi is an instance of tfregistry.API interface.
-	// It can be replaced for testing.
-	tfrapi tfregistry.API
-
 	// papi is a ProviderLockAPI interface implementation used for locking provider.
 	papi ProviderLockAPI
 }
 
 // NewIndexFromConfig returns a new instance of Index with the given registry config.
 func NewIndexFromConfig(config tfregistry.Config) (Index, error) {
-	tfrapi, err := tfregistry.NewClient(config)
-	if err != nil {
-		return nil, err
-	}
-
 	client, err := NewProviderLockClient(config)
 	if err != nil {
 		return nil, err
 	}
 
-	index := NewIndex(tfrapi, client)
+	index := NewIndex(client)
 
 	return index, nil
 }
 
-// NewIndex returns a new instance of Index with the given provider downloader API.
-func NewIndex(tfrapi tfregistry.API, papi ProviderLockAPI) Index {
+// NewIndex returns a new instance of Index with the given ProviderLockAPI.
+func NewIndex(papi ProviderLockAPI) Index {
 	providers := make(map[string]*providerIndex)
 	return &index{
 		providers: providers,
-		tfrapi:    tfrapi,
 		papi:      papi,
 	}
 }
@@ -71,7 +61,7 @@ func (i *index) GetOrCreateProviderVersion(ctx context.Context, address string, 
 	pi, ok := i.providers[address]
 	if !ok {
 		// cache miss
-		pi = newProviderIndex(address, i.tfrapi, i.papi)
+		pi = newProviderIndex(address, i.papi)
 		i.providers[address] = pi
 	}
 	// Delegate to ProviderIndex.
@@ -87,21 +77,16 @@ type providerIndex struct {
 	// The key is a version number such as 3.2.1.
 	versions map[string]*ProviderVersion
 
-	// tfrapi is an instance of tfregistry.API interface.
-	// It can be replaced for testing.
-	tfrapi tfregistry.API
-
 	// papi is a ProviderLockAPI interface implementation used for locking provider.
 	papi ProviderLockAPI
 }
 
 // newProviderIndex returns a new instance of providerIndex.
-func newProviderIndex(address string, tfrapi tfregistry.API, papi ProviderLockAPI) *providerIndex {
+func newProviderIndex(address string, papi ProviderLockAPI) *providerIndex {
 	versions := make(map[string]*ProviderVersion)
 	return &providerIndex{
 		address:  address,
 		versions: versions,
-		tfrapi:   tfrapi,
 		papi:     papi,
 	}
 }
@@ -186,7 +171,7 @@ func (pi *providerIndex) fetchProviderPackageMetadata(ctx context.Context, versi
 	}
 
 	log.Printf("[DEBUG] providerIndex.fetchProviderPackageMetadata: %s, %s, %s", pi.address, version, platform)
-	res, err := pi.tfrapi.ProviderPackageMetadata(ctx, req)
+	res, err := pi.papi.ProviderPackageMetadata(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +188,7 @@ func (pi *providerIndex) fetchProviderPackageMetadata(ctx context.Context, versi
 // address is a provider address such as hashicorp/null.
 // version is a version number such as 3.2.1.
 // platform is a target platform name such as darwin_arm64.
-func newProviderPackageMetadataRequest(address string, version string, platform string) (*tfregistry.ProviderPackageMetadataRequest, error) {
+func newProviderPackageMetadataRequest(address string, version string, platform string) (*ProviderPackageMetadataRequest, error) {
 	pAddr, err := parseProviderAddress(address)
 	if err != nil {
 		return nil, err
@@ -214,7 +199,7 @@ func newProviderPackageMetadataRequest(address string, version string, platform 
 		return nil, err
 	}
 
-	metadataReq := &tfregistry.ProviderPackageMetadataRequest{
+	metadataReq := &ProviderPackageMetadataRequest{
 		Namespace: pAddr.Namespace,
 		Type:      pAddr.Type,
 		Version:   version,
@@ -228,7 +213,7 @@ func newProviderPackageMetadataRequest(address string, version string, platform 
 // buildProviderVersion calculates hash values from the ProviderPackageMetadataResponse
 // and returns an instance of the ProviderVersion.
 // Note that while OpenTofu Registry responses include both h1 and zh hashes, Terraform Registry responses include only the zh hash.
-func buildProviderVersionFromPackageMetadata(address string, version string, res *tfregistry.ProviderPackageMetadataResponse) (*ProviderVersion, error) {
+func buildProviderVersionFromPackageMetadata(address string, version string, res *ProviderPackageMetadataResponse) (*ProviderVersion, error) {
 	h1Hashes := make(map[string]string)
 	zhHashes := make(map[string]string)
 

@@ -19,6 +19,9 @@ import (
 // Therefore we distinct this API from the Terraform Registry API.
 // The API specification is not documented.
 type ProviderLockAPI interface {
+	// ProviderPackageMetadata returns a package metadata of a provider.
+	ProviderPackageMetadata(ctx context.Context, req *ProviderPackageMetadataRequest) (*ProviderPackageMetadataResponse, error)
+
 	// ProviderDownload downloads a provider package.
 	ProviderDownload(ctx context.Context, req *ProviderDownloadRequest) (*ProviderDownloadResponse, error)
 }
@@ -49,6 +52,20 @@ func NewProviderLockClient(config tfregistry.Config) (*ProviderLockClient, error
 		api:        api,
 		httpClient: httpClient,
 	}, nil
+}
+
+type ProviderPackageMetadataRequest tfregistry.ProviderPackageMetadataRequest
+type ProviderPackageMetadataResponse tfregistry.ProviderPackageMetadataResponse
+
+// ProviderPackageMetadata returns a package metadata of a provider.
+func (c *ProviderLockClient) ProviderPackageMetadata(ctx context.Context, req *ProviderPackageMetadataRequest) (*ProviderPackageMetadataResponse, error) {
+	tfrReq := (*tfregistry.ProviderPackageMetadataRequest)(req)
+	tfrRes, err := c.api.ProviderPackageMetadata(ctx, tfrReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return (*ProviderPackageMetadataResponse)(tfrRes), nil
 }
 
 // ProviderDownloadRequest is a request type for ProviderDownload.
