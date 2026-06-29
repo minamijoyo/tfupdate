@@ -2,6 +2,7 @@ package lock
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -316,6 +317,7 @@ func TestBuildProviderVersionFromDownload(t *testing.T) {
 
 func TestProviderIndexFetchProviderPackageMetadata(t *testing.T) {
 	allPlatforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64", "windows_amd64"}
+	sort.Strings(allPlatforms)
 
 	cases := []struct {
 		desc     string
@@ -472,6 +474,7 @@ func TestNewProviderPackageMetadataRequest(t *testing.T) {
 
 func TestBuildProviderVersionFromPackageMetadata(t *testing.T) {
 	allPlatforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64", "windows_amd64"}
+	sort.Strings(allPlatforms)
 
 	cases := []struct {
 		desc    string

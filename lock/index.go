@@ -254,7 +254,7 @@ func buildProviderVersionFromPackageMetadata(address string, version string, res
 		}
 	}
 
-	platforms := slices.Collect(maps.Keys(res.Packages))
+	platforms := slices.Sorted(maps.Keys(res.Packages))
 	pv := &ProviderVersion{
 		address:   address,
 		version:   version,
