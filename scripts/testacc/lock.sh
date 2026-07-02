@@ -24,7 +24,11 @@ setup()
 
     # always create a new lock
     rm -f .terraform.lock.hcl
-    "$TFUPDATE_EXEC_PATH" providers lock -platform=linux_amd64 -platform=darwin_amd64 -platform=darwin_arm64
+    if [[ "$REGISTRY_H1_SUPPORT" -eq 1 ]]; then
+      "$TFUPDATE_EXEC_PATH" providers lock
+    else
+      "$TFUPDATE_EXEC_PATH" providers lock -platform=linux_amd64 -platform=darwin_amd64 -platform=darwin_arm64
+    fi
     cat .terraform.lock.hcl
     rm -rf .terraform
 
@@ -39,7 +43,11 @@ provider()
 
 lock()
 {
-  TFUPDATE_LOG=DEBUG tfupdate lock --platform=linux_amd64 --platform=darwin_amd64 --platform=darwin_arm64 -r ./
+    if [[ "$REGISTRY_H1_SUPPORT" -eq 1 ]]; then
+      TFUPDATE_LOG=DEBUG tfupdate lock -r ./
+    else
+      TFUPDATE_LOG=DEBUG tfupdate lock --platform=linux_amd64 --platform=darwin_amd64 --platform=darwin_arm64 -r ./
+    fi
 
   ALL_DIRS=$(find . -type f -print0 -name '*.tf' | xargs -0 -I {} dirname {} | sort | uniq | grep -v 'modules/')
   for dir in ${ALL_DIRS}
@@ -50,7 +58,11 @@ lock()
     mv .terraform.lock.hcl .terraform.lock.hcl.got
 
     # want
-    "$TFUPDATE_EXEC_PATH" providers lock -platform=linux_amd64 -platform=darwin_amd64 -platform=darwin_arm64
+    if [[ "$REGISTRY_H1_SUPPORT" -eq 1 ]]; then
+      "$TFUPDATE_EXEC_PATH" providers lock
+    else
+      "$TFUPDATE_EXEC_PATH" providers lock -platform=linux_amd64 -platform=darwin_amd64 -platform=darwin_arm64
+    fi
 
     # assert the result
     cat .terraform.lock.hcl
@@ -90,6 +102,17 @@ WORKDIR="$REPO_ROOT_DIR/tmp/testacc/lock/$FIXTURE"
 FIXTUREDIR="$REPO_ROOT_DIR/test-fixtures/lock/$FIXTURE/"
 mkdir -p "$WORKDIR"
 pushd "$WORKDIR"
+
+# If the registry supports the h1 hashes, omit the platform args.
+REGISTRY_H1_SUPPORT=0
+if [[ "$TFUPDATE_EXEC_PATH" == tofu ]]; then
+  CURRENT_TOFU_VERSION=$( tofu -v | grep -oE 'OpenTofu v?[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^OpenTofu v//')
+  MIN_TOFU_REGISTRY_H1_SUPPORT=1.12.0
+  if [ "$(printf '%s\n%s\n' "$MIN_TOFU_REGISTRY_H1_SUPPORT" "$CURRENT_TOFU_VERSION" | sort -V | head -n1)" == "$MIN_TOFU_REGISTRY_H1_SUPPORT" ]; then
+    REGISTRY_H1_SUPPORT=1
+  fi
+fi
+echo "REGISTRY_H1_SUPPORT=$REGISTRY_H1_SUPPORT"
 
 case "$COMMAND" in
   run | setup | provider | lock | cleanup )
