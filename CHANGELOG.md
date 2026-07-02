@@ -1,5 +1,13 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* Skip downloading binaries if the registry supports h1 hashes ([#159](https://github.com/minamijoyo/tfupdate/pull/159))
+
+ENHANCEMENTS:
+
+* Add support for OpenTofu v1.12 ([#160](https://github.com/minamijoyo/tfupdate/pull/160))
+
 ## 0.9.4 (2026/05/05)
 
 ENHANCEMENTS:
