@@ -11,7 +11,7 @@ import (
 	"github.com/minamijoyo/tfupdate/tfregistry"
 )
 
-func TestProviderDownloaderClientProviderDownload(t *testing.T) {
+func TestProviderLockClientProviderDownload(t *testing.T) {
 	downloadPath := "/terraform-provider-dummy/3.2.1/terraform-provider-dummy_3.2.1_darwin_arm64.zip"
 	shaSumsPath := "/terraform-provider-dummy/3.2.1/terraform-provider-dummy_3.2.1_SHA256SUMS"
 
@@ -118,7 +118,7 @@ fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2  terraform-prov
 	}
 }
 
-func TestProviderDownloaderClientDownload(t *testing.T) {
+func TestProviderLockClientDownload(t *testing.T) {
 	subPath := "/terraform-provider-dummy/3.2.1/terraform-provider-dummy_3.2.1_darwin_arm64.zip"
 	cases := []struct {
 		desc    string

@@ -418,10 +418,11 @@ Arguments
 
 Options:
       --platform     Specify a platform to update dependency lock files.
-                     At least one or more --platform flags must be specified.
                      Use this option multiple times to include checksums for multiple target systems.
                      Target platform names consist of an operating system and a CPU architecture.
                      (e.g. linux_amd64, darwin_amd64, darwin_arm64)
+                     If the registry supports h1 hash values, as in the public OpenTofu Registry, omitting
+                     the platform will record hash values for all platforms without downloading binaries.
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.
@@ -538,6 +539,8 @@ provider "registry.terraform.io/hashicorp/null" {
 The tfupdate lock command parses the `required_providers` block in your configuration, downloads provider packages and calculates hash values under the hood. The most important point is that it caches calculated hash values in memory, which gives us a huge performance advantage when updating multiple directories at once using the `-r (--recursive)` option.
 
 To skip terraform init, we assume that all dependencies are pinned to a specific version in the required_providers block of the root module. Note that version constraint expressions or indirect dependencies via modules are not supported and ignored.
+
+If the registry supports h1 hash values, as in the public OpenTofu Registry, omitting the platform will record hash values for all platforms without downloading binaries.
 
 ## Keep your dependencies up-to-date
 

@@ -2,22 +2,28 @@ package lock
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/go-cmp/cmp"
 )
 
-// mockProviderDownloaderClient is a mock ProviderDownloaderAPI implementation.
-type mockProviderDownloaderClient struct {
-	called    int
-	responses []*ProviderDownloadResponse
-	errs      []error
+// mockProviderLockClient is a mock ProviderLockAPI implementation.
+type mockProviderLockClient struct {
+	called      int
+	metadataRes *ProviderPackageMetadataResponse
+	responses   []*ProviderDownloadResponse
+	errs        []error
 }
 
-var _ ProviderDownloaderAPI = (*mockProviderDownloaderClient)(nil)
+var _ ProviderLockAPI = (*mockProviderLockClient)(nil)
 
-func (c *mockProviderDownloaderClient) ProviderDownload(ctx context.Context, req *ProviderDownloadRequest) (*ProviderDownloadResponse, error) { // nolint revive unused-parameter
+func (c *mockProviderLockClient) ProviderPackageMetadata(_ context.Context, _ *ProviderPackageMetadataRequest) (*ProviderPackageMetadataResponse, error) {
+	return c.metadataRes, nil
+}
+
+func (c *mockProviderLockClient) ProviderDownload(_ context.Context, _ *ProviderDownloadRequest) (*ProviderDownloadResponse, error) {
 	res := c.responses[c.called]
 	err := c.errs[c.called]
 	c.called++
@@ -27,7 +33,7 @@ func (c *mockProviderDownloaderClient) ProviderDownload(ctx context.Context, req
 func TestIndexGetOrCreateProviderVersion(t *testing.T) {
 	targetPlatforms := []string{"darwin_arm64"}
 	allPlatforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64", "windows_amd64"}
-	client := &mockProviderDownloaderClient{}
+	client := &mockProviderLockClient{}
 	index := NewIndex(client)
 
 	for _, address := range []string{"minamijoyo/dummy", "minamijoyo/null"} {
@@ -116,7 +122,7 @@ func TestProviderIndexGetOrCreateProviderVersion(t *testing.T) {
 			mockResponses = append(mockResponses, res...)
 			mockResponses = append(mockResponses, res...)
 			mockNoErrors := make([]error, len(tc.platforms)*2)
-			client := &mockProviderDownloaderClient{
+			client := &mockProviderLockClient{
 				responses: mockResponses,
 				errs:      mockNoErrors,
 			}
@@ -255,7 +261,7 @@ func TestNewProviderDownloadRequest(t *testing.T) {
 	}
 }
 
-func TestBuildProviderVersion(t *testing.T) {
+func TestBuildProviderVersionFromDownload(t *testing.T) {
 	allPlatforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64", "windows_amd64"}
 
 	cases := []struct {
@@ -296,10 +302,222 @@ func TestBuildProviderVersion(t *testing.T) {
 				t.Fatalf("failed to create mockResponse: err = %s", err)
 			}
 
-			got, err := buildProviderVersion(tc.address, tc.version, tc.platform, res)
+			got, err := buildProviderVersionFromDownload(tc.address, tc.version, tc.platform, res)
 
 			if tc.ok && err != nil {
-				t.Fatalf("failed to call buildProviderVersion: err = %s", err)
+				t.Fatalf("failed to call buildProviderVersionFromDownload: err = %s", err)
+			}
+
+			if !tc.ok && err == nil {
+				t.Fatalf("expected to fail, but success: got = %s", spew.Sdump(got))
+			}
+
+			if diff := cmp.Diff(got, tc.want, cmp.AllowUnexported(ProviderVersion{})); diff != "" {
+				t.Errorf("got: %s, want = %s, diff = %s", spew.Sdump(got), spew.Sdump(tc.want), diff)
+			}
+		})
+	}
+}
+
+func TestProviderIndexFetchProviderPackageMetadata(t *testing.T) {
+	allPlatforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64", "windows_amd64"}
+	sort.Strings(allPlatforms)
+
+	cases := []struct {
+		desc     string
+		address  string
+		version  string
+		platform string
+		code     int
+		want     *ProviderVersion
+		ok       bool
+	}{
+		{
+			desc:     "simple",
+			address:  "minamijoyo/dummy",
+			version:  "3.2.1",
+			platform: "darwin_arm64",
+			code:     200,
+			want: &ProviderVersion{
+				address:   "minamijoyo/dummy",
+				version:   "3.2.1",
+				platforms: allPlatforms,
+				h1Hashes: map[string]string{
+					"terraform-provider-dummy_3.2.1_darwin_arm64.zip":  "h1:3323G20HW9PA9ONrL6CdQCdCFe6y94kXeOTprq+Zu+w=",
+					"terraform-provider-dummy_3.2.1_darwin_amd64.zip":  "h1:63My0EuWIYHWVwWOxmxWwgrfx+58Tz+nTduelaCCAfs=",
+					"terraform-provider-dummy_3.2.1_linux_amd64.zip":   "h1:2zotrPRAjGZZMkjJGBGLnIbG+sqhQN30sbwqSDECQFQ=",
+					"terraform-provider-dummy_3.2.1_windows_amd64.zip": "h1:PwmSfP1Tb8io64qqCx9AExzIqnHiZ/ER2l8qVhEEKdw=",
+				},
+				zhHashes: map[string]string{
+					"terraform-provider-dummy_3.2.1_darwin_arm64.zip":  "zh:5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086",
+					"terraform-provider-dummy_3.2.1_darwin_amd64.zip":  "zh:fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2",
+					"terraform-provider-dummy_3.2.1_linux_amd64.zip":   "zh:c5f0a44e3a3795cb3ee0abb0076097c738294c241f74c145dfb50f2b9fd71fd2",
+					"terraform-provider-dummy_3.2.1_windows_amd64.zip": "zh:8b75ff41191a7fe6c5d9129ed19a01eacde5a3797b48b738eefa21f5330c081e",
+				},
+			},
+			ok: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			res := newMockProviderPackageMetadataResponse()
+			client := &mockProviderLockClient{
+				metadataRes: res,
+			}
+			pi := newProviderIndex(tc.address, client)
+
+			got, err := pi.fetchProviderPackageMetadata(context.Background(), tc.version, tc.platform)
+
+			if tc.ok && err != nil {
+				t.Fatalf("failed to call fetchProviderPackageMetadata: err = %s", err)
+			}
+
+			if !tc.ok && err == nil {
+				t.Fatalf("expected to fail, but success: got = %s", spew.Sdump(got))
+			}
+
+			if diff := cmp.Diff(got, tc.want, cmp.AllowUnexported(ProviderVersion{})); diff != "" {
+				t.Errorf("got: %s, want = %s, diff = %s", spew.Sdump(got), spew.Sdump(tc.want), diff)
+			}
+		})
+	}
+}
+
+func TestNewProviderPackageMetadataRequest(t *testing.T) {
+	cases := []struct {
+		desc     string
+		address  string
+		version  string
+		platform string
+		want     *ProviderPackageMetadataRequest
+		ok       bool
+	}{
+		{
+			desc:     "simple",
+			address:  "minamijoyo/dummy",
+			version:  "3.2.1",
+			platform: "darwin_arm64",
+			want: &ProviderPackageMetadataRequest{
+				Namespace: "minamijoyo",
+				Type:      "dummy",
+				Version:   "3.2.1",
+				OS:        "darwin",
+				Arch:      "arm64",
+			},
+			ok: true,
+		},
+		{
+			desc:     "fully qualified provider address",
+			address:  "registry.terraform.io/minamijoyo/dummy",
+			version:  "3.2.1",
+			platform: "darwin_arm64",
+			want: &ProviderPackageMetadataRequest{
+				Namespace: "minamijoyo",
+				Type:      "dummy",
+				Version:   "3.2.1",
+				OS:        "darwin",
+				Arch:      "arm64",
+			},
+			ok: true,
+		},
+		{
+			desc:     "unknown provider namespace",
+			address:  "null",
+			version:  "3.2.1",
+			platform: "darwin_arm64",
+			want:     nil,
+			ok:       false,
+		},
+		{
+			desc:     "legacy provider namespace",
+			address:  "-/null",
+			version:  "3.2.1",
+			platform: "darwin_arm64",
+			want:     nil,
+			ok:       false,
+		},
+		{
+			desc:     "zero provider namespace",
+			address:  "",
+			version:  "3.2.1",
+			platform: "darwin_arm64",
+			want:     nil,
+			ok:       false,
+		},
+		{
+			desc:     "invalid platform",
+			address:  "minamijoyo/dummy",
+			version:  "3.2.1",
+			platform: "foo",
+			want:     nil,
+			ok:       false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			got, err := newProviderPackageMetadataRequest(tc.address, tc.version, tc.platform)
+
+			if tc.ok && err != nil {
+				t.Fatalf("failed to call newProviderDownloadRequest: err = %s", err)
+			}
+
+			if !tc.ok && err == nil {
+				t.Fatalf("expected to fail, but success: got = %s", spew.Sdump(got))
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("got: %s, want = %s, diff = %s", spew.Sdump(got), spew.Sdump(tc.want), diff)
+			}
+		})
+	}
+}
+
+func TestBuildProviderVersionFromPackageMetadata(t *testing.T) {
+	allPlatforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64", "windows_amd64"}
+	sort.Strings(allPlatforms)
+
+	cases := []struct {
+		desc    string
+		address string
+		version string
+		res     *ProviderPackageMetadataResponse
+		want    *ProviderVersion
+		ok      bool
+	}{
+		{
+			desc:    "simple",
+			address: "minamijoyo/dummy",
+			version: "3.2.1",
+			res:     newMockProviderPackageMetadataResponse(),
+			want: &ProviderVersion{
+				address:   "minamijoyo/dummy",
+				version:   "3.2.1",
+				platforms: allPlatforms,
+				h1Hashes: map[string]string{
+					"terraform-provider-dummy_3.2.1_darwin_arm64.zip":  "h1:3323G20HW9PA9ONrL6CdQCdCFe6y94kXeOTprq+Zu+w=",
+					"terraform-provider-dummy_3.2.1_darwin_amd64.zip":  "h1:63My0EuWIYHWVwWOxmxWwgrfx+58Tz+nTduelaCCAfs=",
+					"terraform-provider-dummy_3.2.1_linux_amd64.zip":   "h1:2zotrPRAjGZZMkjJGBGLnIbG+sqhQN30sbwqSDECQFQ=",
+					"terraform-provider-dummy_3.2.1_windows_amd64.zip": "h1:PwmSfP1Tb8io64qqCx9AExzIqnHiZ/ER2l8qVhEEKdw=",
+				},
+				zhHashes: map[string]string{
+					"terraform-provider-dummy_3.2.1_darwin_arm64.zip":  "zh:5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086",
+					"terraform-provider-dummy_3.2.1_darwin_amd64.zip":  "zh:fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2",
+					"terraform-provider-dummy_3.2.1_linux_amd64.zip":   "zh:c5f0a44e3a3795cb3ee0abb0076097c738294c241f74c145dfb50f2b9fd71fd2",
+					"terraform-provider-dummy_3.2.1_windows_amd64.zip": "zh:8b75ff41191a7fe6c5d9129ed19a01eacde5a3797b48b738eefa21f5330c081e",
+				},
+			},
+			ok: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			got, err := buildProviderVersionFromPackageMetadata(tc.address, tc.version, tc.res)
+
+			if tc.ok && err != nil {
+				t.Fatalf("failed to call buildProviderVersionFromPackageMetadata: err = %s", err)
 			}
 
 			if !tc.ok && err == nil {

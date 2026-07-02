@@ -120,6 +120,87 @@ func TestProviderPackageMetadata(t *testing.T) {
 			res:  "",
 			want: nil,
 		},
+		{
+			desc: "with hashes",
+			req: &ProviderPackageMetadataRequest{
+				Namespace: "hashicorp",
+				Type:      "null",
+				Version:   "3.2.1",
+				OS:        "darwin",
+				Arch:      "arm64",
+			},
+			ok:   true,
+			code: 200,
+			res:  mockProviderPackageMetadataResponseWithHashes,
+			want: &ProviderPackageMetadataResponse{
+				Filename:    "terraform-provider-null_3.2.1_darwin_arm64.zip",
+				DownloadURL: "https://github.com/opentofu/terraform-provider-null/releases/download/v3.2.1/terraform-provider-null_3.2.1_darwin_arm64.zip",
+				SHASum:      "5ce03460813954cbebc9f9ad5befbe364d9dc67acb08869f67c1aa634fbf6d6c",
+				SHASumsURL:  "https://github.com/opentofu/terraform-provider-null/releases/download/v3.2.1/terraform-provider-null_3.2.1_SHA256SUMS",
+				Packages: map[string]Package{
+					"darwin_amd64": {
+						Hashes: []string{
+							"zh:e25265d4e87821d18dc9653a0ce01978a1ae5d363bc01dd273454db1aa0309c7",
+							"h1:BdIx478D4wpFgFeaS+5Bdve1HIlt3Yhsr5hAbUs2rRg=",
+						},
+					},
+					"darwin_arm64": {
+						Hashes: []string{
+							"zh:5ce03460813954cbebc9f9ad5befbe364d9dc67acb08869f67c1aa634fbf6d6c",
+							"h1:+JAon/4CyriC/c7c77NjJalKrKx6gwwQ7L7rVABWMtA=",
+						},
+					},
+					"linux_386": {
+						Hashes: []string{
+							"zh:c38c9a295cfae9fb6372523c34b9466cd439d5e2c909b56a788960d387c24320",
+							"h1:Oio8EVe+5LQF7cd7IYcIrXkyKy8nCrBF/X8DQUAgayQ=",
+						},
+					},
+					"linux_amd64": {
+						Hashes: []string{
+							"zh:40335019c11e5bdb3780301da5197cbc756b4b5ac3d699c52583f1d34e963176",
+							"h1:uQv2oPjJv+ue8bPrVp+So2hHd90UTssnCNajTW554Cw=",
+						},
+					},
+					"linux_arm": {
+						Hashes: []string{
+							"zh:42356e687656fc8ec1f230f786f830f344e64419552ec483e2bc79bd4b7cf1e8",
+							"h1:+s8zqab9SoQhfWDJVRtv9b2pJRyQlZu88NHK0X4bODQ=",
+						},
+					},
+					"linux_arm64": {
+						Hashes: []string{
+							"zh:91a76f371815a130735c8fcb6196804d878aebcc67b4c3b73571d2063336ffd8",
+							"h1:9WdPl8ujc45POfiiCzcX60bljY744neqTGlK24VMhgk=",
+						},
+					},
+					"windows_386": {
+						Hashes: []string{
+							"zh:658ea3e3e7ecc964bdbd08ecde63f3d79f298bab9922b29a6526ba941a4d403a",
+							"h1:K7QNZz/LCsVhvHLA8orqjfVr+qYh4QAPhMi+n9Es6js=",
+						},
+					},
+					"windows_amd64": {
+						Hashes: []string{
+							"zh:80fd03335f793dc54302dd53da98c91fd94f182bcacf13457bed1a99ecffbc1a",
+							"h1:uvf7c5e8N7A0k9dqF2pLbbbPTAHIwUoM885CHCS717E=",
+						},
+					},
+					"windows_arm": {
+						Hashes: []string{
+							"zh:c146fc0291b7f6284fe4d54ce6aaece6957e9acc93fc572dd505dfd8bcad3e6c",
+							"h1:8sG3Tdnsk1STHIKaFORkb9EKaR6eNkzX1MCqWZLo6uY=",
+						},
+					},
+					"windows_arm64": {
+						Hashes: []string{
+							"zh:68c06703bc57f9c882bfedda6f3047775f0d367093d00efb040800c798b8a613",
+							"h1:ckcDeFlUdHEPosRUSxqyCzVdZLh9mrM4ebhygf6c3SA=",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -170,6 +251,100 @@ const mockProviderPackageMetadataResponse = `{
         "source_url": "https://www.hashicorp.com/security.html"
       }
     ]
+  }
+}
+`
+
+const mockProviderPackageMetadataResponseWithHashes = `{
+  "protocols": [
+    "5.0"
+  ],
+  "os": "darwin",
+  "arch": "arm64",
+  "filename": "terraform-provider-null_3.2.1_darwin_arm64.zip",
+  "download_url": "https://github.com/opentofu/terraform-provider-null/releases/download/v3.2.1/terraform-provider-null_3.2.1_darwin_arm64.zip",
+  "shasums_url": "https://github.com/opentofu/terraform-provider-null/releases/download/v3.2.1/terraform-provider-null_3.2.1_SHA256SUMS",
+  "shasums_signature_url": "https://github.com/opentofu/terraform-provider-null/releases/download/v3.2.1/terraform-provider-null_3.2.1_SHA256SUMS.sig",
+  "shasum": "5ce03460813954cbebc9f9ad5befbe364d9dc67acb08869f67c1aa634fbf6d6c",
+  "signing_keys": {
+    "gpg_public_keys": [
+      {
+        "ascii_armor": "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nxsFNBGVUyIwBEADPg6jUJm5liMTiDndyprnwXQ23GdyQm/kW9MFOhYDRksmmbsz0\nDCfqntFpuoKxPXzA+JTrZlWZONtU+leZjIOlAVZiz0rwz5EJq7uIrkueWtUk6AYk\nBLN+zMtbui0z3HCPVNnR5BlVNyXQeW3jlrQtzuKevjZWzI0gbQGgEKNpj+lfyRFu\n6q3u/T0o3p/6bOOlQHwCMtnFlWpjr6f/J2EdUVO/6NYHQzImPj4LINXF/+eqo7v6\nsvFtaVTtREG2V2V7We7bu/cJ+NgJYH7ro7UhB1RQH2k09NdpSCt9F60PVERnORpx\nGBkM/VKZzgMSzRvdpxUWwrLxfAxinu5ddbBm3y0bzaU80OT3i1qrWIqW73fmdGHQ\n71gbJxRrroyLMWehjcJ/9WJDxkHqsfPKqBifYsp6/J9npczDfSU+zYBVGpR73a4E\ndbeIRWqwbH0LWhlbi1IM5aFDaZMFNkY+AWyP+OHn8Kehu6DOIh1AVM7v7vLxaX9h\nt1jVJbswjvPFYquv1DvUdc7VP2QHz3xctQS1GZJQ1ekcgTv9rRYXUOOwknInjtkM\n9kQDtyBkVLcEc8ha3Cfh6PJscIP5VHwaNMgAPr9tsl3xqdz56l5UPjFSFuel98jS\nBqn83VrT0uKwM0PnDVHd/7q8+Dg1EtOggMwZ830KORFNdjfv6ydsBvl7fwARAQAB\nzUpPcGVuVG9mdSAoVGhpcyBrZXkgaXMgdXNlZCB0byBzaWduIG9wZW50b2Z1IHBy\nb3ZpZGVycykgPGNvcmVAb3BlbnRvZnUub3JnPsLBjAQTAQgAQQUCZVTIjAkQDArz\nE+X9n4AWIQTj5uQ9hMuFLq2wBR0MCvMT5f2fgAIbAwIeAQIZAQMLCQcCFQgDFgAC\nBScJAgcCAABwAg/1HZnTvPHZDWf5OluYOaQ7ADX/oyjUO85VNUmKhmBZkLr5mTqr\nLO72k9fg+101hbggbhtK431z3Ca6ZqDAG/3DBi0BC1ag0rw83TEApkPGYnfX1DWS\n1ZvyH1PkV0aqCkXAtMrte2PlUiieaKAsiYOIXqfZwszd07gch14wxMOw1B6Au/Xz\nNrv2omnWSgGIyR6WOsG4QQ8R5AMVz3K8Ftzl6520wBgtr3osA3uM/xconnGVukMn\n9NLQqKx5oeaJwONZpyZL5bg2ke9MVZM2+bG30UGZKoxrzOtQ//OTOYlhPCqm1ffR\nhYrUytwsWzDnJvXJF1QhnDu8whP3tSrcHyKxYZ9xUNzeu2AmjYfvkKHSdK2DFmOf\nDafaRs3c1VYnC7J7aRi6kVF/t+vWeOEVpPylyK7vSbPFc6XVoQrsE07hbN/BjWjm\ns8voK5U6oJRgEugXtSQKFypfOq8R99nXwbMHdhqY8aGyOCj++cuvRCUBDZAQqPEW\nAuD0X7+9Trnfin47MK+n18wsTAL4w6PJhtCrwK4e0cVuQ5u4M/PMid5W6hEA27PX\nx506Jpe8iRmcIP/cCR6pvhgOUMC36bIkAqZ5dJ545kDQju0lf8gLdVIQpig45udn\nZM2KgyApGqhsS7yCUrbLDrtNmQ31TSYdKc8IU+/jXkfy2RYbZ+wNgfloKM7BTQRl\nVMiMARAAwRZUyMIc5TNbcFg3WGKxhaNC9hDZ4zBfXlb5jONzZOx3rDi2lD4UQOH+\nNpG7CF98co//kryS/4AsDdp2jzhh+VMgyx6KJIhSkBP6kqhriy9eWRmgfrnLbUf4\n6kkTkzLVkjYnMNeyHt+mi9I7EKtsDuF/EvjlwF5E81+DEOteCO/un/Qt1q3e1Slf\nvTpLkPvr1FiQ3VqzaBeBBI3MAMb/ycwL6hQE1l4Lg34T43Zu+9zkE1uzvjeNIlIW\nucjB4q1htEjJl2CLAv+8cGHdmCcV2ZO3WM8M9Omq1CE7jhak4NE/YuGylJYCBd+B\nS7tuDPDu6+o4Nx+axxcwMvgyfr07FteEr1Lopaw2ci8b/xzQie/gkI0CByQMwD5V\ngnJpiMBnjP4d6UF6HEVldCQ7a3T1T80bKj5JjtFbR9P85Qntuheqn3Pge89YexMc\nE/00VA3blrj+GeYpO9ZGFu7DR/x4sjnTEhfjXEoLv1C4AdgGHCIjW9wU6HkcWnla\nX7akKlwIWEUP/BFLkcWPpmUrtClhWx9wq1GHFvKAN/qp//VWnv4IfRU6RjmVPOWB\nefvTu/cpsfBHLyp15goOYPboahIdTUTNQIXh4Vid7E1NoKnWZUMu50n3/zAbjSds\nmNmifi4g01MYJ3TVoU2Q01P7NiD3IRmaw72nLmf9cM9/7QMdGn0AEQEAAcLBdgQY\nAQgAKgUCZVTIjAkQDArzE+X9n4AWIQTj5uQ9hMuFLq2wBR0MCvMT5f2fgAIbDAAA\nSUoP/2ExsUoGbxjuZ76QUnYtfzDoz+o218UWd3gZCsBQ6/hGam5kMq+EUEabF3lV\n7QLDyn/1v5sqrkmYg0u5cfjtY3oimCPvr6E0WTuqMIwYl0fdlkmdNttDpMqvCazq\nbzLK5dDVWbh/EYTiEN1xKXM6rlAquYv8I16uWL8QHanMb6yexNmDYhC4fXWqCi+s\n5sXxWrPrd+fGz8CR/fEYahPXj8uY6dwN9DlWyek9QtKW2PsqrkBn5vCOm2IyZW6d\nt/Kn70tYtxMxJND2otk47mpG/Fv3sYK2bTGJ+k/5+E5IrjWqIX2lVB3G1+TCoZ5s\ncc16zls32mOlRh81fTAqcwkDFxICxcOeNHGLt3N+UvoPSUafYKD96rn5mWFao4xb\ncFniaYv2PdqH8HDjvXZXqHypRMXvYMbXXOgydLL+tSUSBpMTd4afjq8x2gNSWOEL\nI1jT5FWbKTKan0ycKi37bSqGHhDjlg4HRGvC3IK0EuVjdX3r+8uIVgFbqLwNhXk4\nGAIL03vl689TQ7/oPW75XCQIevFai0kcJPl6qIRvi9/S/v5EPRy9UDCGY/MPmc5f\nH1an0ebU4I4TlYfBoEUkYYqBDxvxWW0I/Q01rDebcd6mrGw8lW1EiNZlClLwx9Bv\n/+MNnIT9m1f8KeqmweoAgbIQRUI7EkJSzxYN4DNuy2XoKmF9\n=VhyH\n-----END PGP PUBLIC KEY BLOCK-----",
+        "key_id": "0C0AF313E5FD9F80"
+      }
+    ]
+  },
+  "packages": {
+    "darwin_amd64": {
+      "hashes": [
+        "zh:e25265d4e87821d18dc9653a0ce01978a1ae5d363bc01dd273454db1aa0309c7",
+        "h1:BdIx478D4wpFgFeaS+5Bdve1HIlt3Yhsr5hAbUs2rRg="
+      ],
+      "package_size": 4945518
+    },
+    "darwin_arm64": {
+      "hashes": [
+        "zh:5ce03460813954cbebc9f9ad5befbe364d9dc67acb08869f67c1aa634fbf6d6c",
+        "h1:+JAon/4CyriC/c7c77NjJalKrKx6gwwQ7L7rVABWMtA="
+      ],
+      "package_size": 4781117
+    },
+    "linux_386": {
+      "hashes": [
+        "zh:c38c9a295cfae9fb6372523c34b9466cd439d5e2c909b56a788960d387c24320",
+        "h1:Oio8EVe+5LQF7cd7IYcIrXkyKy8nCrBF/X8DQUAgayQ="
+      ],
+      "package_size": 4543480
+    },
+    "linux_amd64": {
+      "hashes": [
+        "zh:40335019c11e5bdb3780301da5197cbc756b4b5ac3d699c52583f1d34e963176",
+        "h1:uQv2oPjJv+ue8bPrVp+So2hHd90UTssnCNajTW554Cw="
+      ],
+      "package_size": 4750928
+    },
+    "linux_arm": {
+      "hashes": [
+        "zh:42356e687656fc8ec1f230f786f830f344e64419552ec483e2bc79bd4b7cf1e8",
+        "h1:+s8zqab9SoQhfWDJVRtv9b2pJRyQlZu88NHK0X4bODQ="
+      ],
+      "package_size": 4481884
+    },
+    "linux_arm64": {
+      "hashes": [
+        "zh:91a76f371815a130735c8fcb6196804d878aebcc67b4c3b73571d2063336ffd8",
+        "h1:9WdPl8ujc45POfiiCzcX60bljY744neqTGlK24VMhgk="
+      ],
+      "package_size": 4368837
+    },
+    "windows_386": {
+      "hashes": [
+        "zh:658ea3e3e7ecc964bdbd08ecde63f3d79f298bab9922b29a6526ba941a4d403a",
+        "h1:K7QNZz/LCsVhvHLA8orqjfVr+qYh4QAPhMi+n9Es6js="
+      ],
+      "package_size": 4669934
+    },
+    "windows_amd64": {
+      "hashes": [
+        "zh:80fd03335f793dc54302dd53da98c91fd94f182bcacf13457bed1a99ecffbc1a",
+        "h1:uvf7c5e8N7A0k9dqF2pLbbbPTAHIwUoM885CHCS717E="
+      ],
+      "package_size": 4763231
+    },
+    "windows_arm": {
+      "hashes": [
+        "zh:c146fc0291b7f6284fe4d54ce6aaece6957e9acc93fc572dd505dfd8bcad3e6c",
+        "h1:8sG3Tdnsk1STHIKaFORkb9EKaR6eNkzX1MCqWZLo6uY="
+      ],
+      "package_size": 4538273
+    },
+    "windows_arm64": {
+      "hashes": [
+        "zh:68c06703bc57f9c882bfedda6f3047775f0d367093d00efb040800c798b8a613",
+        "h1:ckcDeFlUdHEPosRUSxqyCzVdZLh9mrM4ebhygf6c3SA="
+      ],
+      "package_size": 4381068
+    }
   }
 }
 `

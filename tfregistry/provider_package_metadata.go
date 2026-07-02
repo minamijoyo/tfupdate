@@ -32,6 +32,16 @@ type ProviderPackageMetadataResponse struct {
 	SHASum string `json:"shasum"`
 	// (required): a URL from which Terraform can retrieve a text document recording expected SHA256 checksums for this package and possibly other packages for the same provider version on other platforms.
 	SHASumsURL string `json:"shasums_url"`
+	// (optional): a map of provider package metadata for all platforms. The keys are platform names such as darwin_arm64, and the values are metadata for each platform.
+	// To skip hash value calculation for the lock file, package information for platforms other than the platform specified in the request is also returned.
+	// This field is only returned by OpenTofu Registry and not returned by Terraform Registry.
+	Packages map[string]Package `json:"packages"`
+}
+
+// Package represents a provider package metadata for a specific platform. This includes pre-calculated hash values on the Registry side.
+type Package struct {
+	// The list of hash values for zh and h1 schemes.
+	Hashes []string `json:"hashes"`
 }
 
 // ProviderPackageMetadata returns a package metadata of a provider.

@@ -44,9 +44,9 @@ func newMockServer() (*http.ServeMux, *url.URL) {
 }
 
 // newTestClient returns a new client for testing.
-func newTestClient(mockServerURL *url.URL, config tfregistry.Config) *ProviderDownloaderClient {
+func newTestClient(mockServerURL *url.URL, config tfregistry.Config) *ProviderLockClient {
 	config.BaseURL = mockServerURL.String()
-	c, _ := NewProviderDownloaderClient(config)
+	c, _ := NewProviderLockClient(config)
 	return c
 }
 
@@ -127,6 +127,43 @@ func newMockProviderDownloadResponse(address string, version string, targetPlatf
 		zipData:     zipData,
 		shaSumsData: shaSumsData,
 	}, nil
+}
+
+func newMockProviderPackageMetadataResponse() *ProviderPackageMetadataResponse {
+	res := &ProviderPackageMetadataResponse{
+		Filename:    "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
+		DownloadURL: "https://github.com/opentofu/terraform-provider-dummy/releases/download/v3.2.1/terraform-provider-dummy_3.2.1_darwin_arm64.zip",
+		SHASum:      "",
+		SHASumsURL:  "https://github.com/opentofu/terraform-provider-dummy/releases/download/v3.2.1/terraform-provider-dummy_3.2.1_SHA256SUMS",
+		Packages: map[string]tfregistry.Package{
+			"darwin_arm64": {
+				Hashes: []string{
+					"zh:5622a0fd03420ed1fa83a1a6e90b65fbe34bc74c251b3b47048f14217e93b086",
+					"h1:3323G20HW9PA9ONrL6CdQCdCFe6y94kXeOTprq+Zu+w=",
+				},
+			},
+			"darwin_amd64": {
+				Hashes: []string{
+					"zh:fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2",
+					"h1:63My0EuWIYHWVwWOxmxWwgrfx+58Tz+nTduelaCCAfs=",
+				},
+			},
+			"linux_amd64": {
+				Hashes: []string{
+					"zh:c5f0a44e3a3795cb3ee0abb0076097c738294c241f74c145dfb50f2b9fd71fd2",
+					"h1:2zotrPRAjGZZMkjJGBGLnIbG+sqhQN30sbwqSDECQFQ=",
+				},
+			},
+			"windows_amd64": {
+				Hashes: []string{
+					"zh:8b75ff41191a7fe6c5d9129ed19a01eacde5a3797b48b738eefa21f5330c081e",
+					"h1:PwmSfP1Tb8io64qqCx9AExzIqnHiZ/ER2l8qVhEEKdw=",
+				},
+			},
+		},
+	}
+
+	return res
 }
 
 // newMockProviderDownloadResponses returns a new list of ProviderDownloadResponse for testing.

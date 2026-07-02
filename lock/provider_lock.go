@@ -13,28 +13,31 @@ import (
 	"github.com/minamijoyo/tfupdate/tfregistry"
 )
 
-// PackageDownloaderAPI is an interface for downloading provider package.
+// ProviderLockAPI is an interface for locking provider package.
 // Provider packages are downloaded from the HashiCorp release server,
 // GitHub release page or somewhere else.
 // Therefore we distinct this API from the Terraform Registry API.
 // The API specification is not documented.
-type ProviderDownloaderAPI interface {
+type ProviderLockAPI interface {
+	// ProviderPackageMetadata returns a package metadata of a provider.
+	ProviderPackageMetadata(ctx context.Context, req *ProviderPackageMetadataRequest) (*ProviderPackageMetadataResponse, error)
+
 	// ProviderDownload downloads a provider package.
 	ProviderDownload(ctx context.Context, req *ProviderDownloadRequest) (*ProviderDownloadResponse, error)
 }
 
-// ProviderDownloaderClient implements the ProviderDownloaderAPI interface
-type ProviderDownloaderClient struct {
+// ProviderLockClient implements the ProviderLockAPI interface
+type ProviderLockClient struct {
 	// api is an instance of tfregistry.API interface.
 	// It can be replaced for testing.
 	api tfregistry.API
 
-	// httpClient is a http client which communicates with the ProviderDownloaderAPI.
+	// httpClient is a http client which communicates with the ProviderLockAPI.
 	httpClient *http.Client
 }
 
-// NewProviderDownloaderClient is a factory method which returns a ProviderDownloaderClient instance.
-func NewProviderDownloaderClient(config tfregistry.Config) (*ProviderDownloaderClient, error) {
+// NewProviderLockClient is a factory method which returns a ProviderLockClient instance.
+func NewProviderLockClient(config tfregistry.Config) (*ProviderLockClient, error) {
 	api, err := tfregistry.NewClient(config)
 	if err != nil {
 		return nil, err
@@ -45,10 +48,24 @@ func NewProviderDownloaderClient(config tfregistry.Config) (*ProviderDownloaderC
 		httpClient = &http.Client{}
 	}
 
-	return &ProviderDownloaderClient{
+	return &ProviderLockClient{
 		api:        api,
 		httpClient: httpClient,
 	}, nil
+}
+
+type ProviderPackageMetadataRequest tfregistry.ProviderPackageMetadataRequest
+type ProviderPackageMetadataResponse tfregistry.ProviderPackageMetadataResponse
+
+// ProviderPackageMetadata returns a package metadata of a provider.
+func (c *ProviderLockClient) ProviderPackageMetadata(ctx context.Context, req *ProviderPackageMetadataRequest) (*ProviderPackageMetadataResponse, error) {
+	tfrReq := (*tfregistry.ProviderPackageMetadataRequest)(req)
+	tfrRes, err := c.api.ProviderPackageMetadata(ctx, tfrReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return (*ProviderPackageMetadataResponse)(tfrRes), nil
 }
 
 // ProviderDownloadRequest is a request type for ProviderDownload.
@@ -78,7 +95,7 @@ type ProviderDownloadResponse struct {
 }
 
 // ProviderDownload downloads a provider package.
-func (c *ProviderDownloaderClient) ProviderDownload(ctx context.Context, req *ProviderDownloadRequest) (*ProviderDownloadResponse, error) {
+func (c *ProviderLockClient) ProviderDownload(ctx context.Context, req *ProviderDownloadRequest) (*ProviderDownloadResponse, error) {
 	metadataReq := &tfregistry.ProviderPackageMetadataRequest{
 		Namespace: req.Namespace,
 		Type:      req.Type,
@@ -124,13 +141,13 @@ func (c *ProviderDownloaderClient) ProviderDownload(ctx context.Context, req *Pr
 }
 
 // download is a helper function that downloads contents from a given url.
-func (c *ProviderDownloaderClient) download(ctx context.Context, url string) ([]byte, error) {
+func (c *ProviderLockClient) download(ctx context.Context, url string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build http request: err = %s, url = %s", err, url)
 	}
 
-	log.Printf("[DEBUG] ProviderDownloaderClient.download: GET %s", url)
+	log.Printf("[DEBUG] ProviderLockClient.download: GET %s", url)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to request: err = %s, url = %s", err, url)
