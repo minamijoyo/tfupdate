@@ -123,13 +123,12 @@ func (pi *providerIndex) createProviderVersion(ctx context.Context, version stri
 			return nil, err
 		}
 
-		if len(pv.h1Hashes) != 0 && len(pv.zhHashes) != 0 {
-			// If both the h1 and zh hashes are available, we can skip downloading the provider binary.
-			log.Printf("[DEBUG] providerIndex.createProviderVersion: %s, %s. The registry returns both h1 and zh hashes. Skipping provider download.", pi.address, version)
-			return pv, nil
-		} else {
-			return nil, fmt.Errorf("failed to fetch provider package metadata for %s %s. The registry does not support h1 hashes. Please specify the platform on which the hash value should be calculated.", pi.address, version)
+		if len(pv.h1Hashes) == 0 {
+			return nil, fmt.Errorf("failed to fetch provider package metadata for %s %s. The registry does not support h1 hashes. Please specify the platform on which the hash value should be calculated", pi.address, version)
 		}
+		// If h1 hashes are available, we can skip downloading the provider binary.
+		log.Printf("[DEBUG] providerIndex.createProviderVersion: %s, %s. The registry returns both h1 and zh hashes. Skipping provider download.", pi.address, version)
+		return pv, nil
 	}
 
 	ret := newEmptyProviderVersion(pi.address, version)

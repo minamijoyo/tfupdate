@@ -19,11 +19,11 @@ type mockProviderLockClient struct {
 
 var _ ProviderLockAPI = (*mockProviderLockClient)(nil)
 
-func (c *mockProviderLockClient) ProviderPackageMetadata(ctx context.Context, req *ProviderPackageMetadataRequest) (*ProviderPackageMetadataResponse, error) {
+func (c *mockProviderLockClient) ProviderPackageMetadata(_ context.Context, _ *ProviderPackageMetadataRequest) (*ProviderPackageMetadataResponse, error) {
 	return c.metadataRes, nil
 }
 
-func (c *mockProviderLockClient) ProviderDownload(ctx context.Context, req *ProviderDownloadRequest) (*ProviderDownloadResponse, error) { // nolint revive unused-parameter
+func (c *mockProviderLockClient) ProviderDownload(_ context.Context, _ *ProviderDownloadRequest) (*ProviderDownloadResponse, error) {
 	res := c.responses[c.called]
 	err := c.errs[c.called]
 	c.called++
