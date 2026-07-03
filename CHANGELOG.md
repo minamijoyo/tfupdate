@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+## 0.10.0 (2026/07/03)
+
+NOTE:
+
+Starting with OpenTofu v1.12, the OpenTofu registry now returns both the zh hash and the precomputed h1 hash. By leveraging this metadata, the `tfupdate lock` command now skips downloading the provider binary when the `platform` argument is omitted and records the hash values for all platforms. Since the Terraform Registry does not yet return h1 hashes, this feature is currently available only in OpenTofu.
+
 NEW FEATURES:
 
 * Skip downloading binaries if the registry supports h1 hashes ([#159](https://github.com/minamijoyo/tfupdate/pull/159))
