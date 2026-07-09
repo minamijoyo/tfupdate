@@ -1,5 +1,10 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Bump golang.org/x/net from 0.47.0 to 0.55.0 ([#161](https://github.com/minamijoyo/tfupdate/pull/161))
+* Remove x/exp dependency and go fix ([#162](https://github.com/minamijoyo/tfupdate/pull/162))
+
 ## 0.10.0 (2026/07/03)
 
 NOTE:
