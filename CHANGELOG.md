@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.10.1 (2026/07/09)
+
 ENHANCEMENTS:
 
 * Bump golang.org/x/net from 0.47.0 to 0.55.0 ([#161](https://github.com/minamijoyo/tfupdate/pull/161))
