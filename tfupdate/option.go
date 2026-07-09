@@ -3,10 +3,10 @@ package tfupdate
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/minamijoyo/tfupdate/tfregistry"
-	"golang.org/x/exp/slices"
 )
 
 // Option is a set of parameters to update.
@@ -81,7 +81,7 @@ func nameRegex(updateType string, name string, sourceMatchType string) (*regexp.
 	if updateType == "module" {
 		validSourceMatchTypes := []string{"full", "regex"}
 
-		if !slices.Contains[string](validSourceMatchTypes, sourceMatchType) {
+		if !slices.Contains(validSourceMatchTypes, sourceMatchType) {
 			return nil, fmt.Errorf("invalid sourceMatchType: %s valid options [%s]", sourceMatchType, strings.Join(validSourceMatchTypes, ","))
 		} else if sourceMatchType == "regex" {
 			if len(name) == 0 {

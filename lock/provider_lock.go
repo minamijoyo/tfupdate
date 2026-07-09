@@ -189,7 +189,7 @@ func sha256sumAsHexString(b []byte) string {
 // validateSHASumsData checks whether the SHA256Sum document contains a matching hash value for a given filename.
 func validateSHASumsData(b []byte, filename string, sha256sum string) error {
 	document := string(b)
-	for _, line := range strings.Split(document, "\n") {
+	for line := range strings.SplitSeq(document, "\n") {
 		// We expect that blank lines are not normally included, but to make the
 		// test data easier to read, ignore blank lines.
 		if len(line) == 0 {

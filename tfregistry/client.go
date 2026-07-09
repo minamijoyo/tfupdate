@@ -96,7 +96,7 @@ func (c *Client) newRequest(ctx context.Context, method string, subPath string, 
 }
 
 // decodeBody decodes a raw body data into a specific response type structure.
-func decodeBody(resp *http.Response, out interface{}) error {
+func decodeBody(resp *http.Response, out any) error {
 	defer resp.Body.Close()
 	decoder := json.NewDecoder(resp.Body)
 	err := decoder.Decode(out)

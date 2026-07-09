@@ -2,10 +2,9 @@ package lock
 
 import (
 	"fmt"
+	"maps"
 	"reflect"
-
-	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 // ProviderVersion is a data structure that holds hash values of a specific
@@ -76,9 +75,9 @@ func (pv *ProviderVersion) Merge(rhs *ProviderVersion) error {
 // intended to be used as the value of hashes in a dependency lock file.
 // The result is sorted alphabetically.
 func (pv *ProviderVersion) AllHashes() []string {
-	h1 := maps.Values(pv.h1Hashes)
-	zh := maps.Values(pv.zhHashes)
-	hashes := append(h1, zh...)
+	hashes := make([]string, 0, len(pv.h1Hashes)+len(pv.zhHashes))
+	hashes = slices.AppendSeq(hashes, maps.Values(pv.h1Hashes))
+	hashes = slices.AppendSeq(hashes, maps.Values(pv.zhHashes))
 	slices.Sort(hashes)
 	return hashes
 }
