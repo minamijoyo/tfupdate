@@ -86,12 +86,12 @@ service "label1" "label2" {
 					t.Fatal("block found, but expecting not found")
 				}
 
-				got := ""
+				var got strings.Builder
 				for _, block := range blocks {
-					got += string(block.BuildTokens(nil).Bytes())
+					got.WriteString(string(block.BuildTokens(nil).Bytes()))
 				}
-				if got != test.want {
-					t.Errorf("wrong result\ngot:  %s\nwant: %s", got, test.want)
+				if got.String() != test.want {
+					t.Errorf("wrong result\ngot:  %s\nwant: %s", got.String(), test.want)
 				}
 			}
 		})
@@ -149,12 +149,12 @@ service "label1" {
 					t.Fatal("block found, but expecting not found")
 				}
 
-				got := ""
+				var got strings.Builder
 				for _, block := range blocks {
-					got += string(block.BuildTokens(nil).Bytes())
+					got.WriteString(string(block.BuildTokens(nil).Bytes()))
 				}
-				if got != test.want {
-					t.Errorf("wrong result\ngot:  %s\nwant: %s", got, test.want)
+				if got.String() != test.want {
+					t.Errorf("wrong result\ngot:  %s\nwant: %s", got.String(), test.want)
 				}
 			}
 		})

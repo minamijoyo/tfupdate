@@ -19,7 +19,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/xanzy/go-gitlab v0.20.1
 	github.com/zclconf/go-cty v1.16.3
-	golang.org/x/exp v0.0.0-20260611194520-c48552f49976
 	golang.org/x/mod v0.37.0
 	golang.org/x/oauth2 v0.27.0
 )

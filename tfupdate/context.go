@@ -2,12 +2,12 @@ package tfupdate
 
 import (
 	"log"
+	"maps"
+	"slices"
 
 	version "github.com/hashicorp/go-version"
 	"github.com/minamijoyo/terraform-config-inspect/tfconfig"
 	"github.com/spf13/afero"
-	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 )
 
 // GlobalContext is information that is shared over the lifetime of the process.
@@ -152,8 +152,7 @@ func (mc *ModuleContext) SelecetedProviders() []SelectedProvider {
 	}
 
 	// Sort to get stable results
-	keys := maps.Keys(selected)
-	slices.Sort(keys)
+	keys := slices.Sorted(maps.Keys(selected))
 
 	ret := []SelectedProvider{}
 	for _, k := range keys {

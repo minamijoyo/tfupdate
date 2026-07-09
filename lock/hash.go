@@ -50,7 +50,7 @@ func shaSumsDataToZhHash(shaSumsData []byte) (map[string]string, error) {
 	document := string(shaSumsData)
 	zh := make(map[string]string)
 	// Read an entry per line.
-	for _, line := range strings.Split(document, "\n") {
+	for line := range strings.SplitSeq(document, "\n") {
 		// We expect that blank lines are not normally included, but to make the
 		// test data easier to read, ignore blank lines.
 		if len(line) == 0 {

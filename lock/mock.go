@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"strings"
 
 	tfaddr "github.com/hashicorp/terraform-registry-address"
 	"github.com/minamijoyo/tfupdate/tfregistry"
-	"golang.org/x/exp/slices"
 )
 
 // mockTFRegistryClient is a mock implementation of tfregistry.API

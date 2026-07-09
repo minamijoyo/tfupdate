@@ -3,10 +3,10 @@ package tfupdate
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/minamijoyo/tfupdate/tfregistry"
-	"golang.org/x/exp/slices"
 )
 
 // Option is a set of parameters to update.
