@@ -52,7 +52,7 @@ func (c *ProviderCommand) Run(args []string) int {
 		} else {
 			source = fmt.Sprintf("hashicorp/terraform-provider-%s", c.name)
 		}
-		r, err := newRelease("github", source)
+		r, err := c.NewRelease("github", source)
 		if err != nil {
 			c.UI.Error(err.Error())
 			return 1

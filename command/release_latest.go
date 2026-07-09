@@ -34,7 +34,7 @@ func (c *ReleaseLatestCommand) Run(args []string) int {
 
 	c.source = cmdFlags.Arg(0)
 
-	r, err := newRelease(c.sourceType, c.source)
+	r, err := c.NewRelease(c.sourceType, c.source)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return 1
