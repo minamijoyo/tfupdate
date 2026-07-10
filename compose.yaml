@@ -5,7 +5,7 @@ services:
       dockerfile: ./Dockerfile.dev
       args:
         TERRAFORM_VERSION: ${TERRAFORM_VERSION:-latest}
-        OPENTOFU_VERSION: ${OPENTOFU_VERSION:-latest}
+        OPENTOFU_VERSION: ${OPENTOFU_VERSION:-1}
     volumes:
       - ".:/work"
     environment:
