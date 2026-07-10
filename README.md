@@ -341,11 +341,13 @@ Arguments
                          owner/repo
                          e.g. terraform-providers/terraform-provider-aws
                        - tfregistryModule:
-                         namespace/name/provider
+                         [hostname/]namespace/name/provider
                          e.g. terraform-aws-modules/vpc/aws
+                              registry.opentofu.org/terraform-aws-modules/vpc/aws
                        - tfregistryProvider:
-                         namespace/type
+                         [hostname/]namespace/type
                          e.g. hashicorp/aws
+                              registry.opentofu.org/hashicorp/aws
 
 Options:
   -s  --source-type  A type of release data source.
@@ -378,11 +380,13 @@ Arguments
                          owner/repo
                          e.g. terraform-providers/terraform-provider-aws
                        - tfregistryModule:
-                         namespace/name/provider
+                         [hostname/]namespace/name/provider
                          e.g. terraform-aws-modules/vpc/aws
+                              registry.opentofu.org/terraform-aws-modules/vpc/aws
                        - tfregistryProvider:
-                         namespace/type
+                         [hostname/]namespace/type
                          e.g. hashicorp/aws
+                              registry.opentofu.org/hashicorp/aws
 
 Options:
   -s  --source-type  A type of release data source.

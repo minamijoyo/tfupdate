@@ -28,8 +28,16 @@ var _ Release = (*TFRegistryModuleRelease)(nil)
 
 // NewTFRegistryModuleRelease is a factory method which returns an TFRegistryModuleRelease instance.
 func NewTFRegistryModuleRelease(source string, config tfregistry.Config) (Release, error) {
-	s := strings.SplitN(source, "/", 3)
-	if len(s) != 3 {
+	s := strings.Split(source, "/")
+
+	switch len(s) {
+	case 3:
+		// NAMESPACE/NAME/PROVIDER
+	case 4:
+		// HOSTNAME/NAMESPACE/NAME/PROVIDER
+		config.BaseURL = fmt.Sprintf("https://%s/", s[0])
+		s = s[1:]
+	default:
 		return nil, fmt.Errorf("failed to parse source: %s", source)
 	}
 
@@ -89,8 +97,16 @@ var _ Release = (*TFRegistryProviderRelease)(nil)
 
 // NewTFRegistryProviderRelease is a factory method which returns an TFRegistryProviderRelease instance.
 func NewTFRegistryProviderRelease(source string, config tfregistry.Config) (Release, error) {
-	s := strings.SplitN(source, "/", 2)
-	if len(s) != 2 {
+	s := strings.Split(source, "/")
+
+	switch len(s) {
+	case 2:
+		// NAMESPACE/TYPE
+	case 3:
+		// HOSTNAME/NAMESPACE/TYPE
+		config.BaseURL = fmt.Sprintf("https://%s/", s[0])
+		s = s[1:]
+	default:
 		return nil, fmt.Errorf("failed to parse source: %s", source)
 	}
 
