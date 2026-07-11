@@ -19,7 +19,7 @@ type ProviderUpdater struct {
 	version string
 }
 
-// NewProviderUpdater is a factory method which returns an ProviderUpdater instance.
+// NewProviderUpdater is a factory method which returns a ProviderUpdater instance.
 func NewProviderUpdater(name string, version string) (Updater, error) {
 	if len(name) == 0 {
 		return nil, errors.Errorf("failed to new provider updater. name is required")
@@ -76,7 +76,7 @@ func (u *ProviderUpdater) updateTerraformBlock(mc *ModuleContext, f *hclwrite.Fi
 		if hclAttr != nil {
 			// There are some variations on the syntax of required_providers.
 			// So we check a type of the value and switch implementations.
-			// If the expression can be parsed as a static expression and it's type is a primitive,
+			// If the expression can be parsed as a static expression and its type is a primitive,
 			// then it's a legacy string syntax.
 			if expr, err := hclAttr.Expr.Value(nil); err == nil && expr.Type().IsPrimitiveType() {
 				u.updateTerraformRequiredProvidersBlockAsString(p)
@@ -117,7 +117,7 @@ func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwr
 		return nil
 	}
 
-	// Updating the whole object loses original sort order and comments.
+	// Updating the whole object loses the original sort order and comments.
 	// At the time of writing, there is no way to update a value inside an
 	// object directly while preserving original tokens.
 	//
@@ -167,7 +167,7 @@ func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwr
 // If the version key is missing, just returns an empty string without an error.
 func detectVersionInObject(hclAttr *hcl.Attribute) (string, error) {
 	// The configuration_aliases syntax isn't directly related version updating,
-	// but it contains provider references and causes an parse error without an EvalContext.
+	// but it contains provider references and causes a parse error without an EvalContext.
 	// So we treat the expression as a hcl.ExprMap to avoid fully decoding the object.
 	kvs, diags := hcl.ExprMap(hclAttr.Expr)
 	if diags.HasErrors() {

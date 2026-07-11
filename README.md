@@ -16,7 +16,7 @@ If you integrate tfupdate with your favorite CI or job scheduler, you can check 
 ## Why?
 It is a best practice to break your Terraform configuration and state into small pieces to minimize the impact of an accident.
 It is also recommended to lock versions of Terraform core, providers and modules to avoid unexpected breaking changes.
-If you decided to lock version constraints, you probably want to keep them up-to-date frequently to reduce the risk of version upgrade failures.
+If you decide to lock version constraints, you probably want to keep them up-to-date frequently to reduce the risk of version upgrade failures.
 It's easy to update a single directory, but what if they are scattered across multiple directories?
 
 That is why I wrote a tool which parses Terraform configurations and updates all version constraints at once.
@@ -116,7 +116,7 @@ terraform {
 }
 ```
 
-A value of version flag accepts any string literal. You can also pass a [version constraint](https://www.terraform.io/language/expressions/version-constraints):
+The version flag accepts any string literal. You can also pass a [version constraint](https://www.terraform.io/language/expressions/version-constraints):
 
 ```
 $ tfupdate terraform -v "~> 1.0" main.tf
@@ -227,7 +227,7 @@ terraform {
 }
 ```
 
-A value of version flag accepts any string literal. You can also pass a [version constraint](https://www.terraform.io/language/expressions/version-constraints):
+The version flag accepts any string literal. You can also pass a [version constraint](https://www.terraform.io/language/expressions/version-constraints):
 
 ```
 $ tfupdate provider aws -v "~> 3.0" main.tf
@@ -298,7 +298,7 @@ module "s3_bucket" {
 }
 ```
 
-A value of version flag accepts any string literal. You can also pass a [version constraint](https://www.terraform.io/language/expressions/version-constraints):
+The version flag accepts any string literal. You can also pass a [version constraint](https://www.terraform.io/language/expressions/version-constraints):
 
 ```
 $ tfupdate module -v "~> 2.14.1" terraform-aws-modules/s3-bucket/aws main.tf

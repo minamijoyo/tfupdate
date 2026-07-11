@@ -50,7 +50,7 @@ func newTestClient(mockServerURL *url.URL, config tfregistry.Config) *ProviderLo
 	return c
 }
 
-// newMockZipData returns a new zip format data for testing.
+// newMockZipData returns new zip format data for testing.
 func newMockZipData(filename string, contents string) ([]byte, error) {
 	// create a zip file in memory
 	var buf bytes.Buffer

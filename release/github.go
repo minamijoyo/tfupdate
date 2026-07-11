@@ -96,7 +96,7 @@ type GitHubRelease struct {
 
 var _ Release = (*GitHubRelease)(nil)
 
-// NewGitHubRelease is a factory method which returns an GitHubRelease instance.
+// NewGitHubRelease is a factory method which returns a GitHubRelease instance.
 func NewGitHubRelease(source string, config GitHubConfig) (Release, error) {
 	s := strings.SplitN(source, "/", 2)
 	if len(s) != 2 {

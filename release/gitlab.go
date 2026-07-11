@@ -16,7 +16,7 @@ type GitLabAPI interface {
 	ProjectListReleases(ctx context.Context, owner, project string, opt *gitlab.ListReleasesOptions) ([]*gitlab.Release, *gitlab.Response, error)
 }
 
-// GitLabConfig is a set of configurations for GitLabRelease..
+// GitLabConfig is a set of configurations for GitLabRelease.
 type GitLabConfig struct {
 	// api is an instance of GitLabAPI interface.
 	// It can be replaced for testing.
@@ -27,7 +27,7 @@ type GitLabConfig struct {
 	// BaseURL should always be specified with a trailing slash.
 	BaseURL string
 
-	// Token is a personal access token for GitLab, needed to use the api.
+	// Token is a personal access token for GitLab, needed to use the API.
 	Token string
 }
 
@@ -81,7 +81,7 @@ type GitLabRelease struct {
 
 var _ Release = (*GitLabRelease)(nil)
 
-// NewGitLabRelease is a factory method which returns an GitLabRelease instance.
+// NewGitLabRelease is a factory method which returns a GitLabRelease instance.
 func NewGitLabRelease(source string, config GitLabConfig) (*GitLabRelease, error) {
 	s := strings.SplitN(source, "/", 2)
 	if len(s) != 2 {

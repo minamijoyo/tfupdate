@@ -48,9 +48,9 @@ func allMatchingBlocksByType(b *hclwrite.Body, typeName string) []*hclwrite.Bloc
 }
 
 // getHCLNativeAttribute gets hclwrite.Attribute as a native hcl.Attribute.
-// At the time of writing, there is no way to do with the hclwrite AST,
+// At the time of writing, there is no way to do this with the hclwrite AST,
 // so we build low-level byte sequences and parse an attribute as a
-// hcl.Attribute on memory.
+// hcl.Attribute in memory.
 // If not found, returns nil without an error.
 func getHCLNativeAttribute(body *hclwrite.Body, name string) (*hcl.Attribute, error) {
 	attr := body.GetAttribute(name)
@@ -63,7 +63,7 @@ func getHCLNativeAttribute(body *hclwrite.Body, name string) (*hcl.Attribute, er
 	src := append([]byte(name+" = "), attrAsBytes...)
 
 	// parse an expression as a hcl.File.
-	// Note that an attribute may contains references, which are defined outside the file.
+	// Note that an attribute may contain references, which are defined outside the file.
 	// So we cannot simply use hclsyntax.ParseExpression or hclsyntax.ParseConfig here.
 	// We need to use a low-level parser not to resolve all references.
 	parser := hclparse.NewParser()

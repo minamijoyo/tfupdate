@@ -19,7 +19,7 @@ type Meta struct {
 	Fs afero.Fs
 }
 
-// newRelease is a factory method which returns an Release implementation.
+// newRelease is a factory method which returns a Release implementation.
 func newRelease(sourceType string, source string) (release.Release, error) {
 	var env Env
 	err := envconfig.Process("", &env)

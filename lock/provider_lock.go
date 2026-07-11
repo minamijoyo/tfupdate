@@ -140,7 +140,7 @@ func (c *ProviderLockClient) ProviderDownload(ctx context.Context, req *Provider
 	return ret, nil
 }
 
-// download is a helper function that downloads contents from a given url.
+// download is a helper function that downloads contents from a given URL.
 func (c *ProviderLockClient) download(ctx context.Context, url string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {

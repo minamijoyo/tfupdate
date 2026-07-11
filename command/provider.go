@@ -12,7 +12,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-// ProviderCommand is a command which update version constraints for provider.
+// ProviderCommand is a command which updates version constraints for provider.
 type ProviderCommand struct {
 	Meta
 	name        string

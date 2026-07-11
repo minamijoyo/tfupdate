@@ -13,7 +13,7 @@ type Release interface {
 
 // Latest returns the latest release.
 // Note that GetLatestRelease API in GitHub and GitLab returns the most recent
-// release, which doesn't means the latest stable release. I'm not sure it also
+// release, which doesn't mean the latest stable release. I'm not sure if it also
 // affects Terraform Registry but I think we should use the same strategy for
 // consistency. So we sort versions in semver order and find the latest non
 // pre-release.

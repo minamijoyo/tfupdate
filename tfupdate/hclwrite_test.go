@@ -238,7 +238,7 @@ foo = "123"
 			}
 
 			if tc.ok && got != nil {
-				// An expression is a complicated object and hard to build from literal.
+				// An expression is a complicated object and hard to build from a literal.
 				// So we simply compare it by type.
 				if reflect.TypeOf(got.Expr) != reflect.TypeOf(tc.wantExprType) {
 					t.Errorf("got = %#v, but want = %#v", got.Expr, tc.wantExprType)
