@@ -3,10 +3,9 @@ package release
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strings"
 
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go/v2"
 )
 
 // GitLabAPI is an interface which calls GitLab API.
@@ -43,16 +42,13 @@ func NewGitLabClient(config GitLabConfig) (*GitLabClient, error) {
 	if len(config.Token) == 0 {
 		return nil, fmt.Errorf("failed to get personal access token (env: GITLAB_TOKEN)")
 	}
-	c := gitlab.NewClient(nil, config.Token)
-
+	var opts []gitlab.ClientOptionFunc
 	if len(config.BaseURL) != 0 {
-		baseURL, err := url.Parse(config.BaseURL)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse gitlab base url: %s", err)
-		}
-		if err = c.SetBaseURL(baseURL.String()); err != nil {
-			return nil, err
-		}
+		opts = append(opts, gitlab.WithBaseURL(config.BaseURL))
+	}
+	c, err := gitlab.NewClient(config.Token, opts...)
+	if err != nil {
+		return nil, err
 	}
 
 	return &GitLabClient{
@@ -111,7 +107,9 @@ func NewGitLabRelease(source string, config GitLabConfig) (*GitLabRelease, error
 func (r *GitLabRelease) ListReleases(ctx context.Context) ([]string, error) {
 	versions := []string{}
 	opt := &gitlab.ListReleasesOptions{
-		PerPage: 100, // max
+		ListOptions: gitlab.ListOptions{
+			PerPage: 100, // max
+		},
 	}
 
 	for {
