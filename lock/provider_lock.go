@@ -172,7 +172,7 @@ func (c *ProviderLockClient) download(ctx context.Context, url string) ([]byte, 
 func validateSHA256Sum(b []byte, sha256sum string) error {
 	got := sha256sumAsHexString(b)
 	if got != sha256sum {
-		return fmt.Errorf("checksum missmatch error. got = %s, expected = %s", got, sha256sum)
+		return fmt.Errorf("checksum mismatch error. got = %s, expected = %s", got, sha256sum)
 	}
 
 	return nil
@@ -204,7 +204,7 @@ func validateSHASumsData(b []byte, filename string, sha256sum string) error {
 		}
 		if fields[1] == filename {
 			if fields[0] != sha256sum {
-				return fmt.Errorf("checksum missmatch error. got = %s, expected = %s", fields[0], sha256sum)
+				return fmt.Errorf("checksum mismatch error. got = %s, expected = %s", fields[0], sha256sum)
 			}
 			return nil // ok
 		}

@@ -54,7 +54,7 @@ func (u *LockUpdater) Update(ctx context.Context, mc *ModuleContext, filename st
 
 // updateLockfile updates the dependency lock file.
 func (u *LockUpdater) updateLockfile(ctx context.Context, mc *ModuleContext, f *hclwrite.File) error {
-	for _, p := range mc.SelecetedProviders() {
+	for _, p := range mc.SelectedProviders() {
 		pAddr, err := u.fullyQualifiedProviderAddress(p.Source)
 		if err != nil {
 			// Unsupported formats, such as legacy abbreviated notation, will result

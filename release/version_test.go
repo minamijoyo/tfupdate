@@ -50,12 +50,12 @@ func TestExcludePreReleases(t *testing.T) {
 			want:        []string{"0.1.0", "0.1.1", "0.2.0", "0.3.0"},
 		},
 		{
-			desc:        "no pre-relases",
+			desc:        "no pre-releases",
 			versionsRaw: []string{"0.1.0", "0.1.1", "0.2.0", "0.3.0"},
 			want:        []string{"0.1.0", "0.1.1", "0.2.0", "0.3.0"},
 		},
 		{
-			desc:        "no stable relases",
+			desc:        "no stable releases",
 			versionsRaw: []string{"0.3.0-alpha1", "0.3.0-beta1", "0.3.0-beta2", "0.3.0-rc"},
 			want:        []string{},
 		},

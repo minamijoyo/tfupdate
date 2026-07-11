@@ -106,7 +106,7 @@ func newMockShaSumsData(name string, version string, platforms []string) ([]byte
 func newMockProviderDownloadResponse(address string, version string, targetPlatform string, allPlatforms []string) (*ProviderDownloadResponse, error) {
 	pAddr, err := tfaddr.ParseProviderSource(address)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse provider aaddress: %s", address)
+		return nil, fmt.Errorf("failed to parse provider address: %s", address)
 	}
 	name := pAddr.Type
 	// create a zip file in memory.

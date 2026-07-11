@@ -128,7 +128,7 @@ terraform {
 			// the current implementation of (*hclwrite.Body).SetAttributeValue()
 			// does not seem to preserve an original SpaceBefore value of attribute.
 			// This is a bug of upstream.
-			// We avoid this by formating the output of this function.
+			// We avoid this by formatting the output of this function.
 			want: `
 terraform {
   required_version ="0.12.7"

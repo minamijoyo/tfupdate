@@ -36,7 +36,7 @@ type Option struct {
 	// An array of regular expression for paths to ignore.
 	ignorePaths []*regexp.Regexp
 
-	// This field stores the compiled RE2 regex from the provide name parameter.
+	// This field stores the compiled RE2 regex from the provided name parameter.
 	// In case the sourceMatchType is set to regex this field is used to match the name.
 	// In case the provided sourceMatchType is full this field is nil.
 	nameRegex *regexp.Regexp

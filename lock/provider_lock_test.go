@@ -72,7 +72,7 @@ fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2  terraform-prov
 			ok:   false,
 		},
 		{
-			desc: "checksum missmatch",
+			desc: "checksum mismatch",
 			client: &mockTFRegistryClient{
 				metadataRes: &tfregistry.ProviderPackageMetadataResponse{
 					Filename:    "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
@@ -198,7 +198,7 @@ func TestValidateSHA256Sum(t *testing.T) {
 			ok:        true,
 		},
 		{
-			desc:      "checksum missmatch",
+			desc:      "checksum mismatch",
 			b:         zipData,
 			sha256sum: "aaa",
 			ok:        false,
@@ -243,7 +243,7 @@ fc5bbdd0a1bd6715b9afddf3aba6acc494425d77015c19579b9a9fa950e532b2  terraform-prov
 			ok:        true,
 		},
 		{
-			desc:      "checksum missmatch",
+			desc:      "checksum mismatch",
 			b:         shaSumsData,
 			filename:  "terraform-provider-dummy_3.2.1_darwin_arm64.zip",
 			sha256sum: "aaa",

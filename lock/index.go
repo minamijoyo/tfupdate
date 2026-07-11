@@ -260,17 +260,17 @@ func parseProviderAddress(address string) (*tfaddr.Provider, error) {
 	// standard registry (registry.terraform.io).
 	pAddr, err := tfaddr.ParseProviderSource(address)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse provider aaddress: %s", address)
+		return nil, fmt.Errorf("failed to parse provider address: %s", address)
 	}
 
 	// Since .terraform.lock.hcl was introduced from v0.14, we assume that
 	// provider address is qualified with namespaces at least. We won't support
 	// implicit legacy things.
 	if !pAddr.HasKnownNamespace() {
-		return nil, fmt.Errorf("failed to parse unknown provider aaddress: %s", address)
+		return nil, fmt.Errorf("failed to parse unknown provider address: %s", address)
 	}
 	if pAddr.IsLegacy() {
-		return nil, fmt.Errorf("failed to parse legacy provider aaddress: %s", address)
+		return nil, fmt.Errorf("failed to parse legacy provider address: %s", address)
 	}
 
 	return &pAddr, nil

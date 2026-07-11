@@ -65,7 +65,7 @@ func getHCLNativeAttribute(body *hclwrite.Body, name string) (*hcl.Attribute, er
 	// parse an expression as a hcl.File.
 	// Note that an attribute may contains references, which are defined outside the file.
 	// So we cannot simply use hclsyntax.ParseExpression or hclsyntax.ParseConfig here.
-	// We need to use a loe-level parser not to resolve all references.
+	// We need to use a low-level parser not to resolve all references.
 	parser := hclparse.NewParser()
 	file, diags := parser.ParseHCL(src, "generated_by_getHCLNativeAttribute")
 	if diags.HasErrors() {
@@ -87,7 +87,7 @@ func getHCLNativeAttribute(body *hclwrite.Body, name string) (*hcl.Attribute, er
 
 // getAttributeValueAsString returns a value of Attribute as string.
 // There is no way to get value as string directly,
-// so we parses tokens of Attribute and build string representation.
+// so we parse tokens of Attribute and build string representation.
 // The returned value is unquoted.
 func getAttributeValueAsUnquotedString(attr *hclwrite.Attribute) string {
 	// find TokenEqual
