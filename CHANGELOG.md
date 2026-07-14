@@ -1,5 +1,9 @@
 ## master (Unreleased)
 
+NEW FEATURES:
+
+* Support optional module/provider source hostname prefix ([#163](https://github.com/minamijoyo/tfupdate/pull/163))
+
 ## 0.10.1 (2026/07/09)
 
 ENHANCEMENTS:
