@@ -52,7 +52,7 @@ jobs:
         opentofu:
         - 1.12.3
         - 1.11.11
-        - 1.6.3
+        - 1.9.1
     env:
       OPENTOFU_VERSION: ${{ matrix.opentofu }}
       TFUPDATE_EXEC_PATH: tofu

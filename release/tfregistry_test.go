@@ -37,6 +37,7 @@ func TestNewTFRegistryModuleRelease(t *testing.T) {
 		namespace string
 		name      string
 		provider  string
+		baseURL   string
 		ok        bool
 	}{
 		{
@@ -44,10 +45,26 @@ func TestNewTFRegistryModuleRelease(t *testing.T) {
 			namespace: "hoge",
 			name:      "fuga",
 			provider:  "piyo",
+			baseURL:   "https://registry.terraform.io/",
+			ok:        true,
+		},
+		{
+			source:    "registry.opentofu.org/hoge/fuga/piyo",
+			namespace: "hoge",
+			name:      "fuga",
+			provider:  "piyo",
+			baseURL:   "https://registry.opentofu.org/",
 			ok:        true,
 		},
 		{
 			source:    "hoge",
+			namespace: "",
+			name:      "",
+			provider:  "",
+			ok:        false,
+		},
+		{
+			source:    "hoge/fuga/piyo/hogera/hogehoge",
 			namespace: "",
 			name:      "",
 			provider:  "",
@@ -73,6 +90,10 @@ func TestNewTFRegistryModuleRelease(t *testing.T) {
 			if r.namespace != tc.namespace || r.name != tc.name || r.provider != tc.provider {
 				t.Errorf("NewTFRegistryModuleRelease() with source = %s returns (%s, %s, %s), but want (%s, %s, %s)", tc.source, r.namespace, r.name, r.provider, tc.namespace, tc.name, tc.provider)
 			}
+
+			if baseURL := r.api.(*tfregistry.Client).BaseURL.String(); baseURL != tc.baseURL {
+				t.Errorf("NewTFRegistryModuleRelease() with source = %s returns BaseURL = %s, but want = %s", tc.source, baseURL, tc.baseURL)
+			}
 		}
 	}
 }
@@ -82,16 +103,31 @@ func TestNewTFRegistryProviderRelease(t *testing.T) {
 		source       string
 		namespace    string
 		providerType string
+		baseURL      string
 		ok           bool
 	}{
 		{
 			source:       "hoge/piyo",
 			namespace:    "hoge",
 			providerType: "piyo",
+			baseURL:      "https://registry.terraform.io/",
+			ok:           true,
+		},
+		{
+			source:       "registry.opentofu.org/fuga/piyo",
+			namespace:    "fuga",
+			providerType: "piyo",
+			baseURL:      "https://registry.opentofu.org/",
 			ok:           true,
 		},
 		{
 			source:       "hoge",
+			namespace:    "",
+			providerType: "",
+			ok:           false,
+		},
+		{
+			source:       "hoge/fuga/piyo/hogera",
 			namespace:    "",
 			providerType: "",
 			ok:           false,
@@ -115,6 +151,10 @@ func TestNewTFRegistryProviderRelease(t *testing.T) {
 
 			if r.namespace != tc.namespace || r.providerType != tc.providerType {
 				t.Errorf("NewTFRegistryProviderRelease() with source = %s returns (%s, %s), but want (%s, %s)", tc.source, r.namespace, r.providerType, tc.namespace, tc.providerType)
+			}
+
+			if baseURL := r.api.(*tfregistry.Client).BaseURL.String(); baseURL != tc.baseURL {
+				t.Errorf("NewTFRegistryProviderRelease() with source = %s returns BaseURL = %s, but want = %s", tc.source, baseURL, tc.baseURL)
 			}
 		}
 	}
