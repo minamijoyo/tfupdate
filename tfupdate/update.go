@@ -41,7 +41,7 @@ func NewUpdater(o Option) (Updater, error) {
 // UpdateHCL reads HCL from io.Reader, updates version constraints
 // and writes updated contents to io.Writer.
 // If contents changed successfully, it returns true, or otherwise returns false.
-// If an error occurs, Nothing is written to the output stream.
+// If an error occurs, nothing is written to the output stream.
 func UpdateHCL(ctx context.Context, mc *ModuleContext, r io.Reader, w io.Writer, filename string) (bool, error) {
 	input, err := io.ReadAll(r)
 	if err != nil {
@@ -69,8 +69,8 @@ func UpdateHCL(ctx context.Context, mc *ModuleContext, r io.Reader, w io.Writer,
 }
 
 // safeParseConfig parses config and recovers if panic occurs.
-// The current hclwrite implementation is no perfect and will panic if
-// unparseable input is given. We just treat it as a parse error so as not to
+// The current hclwrite implementation is not perfect and will panic if
+// unparsable input is given. We just treat it as a parse error so as not to
 // surprise users of tfupdate.
 func safeParseConfig(src []byte, filename string, start hcl.Pos) (f *hclwrite.File, e error) {
 	defer func() {

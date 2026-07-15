@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-func TestModuleContextSelecetedProviders(t *testing.T) {
+func TestModuleContextSelectedProviders(t *testing.T) {
 	cases := []struct {
 		desc string
 		src  string
@@ -159,7 +159,7 @@ terraform {
 				t.Fatalf("failed to new ModuleContext: %s", err)
 			}
 
-			got := mc.SelecetedProviders()
+			got := mc.SelectedProviders()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
 				t.Errorf("got: %s, want = %s, diff = %s", spew.Sdump(got), spew.Sdump(tc.want), diff)
@@ -379,7 +379,7 @@ terraform {
 				t.Fatalf("failed to new ModuleContext: %s", err)
 			}
 
-			got := mc.SelecetedProviders()
+			got := mc.SelectedProviders()
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
 				t.Errorf("got: %s, want = %s, diff = %s", spew.Sdump(got), spew.Sdump(tc.want), diff)

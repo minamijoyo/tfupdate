@@ -1126,7 +1126,7 @@ provider "registry.terraform.io/integrations/github" {
 
 			err = u.Update(context.Background(), mc, ".terraform.lock.hcl", f)
 			if tc.ok && err != nil {
-				t.Errorf("faild to call Update: err = %s", err)
+				t.Errorf("failed to call Update: err = %s", err)
 			}
 
 			got := string(hclwrite.Format(f.BuildTokens(nil).Bytes()))
@@ -1171,16 +1171,16 @@ func TestUpdateLockWithOpenTofuRegistry(t *testing.T) {
 	}
 
 	cases := []struct {
-		desc            string
-		tfregstryConfig tfregistry.Config
-		src             string
-		lockfile        string
-		want            string
-		ok              bool
+		desc             string
+		tfregistryConfig tfregistry.Config
+		src              string
+		lockfile         string
+		want             string
+		ok               bool
 	}{
 		{
 			desc: "simple",
-			tfregstryConfig: tfregistry.Config{
+			tfregistryConfig: tfregistry.Config{
 				BaseURL: "https://registry.opentofu.org/",
 			},
 			src: `
@@ -1246,7 +1246,7 @@ provider "registry.opentofu.org/hashicorp/null" {
 		},
 		{
 			desc: "create from empty",
-			tfregstryConfig: tfregistry.Config{
+			tfregistryConfig: tfregistry.Config{
 				BaseURL: "https://registry.opentofu.org/",
 			},
 			src: `
@@ -1319,7 +1319,7 @@ provider "registry.opentofu.org/hashicorp/null" {
 			mockIndex := lock.NewMockIndex(pvs)
 
 			// Create a LockUpdater with the tfregistryConfig
-			u, err := NewLockUpdater(platforms, tc.tfregstryConfig)
+			u, err := NewLockUpdater(platforms, tc.tfregistryConfig)
 
 			// Replace the index with our mock for testing
 			lu := u.(*LockUpdater)
@@ -1340,7 +1340,7 @@ provider "registry.opentofu.org/hashicorp/null" {
 
 			err = u.Update(context.Background(), mc, ".terraform.lock.hcl", f)
 			if tc.ok && err != nil {
-				t.Errorf("faild to call Update: err = %s", err)
+				t.Errorf("failed to call Update: err = %s", err)
 			}
 
 			got := string(hclwrite.Format(f.BuildTokens(nil).Bytes()))

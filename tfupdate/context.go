@@ -126,7 +126,7 @@ func (mc *ModuleContext) Option() Option {
 // The result is sorted alphabetically by source address.
 // Version constraints only support simple constants and not comparison
 // operators. Ignore what cannot be interpreted.
-func (mc *ModuleContext) SelecetedProviders() []SelectedProvider {
+func (mc *ModuleContext) SelectedProviders() []SelectedProvider {
 	selected := make(map[string]string)
 	for _, p := range mc.requiredProviders {
 		if p.Source == "" {
@@ -134,7 +134,7 @@ func (mc *ModuleContext) SelecetedProviders() []SelectedProvider {
 			// Terraform v0.13, but since this is already a deprecated usage, we don't
 			// implicitly complement the official hashicorp namespace and is not included
 			// in the results.
-			log.Printf("[DEBUG] ModuleContext.SelecetedProviders: ignore legacy provider address notation: %s", p.Source)
+			log.Printf("[DEBUG] ModuleContext.SelectedProviders: ignore legacy provider address notation: %s", p.Source)
 			continue
 		}
 
@@ -142,7 +142,7 @@ func (mc *ModuleContext) SelecetedProviders() []SelectedProvider {
 
 		if v == "" {
 			// Ignore if no version is specified.
-			log.Printf("[DEBUG] ModuleContext.SelecetedProviders: ignore no version selected: %s", p.Source)
+			log.Printf("[DEBUG] ModuleContext.SelectedProviders: ignore no version selected: %s", p.Source)
 			continue
 		}
 
@@ -172,7 +172,7 @@ func selectVersion(constraints []string) string {
 		v, err := version.NewVersion(c)
 		if err != nil {
 			// Ignore parse error
-			log.Printf("[DEBUG] selectVersion: ignore version parse error: constaraints = %#v, err = %s", constraints, err)
+			log.Printf("[DEBUG] selectVersion: ignore version parse error: constraints = %#v, err = %s", constraints, err)
 			continue
 		}
 		// return the first one found

@@ -12,7 +12,7 @@ import (
 // GitLabAPI is an interface which calls GitLab API.
 // This abstraction layer is needed for testing with mock.
 type GitLabAPI interface {
-	// ProjectListReleases gets a pagenated of releases accessible by the authenticated user.
+	// ProjectListReleases gets a page of releases accessible by the authenticated user.
 	ProjectListReleases(ctx context.Context, owner, project string, opt *gitlab.ListReleasesOptions) ([]*gitlab.Release, *gitlab.Response, error)
 }
 
@@ -60,7 +60,7 @@ func NewGitLabClient(config GitLabConfig) (*GitLabClient, error) {
 	}, nil
 }
 
-// ProjectListReleases gets a pagenated of releases accessible by the authenticated user.
+// ProjectListReleases gets a page of releases accessible by the authenticated user.
 func (c *GitLabClient) ProjectListReleases(ctx context.Context, owner, project string, opt *gitlab.ListReleasesOptions) ([]*gitlab.Release, *gitlab.Response, error) {
 	return c.client.Releases.ListReleases(owner+"/"+project, opt, gitlab.WithContext(ctx))
 }

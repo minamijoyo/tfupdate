@@ -131,7 +131,7 @@ func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwr
 	i := 0
 	// find key of version
 	// Although not explicitly stated in the required_providers documentation,
-	// a TokenQuotedLit is also valid token. Strict speaking there are more
+	// a TokenQuotedLit is also valid token. Strictly speaking there are more
 	// variants because the left hand side of object key accepts an expression in
 	// HCL. For accurate implementation, it should be implemented using the
 	// original parser.
@@ -166,7 +166,7 @@ func (u *ProviderUpdater) updateTerraformRequiredProvidersBlockAsObject(p *hclwr
 // the "version" key.
 // If the version key is missing, just returns an empty string without an error.
 func detectVersionInObject(hclAttr *hcl.Attribute) (string, error) {
-	// The configuration_aliases syntax isn't directly related version updateing,
+	// The configuration_aliases syntax isn't directly related version updating,
 	// but it contains provider references and causes an parse error without an EvalContext.
 	// So we treat the expression as a hcl.ExprMap to avoid fully decoding the object.
 	kvs, diags := hcl.ExprMap(hclAttr.Expr)

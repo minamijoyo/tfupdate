@@ -25,7 +25,7 @@ type LockCommand struct {
 // Run runs the procedure of this command.
 func (c *LockCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("lock", flag.ContinueOnError)
-	cmdFlags.StringArrayVar(&c.platforms, "platform", []string{}, "A target platform for dependecy lock file")
+	cmdFlags.StringArrayVar(&c.platforms, "platform", []string{}, "A target platform for dependency lock file")
 	cmdFlags.BoolVarP(&c.recursive, "recursive", "r", false, "Check a directory recursively")
 	cmdFlags.StringArrayVarP(&c.ignorePaths, "ignore-path", "i", []string{}, "A regular expression for path to ignore")
 
