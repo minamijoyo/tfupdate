@@ -9,7 +9,7 @@ We will do our best to address security issues, but the project maintainers make
 This project only supports the latest version. We do not provide security patches for previous versions.
 
 ## Policy for fixing known vulnerabilities in dependency libraries
-This project uses the "Dependabot alerts" and "Dependabot security updates" features to manage known vulnerabilities in dependency libraries. We will address vulnerabilities in dependency libraries as appropriate, so there is no need to report them as new vulnerabilities in this project. If Dependabot is not working properly for some reason, feel free to create a pull request. For the issue that has already been made public, we don't need to discuss it privately.
+This project uses the "Dependabot alerts" and "Dependabot security updates" features to manage known vulnerabilities in dependency libraries. We will address vulnerabilities in dependency libraries as appropriate, so there is no need to report them as new vulnerabilities in this project. If Dependabot is not working properly for some reason, feel free to create a pull request. For issues that have already been made public, we don't need to discuss them privately.
 
 We do not provide patch releases for every issue we fix, except for critical ones. Instead, we release multiple fixes together as a patch. The severity is determined based on whether it is critical for this project, not the score reported for the dependency library.
 

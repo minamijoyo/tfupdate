@@ -14,7 +14,7 @@ type TerraformUpdater struct {
 	version string
 }
 
-// NewTerraformUpdater is a factory method which returns an TerraformUpdater instance.
+// NewTerraformUpdater is a factory method which returns a TerraformUpdater instance.
 func NewTerraformUpdater(version string) (Updater, error) {
 	if len(version) == 0 {
 		return nil, errors.Errorf("failed to new terraform updater. version is required")

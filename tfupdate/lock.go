@@ -26,7 +26,7 @@ type LockUpdater struct {
 	tfregistryConfig tfregistry.Config
 }
 
-// NewLockUpdater is a factory method which returns an LockUpdater instance.
+// NewLockUpdater is a factory method which returns a LockUpdater instance.
 func NewLockUpdater(platforms []string, tfregistryConfig tfregistry.Config) (Updater, error) {
 	// Create a new index with the provided registry config
 	index, err := lock.NewIndexFromConfig(tfregistryConfig)
@@ -133,7 +133,7 @@ func (u *LockUpdater) fullyQualifiedProviderAddress(address string) (string, err
 		return "", fmt.Errorf("failed to parse provider address: %s", address)
 	}
 
-	// Since .terraform.lock.hcl was introduced from v0.14, we assume that
+	// Since .terraform.lock.hcl was introduced in v0.14, we assume that
 	// provider address is qualified with namespaces at least. We won't support
 	// implicit legacy things.
 	if !pAddr.HasKnownNamespace() {

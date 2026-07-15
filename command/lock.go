@@ -13,7 +13,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-// LockCommand is a command which update dependency lock files.
+// LockCommand is a command which updates dependency lock files.
 type LockCommand struct {
 	Meta
 	platforms   []string
@@ -35,7 +35,7 @@ func (c *LockCommand) Run(args []string) int {
 	}
 
 	if len(cmdFlags.Args()) != 1 {
-		c.UI.Error(fmt.Sprintf("The command expects 1 arguments, but got %d", len(cmdFlags.Args())))
+		c.UI.Error(fmt.Sprintf("The command expects 1 argument, but got %d", len(cmdFlags.Args())))
 		c.UI.Error(c.Help())
 		return 1
 	}

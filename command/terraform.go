@@ -12,7 +12,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-// TerraformCommand is a command which update version constraints for terraform.
+// TerraformCommand is a command which updates version constraints for terraform.
 type TerraformCommand struct {
 	Meta
 	version     string

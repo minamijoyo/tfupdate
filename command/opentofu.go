@@ -12,7 +12,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-// OpenTofuCommand is a command which update version constraints for OpenTofu.
+// OpenTofuCommand is a command which updates version constraints for OpenTofu.
 type OpenTofuCommand struct {
 	Meta
 	version     string

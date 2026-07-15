@@ -11,7 +11,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-// ModuleCommand is a command which update version constraints for module.
+// ModuleCommand is a command which updates version constraints for module.
 type ModuleCommand struct {
 	Meta
 	name            string

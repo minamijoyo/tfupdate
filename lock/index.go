@@ -220,7 +220,7 @@ func buildProviderVersionFromPackageMetadata(address string, version string, res
 		// Historically, the zh hash in the Terraform Registry contains `manifest.json`,
 		// so the key for the `ProviderVersion` map is `filename`, not `platform`.
 		// To ensure the same results with Terraform and OpenTofu,
-		// we need to build filename for each platform.
+		// we need to build a filename for each platform.
 		// e.g.) darwin_arm64 => terraform-provider-null_3.2.1_darwin_arm64.zip
 		pAddr, err := parseProviderAddress(address)
 		if err != nil {
@@ -253,7 +253,7 @@ func buildProviderVersionFromPackageMetadata(address string, version string, res
 // parseProviderAddress parses a provider address and returns an instance of tfaddr.Provider.
 // The provider address is expected to be in the format of "namespace/type", such as "hashicorp/null".
 func parseProviderAddress(address string) (*tfaddr.Provider, error) {
-	// We parse an provider address by using the terraform-registry-address
+	// We parse a provider address by using the terraform-registry-address
 	// library to support fully qualified addresses such as
 	// registry.terraform.io/hashicorp/null in the future, but note that the
 	// current ProviderLockClient implementation only supports the public
@@ -263,7 +263,7 @@ func parseProviderAddress(address string) (*tfaddr.Provider, error) {
 		return nil, fmt.Errorf("failed to parse provider address: %s", address)
 	}
 
-	// Since .terraform.lock.hcl was introduced from v0.14, we assume that
+	// Since .terraform.lock.hcl was introduced in v0.14, we assume that
 	// provider address is qualified with namespaces at least. We won't support
 	// implicit legacy things.
 	if !pAddr.HasKnownNamespace() {

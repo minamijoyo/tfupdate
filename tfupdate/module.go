@@ -25,7 +25,7 @@ type ModuleUpdater struct {
 	version   string
 }
 
-// NewModuleUpdater is a factory method which returns an ModuleUpdater instance.
+// NewModuleUpdater is a factory method which returns a ModuleUpdater instance.
 func NewModuleUpdater(name string, version string, nameRegex *regexp.Regexp) (Updater, error) {
 	if len(name) == 0 {
 		return nil, errors.Errorf("failed to new module updater. name is required")

@@ -26,7 +26,7 @@ type TFRegistryModuleRelease struct {
 
 var _ Release = (*TFRegistryModuleRelease)(nil)
 
-// NewTFRegistryModuleRelease is a factory method which returns an TFRegistryModuleRelease instance.
+// NewTFRegistryModuleRelease is a factory method which returns a TFRegistryModuleRelease instance.
 func NewTFRegistryModuleRelease(source string, config tfregistry.Config) (Release, error) {
 	s := strings.Split(source, "/")
 
@@ -95,7 +95,7 @@ type TFRegistryProviderRelease struct {
 
 var _ Release = (*TFRegistryProviderRelease)(nil)
 
-// NewTFRegistryProviderRelease is a factory method which returns an TFRegistryProviderRelease instance.
+// NewTFRegistryProviderRelease is a factory method which returns a TFRegistryProviderRelease instance.
 func NewTFRegistryProviderRelease(source string, config tfregistry.Config) (Release, error) {
 	s := strings.Split(source, "/")
 
