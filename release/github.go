@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
-	"github.com/google/go-github/v28/github"
+	"github.com/google/go-github/v89/github"
 	"golang.org/x/oauth2"
 )
 
@@ -46,18 +45,17 @@ var _ GitHubAPI = (*GitHubClient)(nil)
 
 // NewGitHubClient returns a real GitHubClient instance.
 func NewGitHubClient(config GitHubConfig) (*GitHubClient, error) {
-	var hc *http.Client
+	var opts []github.ClientOptionsFunc
 	if len(config.Token) != 0 {
-		hc = newOAuth2Client(config.Token)
+		hc := newOAuth2Client(config.Token)
+		opts = append(opts, github.WithHTTPClient(hc))
 	}
-	c := github.NewClient(hc)
-
 	if len(config.BaseURL) != 0 {
-		baseURL, err := url.Parse(config.BaseURL)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse github base url: %s", err)
-		}
-		c.BaseURL = baseURL
+		opts = append(opts, github.WithURLs(&config.BaseURL, nil))
+	}
+	c, err := github.NewClient(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create github client: %s", err)
 	}
 
 	return &GitHubClient{
@@ -137,7 +135,7 @@ func (r *GitHubRelease) ListReleases(ctx context.Context) ([]string, error) {
 		}
 
 		for _, release := range releases {
-			v := tagNameToVersion(*release.TagName)
+			v := tagNameToVersion(release.TagName)
 			versions = append(versions, v)
 		}
 		if resp.NextPage == 0 {

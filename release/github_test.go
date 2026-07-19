@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/google/go-github/v28/github"
+	"github.com/google/go-github/v89/github"
 	"golang.org/x/oauth2"
 )
 
@@ -67,8 +67,8 @@ func TestNewGitHubClient(t *testing.T) {
 		}
 
 		if tc.ok {
-			if got.client.BaseURL.String() != tc.want {
-				t.Errorf("NewGitHubClient() with baseURL = %s returns %s, but want %s", tc.baseURL, got.client.BaseURL.String(), tc.want)
+			if got.client.BaseURL() != tc.want {
+				t.Errorf("NewGitHubClient() with baseURL = %s returns %s, but want %s", tc.baseURL, got.client.BaseURL(), tc.want)
 			}
 		}
 	}
@@ -158,9 +158,9 @@ func TestGitHubReleaseListReleases(t *testing.T) {
 		{
 			client: &mockGitHubClient{
 				repositoryReleases: []*github.RepositoryRelease{
-					{TagName: &tagv[0]},
-					{TagName: &tagv[1]},
-					{TagName: &tagv[2]},
+					{TagName: tagv[0]},
+					{TagName: tagv[1]},
+					{TagName: tagv[2]},
 				},
 				response: &github.Response{},
 				err:      nil,

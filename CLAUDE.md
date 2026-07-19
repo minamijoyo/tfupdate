@@ -94,7 +94,7 @@ Key external libraries:
 - `github.com/mitchellh/cli` - Command-line interface framework
 - `github.com/hashicorp/go-version` - Semantic versioning
 - `github.com/google/go-github/v28` - GitHub API client
-- `github.com/xanzy/go-gitlab` - GitLab API client
+- `gitlab.com/gitlab-org/api/client-go` - GitLab API client
 - `github.com/spf13/afero` - Abstract file system interface (for testing)
 
 ## Build Requirements
