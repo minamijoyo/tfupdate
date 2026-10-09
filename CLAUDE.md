@@ -42,6 +42,7 @@ go mod download     # Alternative dependency download
 - Main updater interfaces and implementations
 - `update.go` - Factory pattern for creating appropriate updaters
 - `context.go`, `option.go` - Configuration management
+- `missing.go` - Module-wide inspection and planned writes for the opt-in `--add-missing` core version flag
 - `file.go`, `hclwrite.go` - HCL file manipulation using `github.com/hashicorp/hcl/v2`
 
 **Version Management** (`/release/`)
