@@ -1,6 +1,7 @@
 package tfupdate
 
 import (
+	"fmt"
 	"log"
 	"maps"
 	"slices"
@@ -82,7 +83,7 @@ func aferoToTfconfigFS(afs afero.Fs) tfconfig.FS {
 // The dir is a relative path to the module from the current working directory.
 func NewModuleContext(dir string, gc *GlobalContext) (*ModuleContext, error) {
 	requiredProviders := make(map[string]*tfconfig.ProviderRequirement)
-	m, diags := tfconfig.LoadModuleFromFilesystem(aferoToTfconfigFS(gc.fs), dir)
+	m, diags := inspectModule(aferoToTfconfigFS(gc.fs), dir)
 	if diags.HasErrors() {
 		// There is a known issue passing absolute paths to afero.IOFS results in
 		// an error, but as the result of module inspection is not essential for
@@ -100,6 +101,17 @@ func NewModuleContext(dir string, gc *GlobalContext) (*ModuleContext, error) {
 	}
 
 	return c, nil
+}
+
+// The inspector's legacy fallback can panic on invalid JSON value shapes.
+// Metadata is optional; the updater will report errors for the selected file.
+func inspectModule(fs tfconfig.FS, dir string) (m *tfconfig.Module, diags tfconfig.Diagnostics) {
+	defer func() {
+		if err := recover(); err != nil {
+			diags = tfconfig.Diagnostics{{Severity: tfconfig.DiagError, Summary: fmt.Sprintf("failed to inspect %s: %v", dir, err)}}
+		}
+	}()
+	return tfconfig.LoadModuleFromFilesystem(fs, dir)
 }
 
 // GlobalContext returns an instance of the global context.

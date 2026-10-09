@@ -37,7 +37,10 @@ func UpdateFile(ctx context.Context, mc *ModuleContext, filename string) error {
 		// However, the current implementation of (*hclwrite.Body).SetAttributeValue()
 		// does not seem to preserve an original SpaceBefore value of attribute.
 		// So, we need to format output here.
-		result := hclwrite.Format(updated)
+		result := updated
+		if !strings.HasSuffix(filename, ".tf.json") {
+			result = hclwrite.Format(updated)
+		}
 		if err = afero.WriteFile(mc.FS(), filename, result, os.ModePerm); err != nil {
 			return fmt.Errorf("failed to write file: %s", err)
 		}
@@ -94,7 +97,7 @@ func UpdateDir(ctx context.Context, current *ModuleContext, dirname string) erro
 		// if an entry is a file
 		// nolint:staticcheck // QF1001: could apply De Morgan's law
 		// Ignore it in favor of subjective readability.
-		if !(filepath.Ext(entry.Name()) == ".tf" || filepath.Ext(entry.Name()) == ".tofu" || entry.Name() == ".terraform.lock.hcl") {
+		if !(filepath.Ext(entry.Name()) == ".tf" || filepath.Ext(entry.Name()) == ".tofu" || strings.HasSuffix(entry.Name(), ".tf.json") || entry.Name() == ".terraform.lock.hcl") {
 			// skip unsupported file type
 			continue
 		}

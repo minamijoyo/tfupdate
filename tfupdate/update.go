@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"runtime/debug"
+	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -46,6 +47,9 @@ func UpdateHCL(ctx context.Context, mc *ModuleContext, r io.Reader, w io.Writer,
 	input, err := io.ReadAll(r)
 	if err != nil {
 		return false, fmt.Errorf("failed to read input: %s", err)
+	}
+	if strings.HasSuffix(filename, ".tf.json") {
+		return updateJSON(mc, input, w, filename)
 	}
 
 	f, err := safeParseConfig(input, filename, hcl.Pos{Line: 1, Column: 1})

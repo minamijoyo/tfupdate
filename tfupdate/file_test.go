@@ -2,9 +2,12 @@ package tfupdate
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -573,5 +576,239 @@ terraform {
 				t.Errorf("UpdateFileOrDir() with path = %s, o = %#v returns %s, but want = %s", tc.path, o, string(got), tc.want)
 			}
 		})
+	}
+}
+
+type jsonCountingFS struct {
+	afero.Fs
+	writes    int
+	denyWrite bool
+}
+
+func (f *jsonCountingFS) OpenFile(name string, flag int, perm os.FileMode) (afero.File, error) {
+	if flag&(os.O_WRONLY|os.O_RDWR|os.O_CREATE|os.O_TRUNC) != 0 {
+		f.writes++
+		if f.denyWrite {
+			return nil, os.ErrPermission
+		}
+	}
+	return f.Fs.OpenFile(name, flag, perm)
+}
+
+func TestJSONFiles(t *testing.T) {
+	for _, recursive := range []bool{false, true} {
+		t.Run(fmt.Sprintf("recursive_%v", recursive), func(t *testing.T) {
+			fs := &jsonCountingFS{Fs: afero.NewMemMapFs()}
+			jsonInput := "{\r\n  \"terraform\":{\"required_version\":\"old\"}\r\n}"
+			nativeInput := "terraform {\n  required_version = \"old\"\n}\n"
+			files := map[string]string{"main.tf.json": jsonInput, "main.tf": nativeInput, "extra.tofu": nativeInput, "child/main.tf.json": jsonInput, ".terraform/hidden.tf.json": "invalid", ".git/hidden.tf.json": "invalid", "ignored/invalid.tf.json": "invalid", "skip.tf.json": "invalid", "unrelated.json": "invalid", "backup.tf.json.bak": "invalid", ".terraform.lock.hcl": ""}
+			for name, data := range files {
+				if err := fs.MkdirAll(filepath.Dir(name), 0755); err != nil {
+					t.Fatal(err)
+				}
+				if err := afero.WriteFile(fs, name, []byte(data), 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+			fs.writes = 0
+			o := Option{updateType: "terraform", version: "new", recursive: recursive, ignorePaths: []*regexp.Regexp{regexp.MustCompile(`(^|/)(skip[.]tf[.]json|ignored)(/|$)`)}}
+			gc, err := NewGlobalContext(fs, o)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := UpdateFileOrDir(context.Background(), gc, "."); err != nil {
+				t.Fatal(err)
+			}
+			for name, original := range files {
+				want := original
+				if name == "main.tf.json" || (name == "child/main.tf.json" && recursive) {
+					want = strings.ReplaceAll(original, `"old"`, `"new"`)
+				}
+				if name == "main.tf" || name == "extra.tofu" {
+					want = strings.ReplaceAll(original, `"old"`, `"new"`)
+				}
+				got, err := afero.ReadFile(fs, name)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if string(got) != want {
+					t.Errorf("%s: got %q want %q", name, got, want)
+				}
+			}
+			wantWrites := 3
+			if recursive {
+				wantWrites++
+			}
+			if fs.writes != wantWrites {
+				t.Errorf("writes=%d want=%d", fs.writes, wantWrites)
+			}
+			// A JSON file updated to the same decoded version must never be rewritten.
+			fs.writes = 0
+			if err := UpdateFileOrDir(context.Background(), gc, "main.tf.json"); err != nil {
+				t.Fatal(err)
+			}
+			if fs.writes != 0 {
+				t.Errorf("identical JSON update wrote %d files", fs.writes)
+			}
+		})
+	}
+}
+
+func TestJSONFileBoundaries(t *testing.T) {
+	for _, mode := range []string{"explicit_ignore", "equal_escaped", "unmatched", "write_error", "lock"} {
+		t.Run(mode, func(t *testing.T) {
+			fs := &jsonCountingFS{Fs: afero.NewMemMapFs()}
+			src := ` {"terraform":{"required_version":"old"}} `
+			o := Option{updateType: "terraform", version: "new"}
+			want := ` {"terraform":{"required_version":"new"}} `
+			if mode == "explicit_ignore" {
+				o.ignorePaths = []*regexp.Regexp{regexp.MustCompile("main")}
+			}
+			if mode == "equal_escaped" {
+				src = ` {"terraform":{"required_version":"\u006eew"}} `
+				want = src
+			}
+			if mode == "unmatched" {
+				o.updateType = "provider"
+				o.name = "missing"
+				want = src
+			}
+			if mode == "lock" {
+				o.updateType = "lock"
+				want = src
+			}
+			if err := afero.WriteFile(fs, "main.tf.json", []byte(src), 0644); err != nil {
+				t.Fatal(err)
+			}
+			fs.writes = 0
+			fs.denyWrite = mode == "write_error"
+			gc, err := NewGlobalContext(fs, o)
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = UpdateFileOrDir(context.Background(), gc, "main.tf.json")
+			if mode == "write_error" {
+				if err == nil {
+					t.Error("write failure lost")
+				}
+				want = src
+				// Pair the failing write with a successful JSON update on the same input.
+				fs.denyWrite = false
+				if err := UpdateFileOrDir(context.Background(), gc, "main.tf.json"); err != nil {
+					t.Errorf("writable counterpart: %v", err)
+				} else {
+					want = ` {"terraform":{"required_version":"new"}} `
+				}
+			} else if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			got, err := afero.ReadFile(fs, "main.tf.json")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(got) != want {
+				t.Errorf("got %q want %q", got, want)
+			}
+			if (mode == "equal_escaped" || mode == "unmatched" || mode == "lock") && fs.writes != 0 {
+				t.Errorf("no-op wrote %d files", fs.writes)
+			}
+		})
+	}
+}
+
+func TestJSONProviderDirectoryContext(t *testing.T) {
+	for _, neighborJSON := range []bool{false, true} {
+		t.Run(fmt.Sprintf("json_neighbor_%v", neighborJSON), func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			for _, dir := range []string{".", "child"} {
+				if err := fs.MkdirAll(dir, 0755); err != nil {
+					t.Fatal(err)
+				}
+				local := "root"
+				if dir == "child" {
+					local = "child"
+				}
+				config := `{"terraform":{"required_providers":{"` + local + `":{"source":"vendor/cloud"}}}}`
+				file := "providers.tf.json"
+				if !neighborJSON {
+					file = "providers.tf"
+					config = "terraform {\n required_providers {\n " + local + " = { source = \"vendor/cloud\" }\n }\n}\n"
+				}
+				if err := afero.WriteFile(fs, filepath.Join(dir, file), []byte(config), 0644); err != nil {
+					t.Fatal(err)
+				}
+				input := `{"terraform":{"required_providers":{"` + local + `":{"version":"old"}}}}`
+				if err := afero.WriteFile(fs, filepath.Join(dir, "versions.tf.json"), []byte(input), 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+			gc, err := NewGlobalContext(fs, Option{updateType: "provider", name: "vendor/cloud", version: "new", recursive: true})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := UpdateFileOrDir(context.Background(), gc, "."); err != nil {
+				t.Fatal(err)
+			}
+			for _, dir := range []string{".", "child"} {
+				local := "root"
+				if dir == "child" {
+					local = "child"
+				}
+				want := `{"terraform":{"required_providers":{"` + local + `":{"version":"new"}}}}`
+				got, err := afero.ReadFile(fs, filepath.Join(dir, "versions.tf.json"))
+				if err != nil {
+					t.Fatal(err)
+				}
+				if string(got) != want {
+					t.Errorf("%s: got %s want %s", dir, got, want)
+				}
+			}
+		})
+	}
+}
+
+func TestJSONCLI(t *testing.T) {
+	binary := filepath.Join(t.TempDir(), "tfupdate")
+	build := exec.Command("go", "build", "-o", binary, "..")
+	if out, err := build.CombinedOutput(); err != nil {
+		t.Fatalf("build CLI: %v\n%s", err, out)
+	}
+	cases := []struct{ kind, match, src string }{
+		{"terraform", "", `{"terraform":{"required_version":"old"}}`},
+		{"opentofu", "", `{"terraform":{"required_version":"old"}}`},
+		{"provider", "aws", `{"provider":{"aws":{"version":"old"}}}`},
+		{"module", "vendor/mod/cloud", `{"module":{"x":{"source":"vendor/mod/cloud","version":"old"}}}`},
+	}
+	for _, tc := range cases {
+		for _, directory := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s_directory_%v", tc.kind, directory), func(t *testing.T) {
+				dir := t.TempDir()
+				path := filepath.Join(dir, "main.tf.json")
+				if err := os.WriteFile(path, []byte(tc.src), 0600); err != nil {
+					t.Fatal(err)
+				}
+				target := path
+				if directory {
+					target = dir
+				}
+				args := []string{tc.kind, "-v", "2.4.0"}
+				if tc.match != "" {
+					args = append(args, tc.match)
+				}
+				args = append(args, target)
+				cmd := exec.Command(binary, args...)
+				if out, err := cmd.CombinedOutput(); err != nil {
+					t.Errorf("CLI failed: %v\n%s", err, out)
+				}
+				got, err := os.ReadFile(path)
+				if err != nil {
+					t.Fatal(err)
+				}
+				want := strings.ReplaceAll(tc.src, `"old"`, `"2.4.0"`)
+				if string(got) != want {
+					t.Errorf("got %s want %s", got, want)
+				}
+			})
+		}
 	}
 }

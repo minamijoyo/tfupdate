@@ -10,6 +10,7 @@
 - Update all your Terraform / OpenTofu configurations and lock files recursively under a given directory
 - Get the latest release version from the GitHub, GitLab, Terraform Registry, or OpenTofu Registry
 - Terraform v0.12+ / OpenTofu v1.6+ support
+- Update Terraform JSON configuration (`.tf.json`) alongside native HCL files, preserving unrelated JSON bytes
 
 If you integrate tfupdate with your favorite CI or job scheduler, you can check the latest release daily and create a Pull Request automatically.
 
