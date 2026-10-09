@@ -3,6 +3,7 @@ package tfregistry
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -96,10 +97,12 @@ func (c *Client) newRequest(ctx context.Context, method string, subPath string, 
 }
 
 // decodeBody decodes a raw body data into a specific response type structure.
-func decodeBody(resp *http.Response, out any) error {
-	defer resp.Body.Close()
+func decodeBody(resp *http.Response, out any) (err error) {
+	defer func() {
+		err = errors.Join(err, resp.Body.Close())
+	}()
 	decoder := json.NewDecoder(resp.Body)
-	err := decoder.Decode(out)
+	err = decoder.Decode(out)
 	if err != nil {
 		return fmt.Errorf("failed to decode response: err = %s, resp = %#v", err, resp)
 	}

@@ -42,6 +42,7 @@ go mod download     # Alternative dependency download
 - Main updater interfaces and implementations
 - `update.go` - Factory pattern for creating appropriate updaters
 - `context.go`, `option.go` - Configuration management
+- `lock_constraints.go` - Provider constraint resolution, invocation-scoped catalogs, and lock update planning
 - `file.go`, `hclwrite.go` - HCL file manipulation using `github.com/hashicorp/hcl/v2`
 
 **Version Management** (`/release/`)

@@ -2,6 +2,7 @@ package tfregistry
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 )
@@ -77,7 +78,7 @@ func (c *Client) ProviderPackageMetadata(ctx context.Context, req *ProviderPacka
 	}
 
 	if httpResponse.StatusCode != 200 {
-		return nil, fmt.Errorf("unexpected HTTP Status Code: %d", httpResponse.StatusCode)
+		return nil, errors.Join(fmt.Errorf("unexpected HTTP Status Code: %d", httpResponse.StatusCode), httpResponse.Body.Close())
 	}
 
 	var res ProviderPackageMetadataResponse

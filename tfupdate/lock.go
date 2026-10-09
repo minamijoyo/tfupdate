@@ -3,10 +3,11 @@ package tfupdate
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/url"
 	"path/filepath"
 
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	tfaddr "github.com/hashicorp/terraform-registry-address"
 	svchost "github.com/hashicorp/terraform-svchost"
@@ -24,6 +25,9 @@ type LockUpdater struct {
 
 	// tfregistryConfig is a configuration for Terraform Registry API.
 	tfregistryConfig tfregistry.Config
+
+	// catalogs contains successful catalog responses for this updater only.
+	catalogs map[string][]tfregistry.ProviderVersion
 }
 
 // NewLockUpdater is a factory method which returns a LockUpdater instance.
@@ -34,8 +38,18 @@ func NewLockUpdater(platforms []string, tfregistryConfig tfregistry.Config) (Upd
 		return nil, err
 	}
 
+	// Catalog selection and checksum work use the same distinct target set.
+	var targets []string
+	seen := make(map[string]bool, len(platforms))
+	for _, platform := range platforms {
+		if !seen[platform] {
+			seen[platform] = true
+			targets = append(targets, platform)
+		}
+	}
+
 	return &LockUpdater{
-		platforms:        platforms,
+		platforms:        targets,
 		index:            index,
 		tfregistryConfig: tfregistryConfig,
 	}, nil
@@ -52,73 +66,29 @@ func (u *LockUpdater) Update(ctx context.Context, mc *ModuleContext, filename st
 	return u.updateLockfile(ctx, mc, f)
 }
 
-// updateLockfile updates the dependency lock file.
+// updateLockfile resolves and prepares every provider before changing the AST.
 func (u *LockUpdater) updateLockfile(ctx context.Context, mc *ModuleContext, f *hclwrite.File) error {
-	for _, p := range mc.SelectedProviders() {
-		pAddr, err := u.fullyQualifiedProviderAddress(p.Source)
-		if err != nil {
-			// Unsupported formats, such as legacy abbreviated notation, will result
-			// in parse errors, but should be ignored without returning an error if
-			// possible.
-			log.Printf("[DEBUG] LockUpdater.updateLockfile: ignore legacy provider address notation: %s", p.Source)
-			continue
-		}
-
-		pBlock := f.Body().FirstMatchingBlock("provider", []string{pAddr})
-		if pBlock != nil {
-			// update the existing provider block
-			err := u.updateProviderBlock(ctx, pBlock, p)
-			if err != nil {
-				return err
-			}
-		} else {
-			// create a new provider block
-			f.Body().AppendNewline()
-			pBlock = f.Body().AppendNewBlock("provider", []string{pAddr})
-
-			err := u.updateProviderBlock(ctx, pBlock, p)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-// updateProviderBlock updates the provider block in the dependency lock file.
-func (u *LockUpdater) updateProviderBlock(ctx context.Context, pBlock *hclwrite.Block, p SelectedProvider) error {
-	vAttr := pBlock.Body().GetAttribute("version")
-	if vAttr != nil {
-		// a version attribute found
-		vVal := getAttributeValueAsUnquotedString(vAttr)
-		log.Printf("[DEBUG] check provider version in lock file: address = %s, lock = %s, config = %s", p.Source, vVal, p.Version)
-		if vVal == p.Version {
-			// Avoid unnecessary recalculations if no version change
-			return nil
-		}
-	}
-
-	pBlock.Body().SetAttributeValue("version", cty.StringVal(p.Version))
-
-	//Strictly speaking, constraints can contain multiple constraint expressions,
-	//including comparison operators, but in the tfupdate use case, we assume
-	//that the required_providers are pinned to a specific version to detect the
-	//required version without terraform init, so we can simply specify the
-	//constraints attribute as the same as the version. This may differ from what
-	//terraform generates, but we expect that it doesn't matter in practice.
-	pBlock.Body().SetAttributeValue("constraints", cty.StringVal(p.Version))
-
-	// Calculate the hash value of the provider.
-	// Note that the provider will be downloaded if cache miss.
-	pv, err := u.index.GetOrCreateProviderVersion(ctx, p.Source, p.Version, u.platforms)
+	plans, err := u.planProviderLocks(ctx, mc, f)
 	if err != nil {
-		return err
+		return u.lockfileError(mc, err)
 	}
-
-	hashes := pv.AllHashes()
-	pBlock.Body().SetAttributeRaw("hashes", tokensForListPerLine(hashes))
-
+	working, err := prepareLockfile(f, plans)
+	if err != nil {
+		return u.lockfileError(mc, err)
+	}
+	for _, plan := range plans {
+		block := working.Body().FirstMatchingBlock("provider", []string{plan.address})
+		if block == nil {
+			working.Body().AppendNewline()
+			block = working.Body().AppendNewBlock("provider", []string{plan.address})
+		}
+		block.Body().SetAttributeValue("version", cty.StringVal(plan.version))
+		block.Body().SetAttributeValue("constraints", cty.StringVal(plan.constraints))
+		if plan.replaceHashes {
+			block.Body().SetAttributeRaw("hashes", tokensForListPerLine(plan.hashes))
+		}
+	}
+	*f = *working
 	return nil
 }
 
@@ -153,4 +123,48 @@ func (u *LockUpdater) fullyQualifiedProviderAddress(address string) (string, err
 	}
 
 	return pAddr.String(), nil
+}
+
+// prepareLockfile expands affected block boundaries without changing the input
+// tree. HCL single-line blocks cannot accept additional attributes as-is.
+func prepareLockfile(f *hclwrite.File, plans []providerLockPlan) (*hclwrite.File, error) {
+	before, after := make(map[*hclwrite.Token]bool), make(map[*hclwrite.Token]bool)
+	for _, plan := range plans {
+		block := f.Body().FirstMatchingBlock("provider", []string{plan.address})
+		if block == nil {
+			continue
+		}
+		tokens := block.BuildTokens(nil)
+		for i, token := range tokens {
+			if token.Type == hclsyntax.TokenOBrace {
+				if tokens[i+1].Type != hclsyntax.TokenNewline {
+					after[token] = true
+				}
+				break
+			}
+		}
+		for i := len(tokens) - 1; i >= 0; i-- {
+			if tokens[i].Type == hclsyntax.TokenCBrace {
+				if tokens[i-1].Type != hclsyntax.TokenNewline {
+					before[tokens[i]] = true
+				}
+				break
+			}
+		}
+	}
+	tokens := hclwrite.Tokens{}
+	for _, token := range f.BuildTokens(nil) {
+		if before[token] {
+			tokens = append(tokens, &hclwrite.Token{Type: hclsyntax.TokenNewline, Bytes: []byte("\n")})
+		}
+		tokens = append(tokens, token)
+		if after[token] {
+			tokens = append(tokens, &hclwrite.Token{Type: hclsyntax.TokenNewline, Bytes: []byte("\n")})
+		}
+	}
+	working, diags := hclwrite.ParseConfig(tokens.Bytes(), ".terraform.lock.hcl", hcl.Pos{Line: 1, Column: 1})
+	if diags.HasErrors() {
+		return nil, fmt.Errorf("invalid lockfile syntax: %s", diags)
+	}
+	return working, nil
 }

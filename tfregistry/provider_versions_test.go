@@ -3,10 +3,28 @@ package tfregistry
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"reflect"
+	"strings"
 	"testing"
 )
+
+type providerVersionsRoundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f providerVersionsRoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+type providerVersionsBody struct {
+	io.Reader
+	closed *bool
+}
+
+func (b providerVersionsBody) Close() error {
+	*b.closed = true
+	return nil
+}
 
 func TestListProviderVersions(t *testing.T) {
 	cases := []struct {
@@ -115,5 +133,39 @@ func TestListProviderVersions(t *testing.T) {
 				t.Errorf("got=%#v, but want=%#v", got, tc.want)
 			}
 		})
+	}
+}
+
+func TestConstraintLockListProviderVersionsClosesErrorBody(t *testing.T) {
+	cases := []struct {
+		name    string
+		status  int
+		body    string
+		wantErr bool
+	}{
+		{name: "success", status: http.StatusOK, body: `{"versions":[{"version":"1.0.0"}]}`},
+		{name: "malformed JSON", status: http.StatusOK, body: `{"versions":`, wantErr: true},
+		{name: "non-success status", status: http.StatusServiceUnavailable, body: "unavailable", wantErr: true},
+	}
+	for _, tc := range cases {
+		closed := false
+		httpClient := &http.Client{Transport: providerVersionsRoundTripFunc(func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: tc.status,
+				Body:       providerVersionsBody{Reader: strings.NewReader(tc.body), closed: &closed},
+				Header:     make(http.Header),
+			}, nil
+		})}
+		client, err := NewClient(Config{BaseURL: "https://registry.example/", HTTPClient: httpClient})
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = client.ListProviderVersions(context.Background(), &ListProviderVersionsRequest{Namespace: "acme", Type: "widget"})
+		if (err != nil) != tc.wantErr {
+			t.Fatalf("%s: error = %v, want error %t", tc.name, err, tc.wantErr)
+		}
+		if !closed {
+			t.Errorf("%s response body was not closed", tc.name)
+		}
 	}
 }
