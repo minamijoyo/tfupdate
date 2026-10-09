@@ -67,6 +67,7 @@ go mod download     # Alternative dependency download
 ### File Types Handled
 
 - **HCL files** (`.tf`) - Terraform/OpenTofu configurations
+- **Terraform JSON files** (`.tf.json`) - `tfupdate/json.go` updates version strings without reformatting unrelated content
 - **Lock files** (`.terraform.lock.hcl`) - Dependency constraints and hashes
 - **Registry sources** - GitHub releases, GitLab releases, Terraform/OpenTofu registries
 

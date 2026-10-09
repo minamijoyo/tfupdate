@@ -135,6 +135,63 @@ func TestLockUpdaterFullyQualifiedProviderAddress(t *testing.T) {
 	}
 }
 
+func TestJSONLockContext(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	config := ` {"terraform":{"required_providers":{"custom":{"source":"vendor/cloud","version":"2.4.0"}}}} `
+	if err := afero.WriteFile(fs, "main.tf.json", []byte(config), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := afero.WriteFile(fs, ".terraform.lock.hcl", nil, 0644); err != nil {
+		t.Fatal(err)
+	}
+	gc, err := NewGlobalContext(fs, Option{updateType: "lock", platforms: []string{"linux_amd64"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	gc.updater.(*LockUpdater).index = lock.NewMockIndex([]*lock.ProviderVersion{
+		lock.NewMockProviderVersion("vendor/cloud", "2.4.0", []string{"linux_amd64"}, map[string]string{"package.zip": "h1:local-fixture"}, map[string]string{"package.zip": "zh:local-fixture"}),
+	})
+	// The direct-file route must accept JSON without editing it, too.
+	if err := UpdateFileOrDir(context.Background(), gc, "main.tf.json"); err != nil {
+		t.Errorf("explicit JSON lock input: %v", err)
+	}
+	if err := UpdateFileOrDir(context.Background(), gc, "."); err != nil {
+		t.Fatal(err)
+	}
+	got, err := afero.ReadFile(fs, "main.tf.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != config {
+		t.Errorf("lock command edited JSON: %q", got)
+	}
+	data, err := afero.ReadFile(fs, ".terraform.lock.hcl")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f, diags := hclwrite.ParseConfig(data, ".terraform.lock.hcl", hcl.Pos{Line: 1, Column: 1})
+	if diags.HasErrors() {
+		t.Fatal(diags)
+	}
+	provider := f.Body().FirstMatchingBlock("provider", []string{"registry.terraform.io/vendor/cloud"})
+	if provider == nil {
+		t.Fatalf("provider from JSON module context missing: %s", data)
+	}
+	for _, name := range []string{"version", "constraints"} {
+		attr := provider.Body().GetAttribute(name)
+		if attr == nil {
+			t.Errorf("missing %s: %s", name, data)
+			continue
+		}
+		if got := getAttributeValueAsUnquotedString(attr); got != "2.4.0" {
+			t.Errorf("%s = %q want 2.4.0", name, got)
+		}
+	}
+	if attr := provider.Body().GetAttribute("hashes"); attr == nil {
+		t.Errorf("missing existing lock hashes behavior: %s", data)
+	}
+}
+
 func TestUpdateLockWithTerraformRegistry(t *testing.T) {
 	platforms := []string{"darwin_arm64", "darwin_amd64", "linux_amd64"}
 	pvs := []*lock.ProviderVersion{
