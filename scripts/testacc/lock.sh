@@ -9,7 +9,7 @@ usage()
 
   Arguments:
     command: A name of step to run. Valid values are:
-             run | setup | provider | lock | cleanup
+             run | setup | provider | lock | lock_use_lockfile | cleanup
     fixture: A name of fixture in test-fixtures/lock/
 EOF
 }
@@ -34,6 +34,8 @@ setup()
 
     popd
   done
+
+  cp .terraform.lock.hcl .terraform.lock.hcl.initial
 }
 
 provider()
@@ -73,6 +75,26 @@ lock()
   done
 }
 
+lock_use_lockfile()
+{
+  cp .terraform.lock.hcl.initial .terraform.lock.hcl
+  tfupdate provider null -v '>= 3.1.1, <= 3.2.1' ./
+  "$TFUPDATE_EXEC_PATH" init -backend=false -input=false -upgrade
+  mv .terraform.lock.hcl .terraform.lock.hcl.expected
+  sed 's/constraints *= *"3\.1\.1"/constraints = ">= 3.1.1, <= 3.2.1"/' \
+    .terraform.lock.hcl.initial > .terraform.lock.hcl
+  printf 'resource "null_resource" "test" {}\n' > main.tf
+
+  if [[ "$REGISTRY_H1_SUPPORT" -eq 1 ]]; then
+    TFUPDATE_LOG=DEBUG tfupdate lock --use-lockfile ./
+  else
+    PLATFORM=$("$TFUPDATE_EXEC_PATH" version -json | awk -F '"' '/"platform"/ {print $4}')
+    TFUPDATE_LOG=DEBUG tfupdate lock --use-lockfile --platform="$PLATFORM" ./
+  fi
+
+  diff -u .terraform.lock.hcl.expected .terraform.lock.hcl
+}
+
 cleanup()
 {
   find ./ -mindepth 1 -delete
@@ -83,6 +105,7 @@ run()
   setup
   provider
   lock
+  lock_use_lockfile
   cleanup
 }
 
@@ -115,7 +138,7 @@ fi
 echo "REGISTRY_H1_SUPPORT=$REGISTRY_H1_SUPPORT"
 
 case "$COMMAND" in
-  run | setup | provider | lock | cleanup )
+  run | setup | provider | lock | lock_use_lockfile | cleanup )
     "$COMMAND"
     RET=$?
     ;;

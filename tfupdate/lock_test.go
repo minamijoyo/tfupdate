@@ -2,6 +2,7 @@ package tfupdate
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,9 +12,18 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/minamijoyo/tfupdate/lock"
+	"github.com/minamijoyo/tfupdate/release"
 	"github.com/minamijoyo/tfupdate/tfregistry"
 	"github.com/spf13/afero"
 )
+
+type mockProviderRelease struct {
+	versions []string
+}
+
+func (r *mockProviderRelease) ListReleases(_ context.Context) ([]string, error) {
+	return r.versions, nil
+}
 
 func TestNewLockUpdater(t *testing.T) {
 	cases := []struct {
@@ -51,7 +61,7 @@ func TestNewLockUpdater(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(gotUpdater, tc.want,
-				cmpopts.IgnoreFields(LockUpdater{}, "index"),
+				cmpopts.IgnoreFields(LockUpdater{}, "index", "newProviderRelease"),
 				cmp.AllowUnexported(LockUpdater{})); diff != "" {
 				t.Errorf("NewLockUpdater() with platforms = %s mismatch (-got +want):\n%s", tc.platforms, diff)
 			}
@@ -1137,6 +1147,118 @@ provider "registry.terraform.io/integrations/github" {
 
 			if diff := cmp.Diff(got, tc.want); diff != "" {
 				t.Errorf("got: %s, want = %s, diff = %s", got, tc.want, diff)
+			}
+		})
+	}
+}
+
+func TestUpdateLockWithoutRequiredProviders(t *testing.T) {
+	cases := []struct {
+		desc     string
+		hostname string
+	}{
+		{
+			desc:     "default registry",
+			hostname: "registry.terraform.io",
+		},
+		{
+			desc:     "non-default registry with BaseURL unset",
+			hostname: "registry.opentofu.org",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			platforms := []string{"linux_amd64"}
+			source := tc.hostname + "/hashicorp/null"
+			pvs := []*lock.ProviderVersion{
+				lock.NewMockProviderVersion(
+					source,
+					"3.2.1",
+					platforms,
+					map[string]string{
+						"terraform-provider-null_3.2.1_linux_amd64.zip": "h1:FbGfc+muBsC17Ohy5g806iuI1hQc4SIexpYCrQHQd8w=",
+					},
+					map[string]string{
+						"terraform-provider-null_3.2.1_linux_amd64.zip": "zh:74cb22c6700e48486b7cabefa10b33b801dfcab56f1a6ac9b6624531f3d36ea3",
+					},
+				),
+			}
+
+			lockfile := fmt.Sprintf(`
+provider "%s" {
+  version     = "3.1.1"
+  constraints = ">= 3.0.0, < 4.0.0"
+  hashes = [
+    "h1:old",
+  ]
+}
+`, source)
+			want := fmt.Sprintf(`
+provider "%s" {
+  version     = "3.2.1"
+  constraints = ">= 3.0.0, < 4.0.0"
+  hashes = [
+    "h1:FbGfc+muBsC17Ohy5g806iuI1hQc4SIexpYCrQHQd8w=",
+    "zh:74cb22c6700e48486b7cabefa10b33b801dfcab56f1a6ac9b6624531f3d36ea3",
+  ]
+}
+`, source)
+			fs := afero.NewMemMapFs()
+			dirname := "test"
+			if err := fs.MkdirAll(dirname, os.ModePerm); err != nil {
+				t.Fatalf("failed to create dir: %s", err)
+			}
+			filename := filepath.Join(dirname, ".terraform.lock.hcl")
+			if err := afero.WriteFile(fs, filename, []byte(lockfile), 0644); err != nil {
+				t.Fatalf("failed to write file: %s", err)
+			}
+
+			o := Option{
+				updateType:  "lock",
+				platforms:   platforms,
+				UseLockfile: true,
+			}
+			gc, err := NewGlobalContext(fs, o)
+			if err != nil {
+				t.Fatalf("failed to new global context: %s", err)
+			}
+			u := gc.updater.(*LockUpdater)
+			mockIndex := lock.NewMockIndex(pvs)
+			baseURL := "https://" + tc.hostname + "/"
+			if tc.hostname == "registry.terraform.io" {
+				u.index = mockIndex
+			} else {
+				u.index = lock.NewMockIndex(nil)
+				u.registryIndexes = map[string]lock.Index{baseURL: mockIndex}
+			}
+			u.newProviderRelease = func(source string, config tfregistry.Config) (release.Release, error) {
+				if source != "hashicorp/null" {
+					t.Errorf("got source = %q, want = %q", source, "hashicorp/null")
+				}
+				if config.BaseURL != baseURL {
+					t.Errorf("got BaseURL = %q, want = %q", config.BaseURL, baseURL)
+				}
+				return &mockProviderRelease{
+					versions: []string{"3.1.1", "3.2.1", "4.0.0"},
+				}, nil
+			}
+
+			f, diags := hclwrite.ParseConfig([]byte(lockfile), ".terraform.lock.hcl", hcl.Pos{Line: 1, Column: 1})
+			if diags.HasErrors() {
+				t.Fatalf("unexpected diagnostics: %s", diags)
+			}
+			mc, err := NewModuleContext(dirname, gc)
+			if err != nil {
+				t.Fatalf("failed to new module context: %s", err)
+			}
+			if err := u.Update(context.Background(), mc, ".terraform.lock.hcl", f); err != nil {
+				t.Fatalf("failed to call Update: err = %s", err)
+			}
+
+			got := string(hclwrite.Format(f.BuildTokens(nil).Bytes()))
+			if diff := cmp.Diff(got, want); diff != "" {
+				t.Errorf("got: %s, want = %s, diff = %s", got, want, diff)
 			}
 		})
 	}

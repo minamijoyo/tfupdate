@@ -188,7 +188,7 @@ func (pi *providerIndex) fetchProviderPackageMetadata(ctx context.Context, versi
 // version is a version number such as 3.2.1.
 // platform is a target platform name such as darwin_arm64.
 func newProviderPackageMetadataRequest(address string, version string, platform string) (*ProviderPackageMetadataRequest, error) {
-	pAddr, err := parseProviderAddress(address)
+	pAddr, err := ParseProviderAddress(address)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +222,7 @@ func buildProviderVersionFromPackageMetadata(address string, version string, res
 		// To ensure the same results with Terraform and OpenTofu,
 		// we need to build a filename for each platform.
 		// e.g.) darwin_arm64 => terraform-provider-null_3.2.1_darwin_arm64.zip
-		pAddr, err := parseProviderAddress(address)
+		pAddr, err := ParseProviderAddress(address)
 		if err != nil {
 			return nil, err
 		}
@@ -250,14 +250,9 @@ func buildProviderVersionFromPackageMetadata(address string, version string, res
 	return pv, nil
 }
 
-// parseProviderAddress parses a provider address and returns an instance of tfaddr.Provider.
-// The provider address is expected to be in the format of "namespace/type", such as "hashicorp/null".
-func parseProviderAddress(address string) (*tfaddr.Provider, error) {
-	// We parse a provider address by using the terraform-registry-address
-	// library to support fully qualified addresses such as
-	// registry.terraform.io/hashicorp/null in the future, but note that the
-	// current ProviderLockClient implementation only supports the public
-	// standard registry (registry.terraform.io).
+// ParseProviderAddress parses a provider address with an explicit namespace.
+// It accepts "namespace/type" and "hostname/namespace/type".
+func ParseProviderAddress(address string) (*tfaddr.Provider, error) {
 	pAddr, err := tfaddr.ParseProviderSource(address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse provider address: %s", address)
@@ -294,7 +289,7 @@ func parseProviderPlatform(platform string) (string, string, error) {
 // version is a version number such as 3.2.1.
 // platform is a target platform name such as darwin_arm64.
 func newProviderDownloadRequest(address string, version string, platform string) (*ProviderDownloadRequest, error) {
-	pAddr, err := parseProviderAddress(address)
+	pAddr, err := ParseProviderAddress(address)
 	if err != nil {
 		return nil, err
 	}

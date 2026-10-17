@@ -30,6 +30,9 @@ type Option struct {
 	// architecture such as darwin_arm64.
 	platforms []string
 
+	// UseLockfile selects provider versions from existing lock file constraints.
+	UseLockfile bool
+
 	// If a recursive flag is true, it checks and updates directories recursively.
 	recursive bool
 

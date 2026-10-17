@@ -98,6 +98,7 @@ func TestNewUpdater(t *testing.T) {
 			cmp.AllowUnexported(ProviderUpdater{}),
 			cmp.AllowUnexported(ModuleUpdater{}),
 			cmp.AllowUnexported(LockUpdater{}),
+			cmpopts.IgnoreFields(LockUpdater{}, "newProviderRelease"),
 			cmpopts.IgnoreInterfaces(struct{ lock.Index }{}),
 		}
 		if diff := cmp.Diff(got, tc.want, opts...); diff != "" {
