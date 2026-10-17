@@ -17,6 +17,7 @@ import (
 type LockCommand struct {
 	Meta
 	platforms   []string
+	useLockfile bool
 	path        string
 	recursive   bool
 	ignorePaths []string
@@ -26,6 +27,7 @@ type LockCommand struct {
 func (c *LockCommand) Run(args []string) int {
 	cmdFlags := flag.NewFlagSet("lock", flag.ContinueOnError)
 	cmdFlags.StringArrayVar(&c.platforms, "platform", []string{}, "A target platform for dependency lock file")
+	cmdFlags.BoolVar(&c.useLockfile, "use-lockfile", false, "Select provider versions from existing lock file constraints")
 	cmdFlags.BoolVarP(&c.recursive, "recursive", "r", false, "Check a directory recursively")
 	cmdFlags.StringArrayVarP(&c.ignorePaths, "ignore-path", "i", []string{}, "A regular expression for path to ignore")
 
@@ -69,6 +71,8 @@ func (c *LockCommand) Run(args []string) int {
 		return 1
 	}
 
+	option.UseLockfile = c.useLockfile
+
 	gc, err := tfupdate.NewGlobalContext(c.Fs, option)
 	if err != nil {
 		c.UI.Error(err.Error())
@@ -99,6 +103,8 @@ Options:
                      (e.g. linux_amd64, darwin_amd64, darwin_arm64)
                      If the registry supports h1 hash values, as in the public OpenTofu Registry, omitting
                      the platform will record hash values for all platforms without downloading binaries.
+      --use-lockfile Select the latest stable provider versions allowed by existing lock file constraints.
+                     Use the lock file instead of required_providers. Preserve its constraints.
   -r  --recursive    Check a directory recursively (default: false)
   -i  --ignore-path  A regular expression for path to ignore
                      If you want to ignore multiple directories, set the flag multiple times.

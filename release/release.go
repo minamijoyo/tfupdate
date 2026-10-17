@@ -3,6 +3,10 @@ package release
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math"
+
+	version "github.com/hashicorp/go-version"
 )
 
 // Release is an interface which provides version information of a module or provider.
@@ -18,16 +22,40 @@ type Release interface {
 // consistency. So we sort versions in semver order and find the latest non
 // pre-release.
 func Latest(ctx context.Context, r Release) (string, error) {
-	versions, err := List(ctx, r, 1, false)
+	return LatestMatching(ctx, r, "")
+}
+
+// LatestMatching returns the latest stable release that satisfies constraint.
+// An empty constraint allows any stable version.
+func LatestMatching(ctx context.Context, r Release, constraint string) (string, error) {
+	var constraints version.Constraints
+	if constraint != "" {
+		var err error
+		constraints, err = version.NewConstraint(constraint)
+		if err != nil {
+			return "", fmt.Errorf("invalid version constraints %q: %w", constraint, err)
+		}
+	}
+
+	versions, err := List(ctx, r, math.MaxInt, false)
 	if err != nil {
 		return "", err
 	}
 
-	if len(versions) == 0 {
-		return "", errors.New("no releases found")
+	for i := len(versions) - 1; i >= 0; i-- {
+		v, err := version.NewVersion(versions[i])
+		if err != nil {
+			return "", err
+		}
+		if constraints.Check(v) {
+			return versions[i], nil
+		}
 	}
 
-	return versions[0], nil
+	if constraint == "" {
+		return "", errors.New("no releases found")
+	}
+	return "", fmt.Errorf("no stable release found matching constraints %q", constraint)
 }
 
 // List returns a list of releases in semver order.

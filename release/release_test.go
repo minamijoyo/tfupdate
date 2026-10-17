@@ -91,6 +91,65 @@ func TestLatest(t *testing.T) {
 	}
 }
 
+func TestLatestMatching(t *testing.T) {
+	cases := []struct {
+		desc       string
+		r          Release
+		constraint string
+		want       string
+		ok         bool
+	}{
+		{
+			desc: "range constraint",
+			r: &mockRelease{
+				versions: []string{"1.5.0", "2.0.0", "1.9.0"},
+				err:      nil,
+			},
+			constraint: ">= 1.0.0, < 2.0.0",
+			want:       "1.9.0",
+			ok:         true,
+		},
+		{
+			desc: "invalid constraint",
+			r: &mockRelease{
+				versions: []string{"1.5.0"},
+				err:      nil,
+			},
+			constraint: "invalid",
+			want:       "",
+			ok:         false,
+		},
+		{
+			desc: "no matching version",
+			r: &mockRelease{
+				versions: []string{"1.5.0"},
+				err:      nil,
+			},
+			constraint: ">= 2.0.0",
+			want:       "",
+			ok:         false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.desc, func(t *testing.T) {
+			got, err := LatestMatching(context.Background(), tc.r, tc.constraint)
+
+			if tc.ok && err != nil {
+				t.Fatalf("unexpected err: %#v", err)
+			}
+
+			if !tc.ok && err == nil {
+				t.Fatalf("expects to return an error, but no error. got = %#v", got)
+			}
+
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("got = %#v, but want = %#v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestList(t *testing.T) {
 	cases := []struct {
 		desc       string
