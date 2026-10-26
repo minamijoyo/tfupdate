@@ -1,5 +1,11 @@
 ## master (Unreleased)
 
+ENHANCEMENTS:
+
+* Update Go to v1.26.10 ([#171](https://github.com/minamijoyo/tfupdate/pull/171))
+* Add support for Terraform v1.17 ([#172](https://github.com/minamijoyo/tfupdate/pull/172))
+* Add support for OpenTofu v1.13 ([#173](https://github.com/minamijoyo/tfupdate/pull/173))
+
 ## 0.10.2 (2026/07/14)
 
 NEW FEATURES:
