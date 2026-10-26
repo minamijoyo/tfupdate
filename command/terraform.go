@@ -18,6 +18,7 @@ type TerraformCommand struct {
 	version     string
 	path        string
 	recursive   bool
+	addMissing  bool
 	ignorePaths []string
 }
 
@@ -27,6 +28,8 @@ func (c *TerraformCommand) Run(args []string) int {
 	cmdFlags.StringVarP(&c.version, "version", "v", "latest", "A new version constraint")
 	cmdFlags.BoolVarP(&c.recursive, "recursive", "r", false, "Check a directory recursively")
 	cmdFlags.StringArrayVarP(&c.ignorePaths, "ignore-path", "i", []string{}, "A regular expression for path to ignore")
+
+	cmdFlags.BoolVar(&c.addMissing, "add-missing", false, "Create a missing required_version constraint")
 
 	if err := cmdFlags.Parse(args); err != nil {
 		c.UI.Error(fmt.Sprintf("failed to parse arguments: %s", err))
@@ -63,6 +66,8 @@ func (c *TerraformCommand) Run(args []string) int {
 		return 1
 	}
 
+	option.AddMissing = c.addMissing
+
 	gc, err := tfupdate.NewGlobalContext(c.Fs, option)
 	if err != nil {
 		c.UI.Error(err.Error())
@@ -87,6 +92,8 @@ Arguments
   PATH               A path of file or directory to update
 
 Options:
+      --add-missing  Create a missing required_version constraint (default: false)
+                     Check the module first; create versions.tf for a directory.
   -v  --version      A new version constraint (default: latest)
                      If the version is omitted, the latest version is automatically checked and set.
   -r  --recursive    Check a directory recursively (default: false)

@@ -10,6 +10,7 @@
 - Update all your Terraform / OpenTofu configurations and lock files recursively under a given directory
 - Get the latest release version from the GitHub, GitLab, Terraform Registry, or OpenTofu Registry
 - Terraform v0.12+ / OpenTofu v1.6+ support
+- Opt in to creating missing Terraform/OpenTofu core constraints with `terraform --add-missing` or `opentofu --add-missing`; directory targets use `versions.tf` after inspecting the module
 
 If you integrate tfupdate with your favorite CI or job scheduler, you can check the latest release daily and create a Pull Request automatically.
 

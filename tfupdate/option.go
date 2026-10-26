@@ -11,6 +11,9 @@ import (
 
 // Option is a set of parameters to update.
 type Option struct {
+	// AddMissing creates absent native runtime version constraints when enabled.
+	AddMissing bool
+
 	// A type of updater. Valid values are as follows:
 	// - terraform
 	// - provider

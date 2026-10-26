@@ -109,6 +109,9 @@ func UpdateDir(ctx context.Context, current *ModuleContext, dirname string) erro
 
 // UpdateFileOrDir updates version constraints in a given file or directory.
 func UpdateFileOrDir(ctx context.Context, gc *GlobalContext, path string) error {
+	if gc.option.AddMissing && (gc.option.updateType == "terraform" || gc.option.updateType == "opentofu") {
+		return updateMissingVersions(gc, path)
+	}
 	isDir, err := afero.IsDir(gc.fs, path)
 	if err != nil {
 		return fmt.Errorf("failed to open path: %s", err)
