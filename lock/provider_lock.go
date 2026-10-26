@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -141,7 +142,7 @@ func (c *ProviderLockClient) ProviderDownload(ctx context.Context, req *Provider
 }
 
 // download is a helper function that downloads contents from a given URL.
-func (c *ProviderLockClient) download(ctx context.Context, url string) ([]byte, error) {
+func (c *ProviderLockClient) download(ctx context.Context, url string) (data []byte, err error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build http request: err = %s, url = %s", err, url)
@@ -152,13 +153,15 @@ func (c *ProviderLockClient) download(ctx context.Context, url string) ([]byte, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to request: err = %s, url = %s", err, url)
 	}
-	defer res.Body.Close()
+	defer func() {
+		err = errors.Join(err, res.Body.Close())
+	}()
 
 	if res.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code %s: %s", res.Status, url)
 	}
 
-	data, err := io.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read body: err = %s, url = %s", err, url)
 	}

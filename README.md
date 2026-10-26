@@ -542,7 +542,11 @@ provider "registry.terraform.io/hashicorp/null" {
 
 The tfupdate lock command parses the `required_providers` block in your configuration, downloads provider packages and calculates hash values under the hood. The most important point is that it caches calculated hash values in memory, which gives us a huge performance advantage when updating multiple directories at once using the `-r (--recursive)` option.
 
-To skip terraform init, we assume that all dependencies are pinned to a specific version in the required_providers block of the root module. Note that version constraint expressions or indirect dependencies via modules are not supported and ignored.
+Lock generation resolves the directly declared provider constraints in each module, choosing the highest matching registry version. Declarations for the same effective provider address are combined. Exact pins avoid catalog requests; successful catalogs are cached for the invocation while each module is resolved independently. Indirect dependencies from downloaded child modules remain unsupported.
+
+When platforms are specified, range selection requires the catalog to advertise all requested platforms. Duplicate entries for the same normalized version contribute their combined platform support. Without platforms, the existing metadata-based checksum behavior applies. Exact pins continue to use checksum validation without listing versions.
+
+Missing lockfiles are created for eligible modules. Resolution or checksum failures leave that module's existing lockfile unchanged and do not create a missing one. Existing entries record the combined constraints even if their selected version has not changed; hashes are preserved in that case.
 
 If the registry supports h1 hash values, as in the public OpenTofu Registry, omitting the platform will record hash values for all platforms without downloading binaries.
 

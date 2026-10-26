@@ -2,6 +2,7 @@ package tfregistry
 
 import (
 	"context"
+	"errors"
 	"fmt"
 )
 
@@ -60,7 +61,7 @@ func (c *Client) ListProviderVersions(ctx context.Context, req *ListProviderVers
 	}
 
 	if httpResponse.StatusCode != 200 {
-		return nil, fmt.Errorf("unexpected HTTP Status Code: %d", httpResponse.StatusCode)
+		return nil, errors.Join(fmt.Errorf("unexpected HTTP Status Code: %d", httpResponse.StatusCode), httpResponse.Body.Close())
 	}
 
 	var res ListProviderVersionsResponse

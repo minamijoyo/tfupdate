@@ -1,6 +1,7 @@
 package tfupdate
 
 import (
+	"fmt"
 	"log"
 	"maps"
 	"slices"
@@ -51,6 +52,9 @@ type ModuleContext struct {
 	// multiple constraints. The meaning depends on the use case and is therefore
 	// lazily evaluated.
 	requiredProviders map[string]*tfconfig.ProviderRequirement
+
+	// inspectionError is retained for operations that require complete provider information.
+	inspectionError error
 }
 
 // SelectedProvider is the source address and version of the provider, as
@@ -82,21 +86,22 @@ func aferoToTfconfigFS(afs afero.Fs) tfconfig.FS {
 // The dir is a relative path to the module from the current working directory.
 func NewModuleContext(dir string, gc *GlobalContext) (*ModuleContext, error) {
 	requiredProviders := make(map[string]*tfconfig.ProviderRequirement)
+	var inspectionError error
 	m, diags := tfconfig.LoadModuleFromFilesystem(aferoToTfconfigFS(gc.fs), dir)
-	if diags.HasErrors() {
-		// There is a known issue passing absolute paths to afero.IOFS results in
-		// an error, but as the result of module inspection is not essential for
-		// all use cases now, we intentionally ignore the error here.
-		// https://github.com/minamijoyo/tfupdate/issues/93
-		log.Printf("[DEBUG] failed to load module: dir = %s, err = %s", dir, diags)
-	} else {
+	if m != nil {
 		requiredProviders = m.RequiredProviders
+	}
+	if diags.HasErrors() {
+		inspectionError = fmt.Errorf("failed to inspect provider requirements: %s", diags)
+		// Non-lock operations can proceed without provider inspection.
+		log.Printf("[DEBUG] failed to load module: dir = %s, err = %s", dir, diags)
 	}
 
 	c := &ModuleContext{
 		gc:                gc,
 		dir:               dir,
 		requiredProviders: requiredProviders,
+		inspectionError:   inspectionError,
 	}
 
 	return c, nil
