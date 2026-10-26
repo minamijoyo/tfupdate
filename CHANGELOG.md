@@ -1,5 +1,7 @@
 ## master (Unreleased)
 
+## 0.10.3 (2026/10/26)
+
 ENHANCEMENTS:
 
 * Update Go to v1.26.10 ([#171](https://github.com/minamijoyo/tfupdate/pull/171))
