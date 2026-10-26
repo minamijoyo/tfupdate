@@ -106,7 +106,7 @@ pushd "$WORKDIR"
 # If the registry supports the h1 hashes, omit the platform args.
 REGISTRY_H1_SUPPORT=0
 if [[ "$TFUPDATE_EXEC_PATH" == tofu ]]; then
-  CURRENT_TOFU_VERSION=$( tofu -v | grep -oE 'OpenTofu v?[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^OpenTofu v//')
+  CURRENT_TOFU_VERSION=$( tofu version | grep -oE 'OpenTofu v?[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^OpenTofu v//')
   MIN_TOFU_REGISTRY_H1_SUPPORT=1.12.0
   if [ "$(printf '%s\n%s\n' "$MIN_TOFU_REGISTRY_H1_SUPPORT" "$CURRENT_TOFU_VERSION" | sort -V | head -n1)" == "$MIN_TOFU_REGISTRY_H1_SUPPORT" ]; then
     REGISTRY_H1_SUPPORT=1
