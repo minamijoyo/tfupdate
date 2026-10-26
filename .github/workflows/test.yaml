@@ -30,8 +30,8 @@ jobs:
     strategy:
       matrix:
         terraform:
-        - 1.15.1
-        - 1.14.9
+        - 1.17.0
+        - 1.16.7
         - 0.14.11
     env:
       TERRAFORM_VERSION: ${{ matrix.terraform }}
